@@ -1,0 +1,4 @@
+Python executable: C:\Users\tomas\Desktop\0001 DUOMENU ANALITIKA\10_shop_sentiment\shopenv\Scripts\python.exe
+Error importing Scrapy: No module named 'scrapy'
+Error importing CrawlerProcess: No module named 'scrapy'
+Script completed successfully

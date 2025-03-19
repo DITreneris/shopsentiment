@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}ShopSentiment - Processing{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h2 class="mb-0">Processing Reviews</h2>
+            </div>
+            <div class="card-body text-center">
+                <div class="spinner-border mb-4" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <h4>We're collecting and analyzing reviews</h4>
+                <p class="mb-4">
+                    Platform: <span class="fw-bold">{{ product.platform }}</span> |
+                    Product ID: <span class="fw-bold">{{ product.product_id }}</span>
+                </p>
+                <p>This process may take a few minutes. The page will automatically refresh to check for results.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Refresh the page every 10 seconds to check for results
+    setTimeout(function() {
+        window.location.reload();
+    }, 10000);
+</script>
+{% endblock %} 

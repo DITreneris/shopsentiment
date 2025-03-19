@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}ShopSentiment - Analyze Product Reviews{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">Analyze Product Reviews</h2>
+            </div>
+            <div class="card-body">
+                <form action="{{ url_for('analyze') }}" method="post">
+                    <div class="mb-3">
+                        <label for="platform" class="form-label">Platform</label>
+                        <select class="form-select" id="platform" name="platform" required>
+                            <option value="" selected disabled>Select a platform</option>
+                            <option value="amazon">Amazon</option>
+                            <option value="ebay">eBay</option>
+                            <option value="custom">Custom Website</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="product_id" class="form-label">Product ID</label>
+                        <input type="text" class="form-control" id="product_id" name="product_id" placeholder="Enter product ID (e.g., ASIN for Amazon)" required>
+                        <div class="form-text">
+                            <span id="product_id_help">For Amazon, enter ASIN. For eBay, enter Item ID.</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="url" class="form-label">Product URL</label>
+                        <input type="url" class="form-control" id="url" name="url" placeholder="Enter the full product URL">
+                    </div>
+                    
+                    <div id="custom_selectors" style="display: none;">
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h5>Custom Website Selectors</h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Provide CSS selectors for review elements on the target website.</p>
+                                
+                                <div class="mb-3">
+                                    <label for="review_selector" class="form-label">Review Text Selector</label>
+                                    <input type="text" class="form-control" id="review_selector" name="review_selector" placeholder="e.g., .review-text or //div[@class='review-text']">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="rating_selector" class="form-label">Rating Selector</label>
+                                    <input type="text" class="form-control" id="rating_selector" name="rating_selector" placeholder="e.g., .rating or //span[@class='rating']">
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="date_selector" class="form-label">Date Selector</label>
+                                    <input type="text" class="form-control" id="date_selector" name="date_selector" placeholder="e.g., .review-date or //span[@class='review-date']">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Analyze Reviews</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const platformSelect = document.getElementById('platform');
+        const customSelectors = document.getElementById('custom_selectors');
+        const productIdHelp = document.getElementById('product_id_help');
+        
+        platformSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                customSelectors.style.display = 'block';
+                productIdHelp.textContent = 'For custom websites, enter a unique identifier for this analysis.';
+            } else if (this.value === 'amazon') {
+                customSelectors.style.display = 'none';
+                productIdHelp.textContent = 'For Amazon, enter ASIN.';
+            } else if (this.value === 'ebay') {
+                customSelectors.style.display = 'none';
+                productIdHelp.textContent = 'For eBay, enter Item ID.';
+            }
+        });
+    });
+</script>
+{% endblock %} 
