@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}ShopSentiment - My Analyses{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>My Analyses</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <p>View and manage your sentiment analyses</p>
+        <a href="{{ url_for('index') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> New Analysis
+        </a>
+    </div>
+    
+    {% if products %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Platform</th>
+                        <th>Product ID</th>
+                        <th>Date Analyzed</th>
+                        <th>Sentiment</th>
+                        <th>Reviews</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                    <tr>
+                        <td>{{ product.platform | capitalize }}</td>
+                        <td>{{ product.product_id }}</td>
+                        <td>{{ product.analyzed_date }}</td>
+                        <td>
+                            {% if product.avg_sentiment > 0.05 %}
+                                <span class="badge bg-success">Positive</span>
+                            {% elif product.avg_sentiment < -0.05 %}
+                                <span class="badge bg-danger">Negative</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Neutral</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ product.review_count or 0 }}</td>
+                        <td>
+                            <a href="{{ url_for('dashboard', product_id=product.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-chart-bar"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info">
+            <p>You haven't created any analyses yet. <a href="{{ url_for('index') }}">Start your first analysis</a>.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 

@@ -42,3 +42,6 @@ Thumbs.db
 # Heroku
 .heroku/
 *.log 
+
+# Project-specific exclusions
+dev_plan.md

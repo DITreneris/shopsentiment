@@ -1,0 +1,302 @@
+/**
+ * Theme stylesheet for ShopSentiment application
+ * Supports light and dark modes
+ */
+
+/* Root CSS variables for theming */
+:root {
+    /* Light theme variables (default) */
+    --bg-color: #fff;
+    --text-color: #333;
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --card-bg: #fff;
+    --border-color: #dee2e6;
+    --chart-grid-color: rgba(0, 0, 0, 0.1);
+    --neutral-color: #ffc107;
+    --positive-color: #28a745;
+    --negative-color: #dc3545;
+}
+
+/* Dark theme variables */
+[data-theme="dark"] {
+    --bg-color: #222;
+    --text-color: #f8f9fa;
+    --primary-color: #0d6efd;
+    --secondary-color: #adb5bd;
+    --card-bg: #333;
+    --border-color: #495057;
+    --chart-grid-color: rgba(255, 255, 255, 0.1);
+    --neutral-color: #ffc107;
+    --positive-color: #28a745;
+    --negative-color: #dc3545;
+}
+
+/* Apply theme to elements */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.navbar, .footer {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color);
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--border-color);
+    box-shadow: var(--card-shadow);
+}
+
+.card-header, .card-footer {
+    background-color: var(--bg-secondary);
+    border-color: var(--border-color);
+}
+
+.table {
+    color: var(--text-color);
+    border-color: var(--border-color);
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: var(--table-stripe);
+}
+
+input, select, textarea, .form-control, .form-select {
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.text-muted {
+    color: var(--text-secondary) !important;
+}
+
+/* Tooltip and Tour Styling */
+.tooltip-wrapper {
+    position: absolute;
+    z-index: 1000;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    max-width: 300px;
+    font-size: 0.875rem;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tooltip-wrapper.active {
+    opacity: 1;
+}
+
+.tour-popup {
+    position: fixed;
+    z-index: 1100;
+    background-color: var(--card-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    max-width: 350px;
+    width: 100%;
+}
+
+.tour-popup-header {
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: bold;
+}
+
+.tour-popup-body {
+    margin-bottom: 1rem;
+}
+
+.tour-popup-footer {
+    display: flex;
+    justify-content: space-between;
+    border-top: 1px solid var(--border-color);
+    padding-top: 0.75rem;
+}
+
+.tour-highlight {
+    position: relative;
+}
+
+.tour-highlight:after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid var(--accent-color);
+    border-radius: 4px;
+    pointer-events: none;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(13, 110, 253, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(13, 110, 253, 0);
+    }
+}
+
+/* Theme switch styling */
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 34px;
+    position: relative;
+    width: 60px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: #ccc;
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    background-color: #fff;
+    bottom: 4px;
+    content: "";
+    height: 26px;
+    left: 4px;
+    position: absolute;
+    transition: .4s;
+    width: 26px;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-color);
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+.slider .fa-sun {
+    color: #ffd43b;
+    position: absolute;
+    left: 8px;
+    top: 8px;
+    transition: opacity 0.3s;
+    opacity: 1;
+}
+
+.slider .fa-moon {
+    color: #f8f9fa;
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    transition: opacity 0.3s;
+    opacity: 0;
+}
+
+input:checked + .slider .fa-sun {
+    opacity: 0;
+}
+
+input:checked + .slider .fa-moon {
+    opacity: 1;
+}
+
+/* DataTables theming */
+.dataTables_wrapper .dataTables_length,
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_info,
+.dataTables_wrapper .dataTables_processing,
+.dataTables_wrapper .dataTables_paginate {
+    color: var(--text-primary) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    color: var(--text-primary) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background: var(--accent-color) !important;
+    border-color: var(--accent-color) !important;
+    color: white !important;
+}
+
+/* Button theming */
+.btn-outline-primary {
+    color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--accent-color);
+    color: white;
+}
+
+.btn-primary {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+}
+
+/* Progress bar theming */
+.progress {
+    background-color: var(--bg-secondary);
+}
+
+/* Badge theming */
+.badge.bg-secondary {
+    background-color: var(--text-secondary) !important;
+}
+
+/* Animation for theme transitions */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Navbar specific styling */
+.navbar {
+    color: var(--text-primary);
+}
+
+.navbar-brand, .nav-link {
+    color: var(--text-primary);
+}
+
+.navbar-brand:hover, .nav-link:hover {
+    color: var(--accent-color);
+}
+
+.navbar-toggler-icon {
+    filter: invert(var(--text-primary-invert, 0.8));
+}
+
+.navbar-toggler {
+    border-color: var(--border-color);
+} 

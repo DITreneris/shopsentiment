@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}ShopSentiment - Documentation{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Contents</h5>
+                </div>
+                <div class="card-body">
+                    <nav id="navbar-docs" class="nav flex-column">
+                        <a class="nav-link" href="#introduction">Introduction</a>
+                        <a class="nav-link" href="#getting-started">Getting Started</a>
+                        <a class="nav-link" href="#analyzing-products">Analyzing Products</a>
+                        <a class="nav-link" href="#understanding-results">Understanding Results</a>
+                        <a class="nav-link" href="#user-account">User Account</a>
+                        <a class="nav-link" href="#theming">Theme Options</a>
+                        <a class="nav-link" href="#data-export">Data Export</a>
+                        <a class="nav-link" href="#troubleshooting">Troubleshooting</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="mb-0">ShopSentiment Documentation</h2>
+                </div>
+                <div class="card-body">
+                    <section id="introduction" class="mb-5">
+                        <h3>Introduction</h3>
+                        <p>ShopSentiment is a web application designed to help users analyze product reviews from e-commerce platforms. The application performs sentiment analysis on reviews, extracts key themes and topics, and presents the data in an intuitive dashboard format.</p>
+                        
+                        <h4>Key Features</h4>
+                        <ul>
+                            <li>Sentiment analysis of product reviews (positive, neutral, negative)</li>
+                            <li>Keyword extraction to identify common themes</li>
+                            <li>Sentiment trends over time</li>
+                            <li>Interactive filtering and visualization</li>
+                            <li>Data export functionality</li>
+                            <li>User account management</li>
+                            <li>Light and dark theme options</li>
+                        </ul>
+                    </section>
+                    
+                    <section id="getting-started" class="mb-5">
+                        <h3>Getting Started</h3>
+                        <p>To begin using ShopSentiment, follow these steps:</p>
+                        
+                        <ol>
+                            <li>
+                                <strong>Create an account</strong>: Click the "Register" button in the navigation bar to create a new account. This will allow you to save your analyses and access them later.
+                            </li>
+                            <li>
+                                <strong>Log in</strong>: After creating an account, log in using your credentials.
+                            </li>
+                            <li>
+                                <strong>Navigate to the home page</strong>: The home page provides access to the product analysis form.
+                            </li>
+                        </ol>
+                    </section>
+                    
+                    <section id="analyzing-products" class="mb-5">
+                        <h3>Analyzing Products</h3>
+                        <p>To analyze a product's reviews:</p>
+                        
+                        <ol>
+                            <li>
+                                <strong>Select a platform</strong>: Choose the e-commerce platform where the product is listed (Amazon, eBay, or Custom).
+                            </li>
+                            <li>
+                                <strong>Enter product ID or URL</strong>: Provide the product ID or full URL from the chosen platform.
+                            </li>
+                            <li>
+                                <strong>Submit for analysis</strong>: Click the "Analyze" button to begin the review collection and analysis process.
+                            </li>
+                            <li>
+                                <strong>Wait for results</strong>: The analysis may take a few moments to complete as reviews are collected and processed.
+                            </li>
+                        </ol>
+                        
+                        <p>For custom platforms, additional configuration options will be available to specify how to locate reviews on the page.</p>
+                    </section>
+                    
+                    <section id="understanding-results" class="mb-5">
+                        <h3>Understanding Results</h3>
+                        <p>The analysis dashboard consists of several key components:</p>
+                        
+                        <h4>Sentiment Distribution</h4>
+                        <p>A pie chart showing the proportion of positive, neutral, and negative reviews. This gives you a quick overview of overall customer sentiment.</p>
+                        
+                        <h4>Top Keywords</h4>
+                        <p>A bar chart displaying the most frequently mentioned words in reviews. This helps identify common themes or features that customers are discussing.</p>
+                        
+                        <h4>Sentiment Trend</h4>
+                        <p>A line graph showing how sentiment has changed over time. This can help identify if product perception is improving or declining.</p>
+                        
+                        <h4>Reviews Table</h4>
+                        <p>A detailed table of all collected reviews, including the original text, rating, date, and calculated sentiment score.</p>
+                        
+                        <h4>Filtering Options</h4>
+                        <p>Use the filter controls to focus on specific sentiments or keywords, helping you drill down into particular aspects of customer feedback.</p>
+                    </section>
+                    
+                    <section id="user-account" class="mb-5">
+                        <h3>User Account</h3>
+                        <p>Your user account provides several benefits:</p>
+                        
+                        <h4>Profile Management</h4>
+                        <p>Access your profile by clicking on your username in the navigation bar. From here, you can update your username and email address.</p>
+                        
+                        <h4>Saved Analyses</h4>
+                        <p>All analyses you perform while logged in are saved to your account. Access them from the "My Analyses" section in the navigation menu.</p>
+                        
+                        <h4>Privacy</h4>
+                        <p>Your analyses are private and can only be accessed by you when logged into your account.</p>
+                    </section>
+                    
+                    <section id="theming" class="mb-5">
+                        <h3>Theme Options</h3>
+                        <p>ShopSentiment offers both light and dark themes:</p>
+                        
+                        <h4>Switching Themes</h4>
+                        <p>Toggle between light and dark themes using the theme switch in the navigation bar (sun/moon icon).</p>
+                        
+                        <h4>Persistence</h4>
+                        <p>Your theme preference is saved to your browser's local storage and will persist between sessions.</p>
+                    </section>
+                    
+                    <section id="data-export" class="mb-5">
+                        <h3>Data Export</h3>
+                        <p>Export your analysis data for further processing or reporting:</p>
+                        
+                        <h4>CSV Export</h4>
+                        <p>Click the "Export CSV" button to download a CSV file containing all review data, including text, ratings, dates, and sentiment scores.</p>
+                        
+                        <h4>JSON Export</h4>
+                        <p>Click the "Export JSON" button to download a JSON file containing all review data, along with product information and metadata.</p>
+                    </section>
+                    
+                    <section id="troubleshooting" class="mb-5">
+                        <h3>Troubleshooting</h3>
+                        <p>Common issues and their solutions:</p>
+                        
+                        <h4>No Reviews Found</h4>
+                        <p>If no reviews are found for a product, check that the product ID or URL is correct. Some products may have reviews disabled or use a non-standard format.</p>
+                        
+                        <h4>Custom Platform Issues</h4>
+                        <p>For custom platforms, ensure that the CSS selectors are correctly defined to locate review elements on the page.</p>
+                        
+                        <h4>Login Problems</h4>
+                        <p>If you're having trouble logging in, use the password reset feature or contact support for assistance.</p>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Highlight active section in the navigation
+        const sections = document.querySelectorAll('section');
+        const navLinks = document.querySelectorAll('#navbar-docs .nav-link');
+        
+        function highlightActiveSection() {
+            let currentSection = '';
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.offsetHeight;
+                
+                if (window.scrollY >= sectionTop - 200) {
+                    currentSection = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${currentSection}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+        
+        window.addEventListener('scroll', highlightActiveSection);
+        highlightActiveSection();
+        
+        // Smooth scrolling for navigation links
+        navLinks.forEach(link => {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                const targetId = link.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                window.scrollTo({
+                    top: targetElement.offsetTop - 100,
+                    behavior: 'smooth'
+                });
+            });
+        });
+    });
+</script>
+{% endblock %} 

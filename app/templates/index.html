@@ -1,69 +1,103 @@
 {% extends "base.html" %}
 
-{% block title %}ShopSentiment - Analyze Product Reviews{% endblock %}
+{% block title %}ShopSentiment - Product Review Analyzer{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h2 class="mb-0">Analyze Product Reviews</h2>
-            </div>
-            <div class="card-body">
-                <form action="{{ url_for('analyze') }}" method="post">
-                    <div class="mb-3">
-                        <label for="platform" class="form-label">Platform</label>
-                        <select class="form-select" id="platform" name="platform" required>
-                            <option value="" selected disabled>Select a platform</option>
-                            <option value="amazon">Amazon</option>
-                            <option value="ebay">eBay</option>
-                            <option value="custom">Custom Website</option>
-                        </select>
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <div class="text-center mb-5">
+                        <h1 class="display-4 fw-bold text-primary">ShopSentiment</h1>
+                        <p class="lead">Analyze product reviews across e-commerce platforms</p>
+                        <p class="text-muted"><small>Made with 🧠 AI - Intelligent Review Analysis</small></p>
                     </div>
                     
-                    <div class="mb-3">
-                        <label for="product_id" class="form-label">Product ID</label>
-                        <input type="text" class="form-control" id="product_id" name="product_id" placeholder="Enter product ID (e.g., ASIN for Amazon)" required>
-                        <div class="form-text">
-                            <span id="product_id_help">For Amazon, enter ASIN. For eBay, enter Item ID.</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="url" class="form-label">Product URL</label>
-                        <input type="url" class="form-control" id="url" name="url" placeholder="Enter the full product URL">
-                    </div>
-                    
-                    <div id="custom_selectors" style="display: none;">
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h5>Custom Website Selectors</h5>
+                    <form action="{{ url_for('analyze') }}" method="post" class="mb-5">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <select class="form-select" id="platform" name="platform" required data-tooltip="platform-select">
+                                        <option value="" selected disabled>Choose platform...</option>
+                                        <option value="amazon">Amazon</option>
+                                        <option value="bestbuy">Best Buy</option>
+                                        <option value="walmart">Walmart</option>
+                                        <option value="target">Target</option>
+                                    </select>
+                                    <label for="platform">E-commerce Platform</label>
+                                </div>
                             </div>
-                            <div class="card-body">
-                                <p>Provide CSS selectors for review elements on the target website.</p>
-                                
-                                <div class="mb-3">
-                                    <label for="review_selector" class="form-label">Review Text Selector</label>
-                                    <input type="text" class="form-control" id="review_selector" name="review_selector" placeholder="e.g., .review-text or //div[@class='review-text']">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="rating_selector" class="form-label">Rating Selector</label>
-                                    <input type="text" class="form-control" id="rating_selector" name="rating_selector" placeholder="e.g., .rating or //span[@class='rating']">
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="date_selector" class="form-label">Date Selector</label>
-                                    <input type="text" class="form-control" id="date_selector" name="date_selector" placeholder="e.g., .review-date or //span[@class='review-date']">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input type="text" class="form-control" id="product_id" name="product_id" placeholder="Product ID" required data-tooltip="product-id">
+                                    <label for="product_id">Product ID or URL</label>
                                 </div>
                             </div>
                         </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" data-tooltip="analyze-button">
+                                <i class="bi bi-search me-2"></i>Analyze Reviews
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-12">
+                            <h4 class="text-center mb-4">Recently Analyzed Products</h4>
+                            
+                            <div class="table-responsive" data-tooltip="recent-products">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Platform</th>
+                                            <th>Product ID</th>
+                                            <th>Date Analyzed</th>
+                                            <th>Sentiment</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for product in recent_products %}
+                                        <tr>
+                                            <td>{{ product.platform|capitalize }}</td>
+                                            <td>{{ product.product_id }}</td>
+                                            <td>{{ product.analyzed_date }}</td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar {{ 'bg-success' if product.avg_sentiment > 0.05 else 'bg-danger' if product.avg_sentiment < -0.05 else 'bg-warning' }}" 
+                                                         role="progressbar" 
+                                                         style="width: {{ (product.avg_sentiment + 1) / 2 * 100 }}%;" 
+                                                         aria-valuenow="{{ product.avg_sentiment }}" 
+                                                         aria-valuemin="-1" 
+                                                         aria-valuemax="1">
+                                                        {{ "%.2f"|format(product.avg_sentiment) }}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <a href="{{ url_for('dashboard', product_id=product.id) }}" class="btn btn-sm btn-outline-primary" data-tooltip="view-dashboard">
+                                                    <i class="bi bi-bar-chart-fill"></i> View
+                                                </a>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                     
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Analyze Reviews</button>
+                    <div class="text-center">
+                        <p class="text-muted">
+                            <small>ShopSentiment analyzes product reviews using natural language processing to help you understand customer sentiment.</small>
+                        </p>
+                        <button class="btn btn-sm btn-outline-secondary" id="start-tour" data-tooltip="start-tour">
+                            <i class="bi bi-info-circle me-1"></i>Take a Tour
+                        </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
@@ -73,22 +107,13 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const platformSelect = document.getElementById('platform');
-        const customSelectors = document.getElementById('custom_selectors');
-        const productIdHelp = document.getElementById('product_id_help');
-        
-        platformSelect.addEventListener('change', function() {
-            if (this.value === 'custom') {
-                customSelectors.style.display = 'block';
-                productIdHelp.textContent = 'For custom websites, enter a unique identifier for this analysis.';
-            } else if (this.value === 'amazon') {
-                customSelectors.style.display = 'none';
-                productIdHelp.textContent = 'For Amazon, enter ASIN.';
-            } else if (this.value === 'ebay') {
-                customSelectors.style.display = 'none';
-                productIdHelp.textContent = 'For eBay, enter Item ID.';
-            }
-        });
+        // Initialize the tour button
+        const tourButton = document.getElementById('start-tour');
+        if (tourButton && window.tooltipManager) {
+            tourButton.addEventListener('click', function() {
+                window.tooltipManager.startTour('home');
+            });
+        }
     });
 </script>
 {% endblock %} 
