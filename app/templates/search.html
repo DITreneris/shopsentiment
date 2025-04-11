@@ -1,0 +1,595 @@
+{% extends 'base.html' %}
+
+{% block title %}Search - ShopSentiment{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="mb-4">Search</h1>
+            
+            <!-- Search form -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <form id="searchForm" class="mb-0">
+                        <div class="input-group">
+                            <input type="text" id="searchQuery" class="form-control" placeholder="Search products, reviews, and feedback..." aria-label="Search query">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i> Search
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Search results -->
+            <div id="searchResults" class="d-none">
+                <ul class="nav nav-tabs mb-3" id="resultsTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="unified-tab" data-bs-toggle="tab" data-bs-target="#unified" type="button" role="tab" aria-controls="unified" aria-selected="true">All Results</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab" aria-controls="products" aria-selected="false">Products</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab" aria-controls="reviews" aria-selected="false">Reviews</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="feedback-tab" data-bs-toggle="tab" data-bs-target="#feedback" type="button" role="tab" aria-controls="feedback" aria-selected="false">Feedback</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="resultsTabContent">
+                    <!-- Unified results tab -->
+                    <div class="tab-pane fade show active" id="unified" role="tabpanel" aria-labelledby="unified-tab">
+                        <div class="unified-results">
+                            <!-- Product results section -->
+                            <div class="product-section mb-4">
+                                <h3 class="h5 text-primary">Products</h3>
+                                <div class="unified-products">
+                                    <div class="text-center py-3 loading-spinner d-none">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <div class="unified-products-list"></div>
+                                    <div class="unified-products-empty d-none">
+                                        <p class="text-muted small">No product results</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Review results section -->
+                            <div class="review-section mb-4">
+                                <h3 class="h5 text-primary">Reviews</h3>
+                                <div class="unified-reviews">
+                                    <div class="text-center py-3 loading-spinner d-none">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <div class="unified-reviews-list"></div>
+                                    <div class="unified-reviews-empty d-none">
+                                        <p class="text-muted small">No review results</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Feedback results section -->
+                            <div class="feedback-section mb-4">
+                                <h3 class="h5 text-primary">Feedback</h3>
+                                <div class="unified-feedback">
+                                    <div class="text-center py-3 loading-spinner d-none">
+                                        <div class="spinner-border spinner-border-sm" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                    <div class="unified-feedback-list"></div>
+                                    <div class="unified-feedback-empty d-none">
+                                        <p class="text-muted small">No feedback results</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Products tab -->
+                    <div class="tab-pane fade" id="products" role="tabpanel" aria-labelledby="products-tab">
+                        <div class="products-results">
+                            <div class="text-center py-3 loading-spinner d-none">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="products-list"></div>
+                            <div class="products-empty d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>No products found matching your search.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Reviews tab -->
+                    <div class="tab-pane fade" id="reviews" role="tabpanel" aria-labelledby="reviews-tab">
+                        <div class="reviews-results">
+                            <div class="text-center py-3 loading-spinner d-none">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="reviews-list"></div>
+                            <div class="reviews-empty d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>No reviews found matching your search.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Feedback tab -->
+                    <div class="tab-pane fade" id="feedback" role="tabpanel" aria-labelledby="feedback-tab">
+                        <div class="feedback-results">
+                            <div class="text-center py-3 loading-spinner d-none">
+                                <div class="spinner-border" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <div class="feedback-list"></div>
+                            <div class="feedback-empty d-none">
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>No feedback found matching your search.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- No results message -->
+            <div id="noResults" class="d-none">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>No results found for your search.
+                </div>
+            </div>
+            
+            <!-- Search loading -->
+            <div id="searchLoading" class="text-center py-5 d-none">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Searching...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchForm = document.getElementById('searchForm');
+        const searchQuery = document.getElementById('searchQuery');
+        const searchResults = document.getElementById('searchResults');
+        const noResults = document.getElementById('noResults');
+        const searchLoading = document.getElementById('searchLoading');
+        
+        // Check for query parameter and perform search if present
+        const urlParams = new URLSearchParams(window.location.search);
+        const queryParam = urlParams.get('q');
+        if (queryParam) {
+            searchQuery.value = queryParam;
+            performSearch(queryParam);
+        }
+        
+        // Handle search form submission
+        searchForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const query = searchQuery.value.trim();
+            
+            if (query) {
+                // Update URL with query parameter
+                const url = new URL(window.location);
+                url.searchParams.set('q', query);
+                window.history.pushState({}, '', url);
+                
+                performSearch(query);
+            }
+        });
+        
+        // Perform unified search
+        function performSearch(query) {
+            // Show loading indicator
+            searchResults.classList.add('d-none');
+            noResults.classList.add('d-none');
+            searchLoading.classList.remove('d-none');
+            
+            // Call unified search API
+            fetch(`/api/search/unified?q=${encodeURIComponent(query)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Search request failed');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Hide loading indicator
+                    searchLoading.classList.add('d-none');
+                    
+                    // Check if there are any results
+                    const hasResults = data.products.count > 0 || 
+                                      data.reviews.count > 0 || 
+                                      data.feedback.count > 0;
+                    
+                    if (hasResults) {
+                        // Display results
+                        searchResults.classList.remove('d-none');
+                        
+                        // Update unified tab
+                        updateUnifiedTab(data);
+                        
+                        // Also fetch detailed results for individual tabs
+                        fetchProductResults(query);
+                        fetchReviewResults(query);
+                        fetchFeedbackResults(query);
+                    } else {
+                        // Show no results message
+                        noResults.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error performing search:', error);
+                    searchLoading.classList.add('d-none');
+                    alert('An error occurred while searching. Please try again.');
+                });
+        }
+        
+        // Update unified tab with results
+        function updateUnifiedTab(data) {
+            // Product results
+            const unifiedProductsList = document.querySelector('.unified-products-list');
+            const unifiedProductsEmpty = document.querySelector('.unified-products-empty');
+            unifiedProductsList.innerHTML = '';
+            
+            if (data.products.count > 0) {
+                unifiedProductsEmpty.classList.add('d-none');
+                data.products.results.forEach(product => {
+                    const productCard = createProductCard(product, true);
+                    unifiedProductsList.appendChild(productCard);
+                });
+            } else {
+                unifiedProductsEmpty.classList.remove('d-none');
+            }
+            
+            // Review results
+            const unifiedReviewsList = document.querySelector('.unified-reviews-list');
+            const unifiedReviewsEmpty = document.querySelector('.unified-reviews-empty');
+            unifiedReviewsList.innerHTML = '';
+            
+            if (data.reviews.count > 0) {
+                unifiedReviewsEmpty.classList.add('d-none');
+                data.reviews.results.forEach(review => {
+                    const reviewCard = createReviewCard(review, true);
+                    unifiedReviewsList.appendChild(reviewCard);
+                });
+            } else {
+                unifiedReviewsEmpty.classList.remove('d-none');
+            }
+            
+            // Feedback results
+            const unifiedFeedbackList = document.querySelector('.unified-feedback-list');
+            const unifiedFeedbackEmpty = document.querySelector('.unified-feedback-empty');
+            unifiedFeedbackList.innerHTML = '';
+            
+            if (data.feedback.count > 0) {
+                unifiedFeedbackEmpty.classList.add('d-none');
+                data.feedback.results.forEach(feedback => {
+                    const feedbackCard = createFeedbackCard(feedback, true);
+                    unifiedFeedbackList.appendChild(feedbackCard);
+                });
+            } else {
+                unifiedFeedbackEmpty.classList.remove('d-none');
+            }
+        }
+        
+        // Fetch detailed product results for products tab
+        function fetchProductResults(query) {
+            const productsResults = document.querySelector('.products-results');
+            const loadingSpinner = productsResults.querySelector('.loading-spinner');
+            const productsList = productsResults.querySelector('.products-list');
+            const productsEmpty = productsResults.querySelector('.products-empty');
+            
+            // Show loading
+            loadingSpinner.classList.remove('d-none');
+            productsList.innerHTML = '';
+            productsEmpty.classList.add('d-none');
+            
+            // Fetch product search results
+            fetch(`/api/search/products?q=${encodeURIComponent(query)}&limit=20`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading
+                    loadingSpinner.classList.add('d-none');
+                    
+                    if (data.count > 0) {
+                        // Display results
+                        data.results.forEach(product => {
+                            const productCard = createProductCard(product, false);
+                            productsList.appendChild(productCard);
+                        });
+                    } else {
+                        // Show empty message
+                        productsEmpty.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching product results:', error);
+                    loadingSpinner.classList.add('d-none');
+                    productsEmpty.classList.remove('d-none');
+                });
+        }
+        
+        // Fetch detailed review results for reviews tab
+        function fetchReviewResults(query) {
+            const reviewsResults = document.querySelector('.reviews-results');
+            const loadingSpinner = reviewsResults.querySelector('.loading-spinner');
+            const reviewsList = reviewsResults.querySelector('.reviews-list');
+            const reviewsEmpty = reviewsResults.querySelector('.reviews-empty');
+            
+            // Show loading
+            loadingSpinner.classList.remove('d-none');
+            reviewsList.innerHTML = '';
+            reviewsEmpty.classList.add('d-none');
+            
+            // Fetch review search results
+            fetch(`/api/search/reviews?q=${encodeURIComponent(query)}&limit=20`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading
+                    loadingSpinner.classList.add('d-none');
+                    
+                    if (data.count > 0) {
+                        // Display results
+                        data.results.forEach(review => {
+                            const reviewCard = createReviewCard(review, false);
+                            reviewsList.appendChild(reviewCard);
+                        });
+                    } else {
+                        // Show empty message
+                        reviewsEmpty.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching review results:', error);
+                    loadingSpinner.classList.add('d-none');
+                    reviewsEmpty.classList.remove('d-none');
+                });
+        }
+        
+        // Fetch detailed feedback results for feedback tab
+        function fetchFeedbackResults(query) {
+            const feedbackResults = document.querySelector('.feedback-results');
+            const loadingSpinner = feedbackResults.querySelector('.loading-spinner');
+            const feedbackList = feedbackResults.querySelector('.feedback-list');
+            const feedbackEmpty = feedbackResults.querySelector('.feedback-empty');
+            
+            // Show loading
+            loadingSpinner.classList.remove('d-none');
+            feedbackList.innerHTML = '';
+            feedbackEmpty.classList.add('d-none');
+            
+            // Fetch feedback search results
+            fetch(`/api/search/feedback?q=${encodeURIComponent(query)}&limit=20`)
+                .then(response => response.json())
+                .then(data => {
+                    // Hide loading
+                    loadingSpinner.classList.add('d-none');
+                    
+                    if (data.count > 0) {
+                        // Display results
+                        data.results.forEach(feedback => {
+                            const feedbackCard = createFeedbackCard(feedback, false);
+                            feedbackList.appendChild(feedbackCard);
+                        });
+                    } else {
+                        // Show empty message
+                        feedbackEmpty.classList.remove('d-none');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching feedback results:', error);
+                    loadingSpinner.classList.add('d-none');
+                    feedbackEmpty.classList.remove('d-none');
+                });
+        }
+        
+        // Create a product card
+        function createProductCard(product, compact) {
+            const card = document.createElement('div');
+            card.className = `card mb-3 ${compact ? 'card-sm shadow-sm border' : 'shadow-sm'}`;
+            
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            // Product title with link
+            const title = document.createElement('h5');
+            title.className = `card-title ${compact ? 'h6' : ''}`;
+            const titleLink = document.createElement('a');
+            titleLink.href = `/dashboard/${product._id}`;
+            titleLink.textContent = product.title || `${product.platform} Product`;
+            title.appendChild(titleLink);
+            
+            // Product details
+            const details = document.createElement('div');
+            details.className = 'card-text';
+            
+            // Platform and brand
+            const platformBrand = document.createElement('p');
+            platformBrand.className = 'mb-1 small text-muted';
+            platformBrand.innerHTML = `
+                <strong>Platform:</strong> ${product.platform || 'Unknown'} 
+                ${product.brand ? `| <strong>Brand:</strong> ${product.brand}` : ''}
+            `;
+            
+            // Add content to card
+            cardBody.appendChild(title);
+            cardBody.appendChild(platformBrand);
+            
+            // Add score if available
+            if (product.score) {
+                const score = document.createElement('div');
+                score.className = 'badge bg-primary mt-1';
+                score.textContent = `Score: ${product.score.toFixed(2)}`;
+                cardBody.appendChild(score);
+            }
+            
+            // Add view button
+            if (!compact) {
+                const viewBtn = document.createElement('a');
+                viewBtn.href = `/dashboard/${product._id}`;
+                viewBtn.className = 'btn btn-sm btn-primary mt-2';
+                viewBtn.innerHTML = '<i class="fas fa-chart-bar me-1"></i> View Dashboard';
+                cardBody.appendChild(viewBtn);
+            }
+            
+            card.appendChild(cardBody);
+            return card;
+        }
+        
+        // Create a review card
+        function createReviewCard(review, compact) {
+            const card = document.createElement('div');
+            card.className = `card mb-3 ${compact ? 'card-sm shadow-sm border' : 'shadow-sm'}`;
+            
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            // Review title
+            const title = document.createElement('h5');
+            title.className = `card-title ${compact ? 'h6' : ''}`;
+            title.textContent = review.title || 'Review';
+            
+            // Rating stars
+            const ratingStars = document.createElement('div');
+            ratingStars.className = 'mb-2';
+            
+            if (review.rating) {
+                for (let i = 1; i <= 5; i++) {
+                    const star = document.createElement('i');
+                    star.className = i <= review.rating ? 'fas fa-star text-warning' : 'far fa-star';
+                    ratingStars.appendChild(star);
+                }
+            }
+            
+            // Review content
+            const content = document.createElement('p');
+            content.className = 'card-text';
+            content.textContent = review.content || '';
+            
+            // Review details
+            const details = document.createElement('div');
+            details.className = 'mt-2 small text-muted d-flex justify-content-between';
+            
+            // Review date
+            const date = document.createElement('span');
+            if (review.date) {
+                date.textContent = new Date(review.date).toLocaleDateString();
+            }
+            
+            // Add sentiment if available
+            let sentimentBadge = null;
+            if (review.sentiment && review.sentiment.label) {
+                sentimentBadge = document.createElement('span');
+                sentimentBadge.className = `badge ${review.sentiment.label === 'positive' ? 'bg-success' : review.sentiment.label === 'negative' ? 'bg-danger' : 'bg-warning'}`;
+                sentimentBadge.textContent = review.sentiment.label.charAt(0).toUpperCase() + review.sentiment.label.slice(1);
+            }
+            
+            // Add content to card
+            cardBody.appendChild(title);
+            cardBody.appendChild(ratingStars);
+            cardBody.appendChild(content);
+            
+            if (date.textContent || sentimentBadge) {
+                details.appendChild(date);
+                if (sentimentBadge) {
+                    details.appendChild(sentimentBadge);
+                }
+                cardBody.appendChild(details);
+            }
+            
+            card.appendChild(cardBody);
+            return card;
+        }
+        
+        // Create a feedback card
+        function createFeedbackCard(feedback, compact) {
+            const card = document.createElement('div');
+            card.className = `card mb-3 ${compact ? 'card-sm shadow-sm border' : 'shadow-sm'}`;
+            
+            const cardBody = document.createElement('div');
+            cardBody.className = 'card-body';
+            
+            // Feedback title
+            const title = document.createElement('h5');
+            title.className = `card-title ${compact ? 'h6' : ''} d-flex justify-content-between align-items-start`;
+            
+            const titleText = document.createElement('span');
+            titleText.textContent = feedback.title || `Feedback for ${feedback.entity_type}`;
+            title.appendChild(titleText);
+            
+            // Rating stars
+            const ratingStars = document.createElement('div');
+            ratingStars.className = '';
+            
+            if (feedback.rating) {
+                for (let i = 1; i <= 5; i++) {
+                    const star = document.createElement('i');
+                    star.className = i <= feedback.rating ? 'fas fa-star text-warning' : 'far fa-star';
+                    star.style.fontSize = '0.8em';
+                    ratingStars.appendChild(star);
+                }
+            }
+            title.appendChild(ratingStars);
+            
+            // Feedback content
+            const content = document.createElement('p');
+            content.className = 'card-text';
+            content.textContent = feedback.content || '';
+            
+            // Feedback details
+            const details = document.createElement('div');
+            details.className = 'mt-2 d-flex justify-content-between align-items-center';
+            
+            // Feedback tags
+            const tags = document.createElement('div');
+            if (feedback.tags && feedback.tags.length > 0) {
+                feedback.tags.forEach(tag => {
+                    const tagBadge = document.createElement('span');
+                    tagBadge.className = 'badge bg-secondary me-1';
+                    tagBadge.textContent = tag;
+                    tags.appendChild(tagBadge);
+                });
+            }
+            
+            // Feedback date
+            const date = document.createElement('small');
+            date.className = 'text-muted';
+            if (feedback.created_at) {
+                date.textContent = new Date(feedback.created_at).toLocaleDateString();
+            }
+            
+            // Add content to card
+            cardBody.appendChild(title);
+            cardBody.appendChild(content);
+            
+            details.appendChild(tags);
+            details.appendChild(date);
+            cardBody.appendChild(details);
+            
+            card.appendChild(cardBody);
+            return card;
+        }
+    });
+</script>
+{% endblock %} 

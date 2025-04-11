@@ -1,0 +1,627 @@
+# Python 3.10+ Compatibility Report
+
+Found **144** potential compatibility issues across **16** files.
+
+## Summary by issue type
+- **use of assert**: 112 occurrences
+- **legacy string formatting**: 12 occurrences
+- **problematic dependency version**: 11 occurrences
+- **typing Optional**: 3 occurrences
+- **typing Union**: 2 occurrences
+- **Abstract Base Classes**: 2 occurrences
+- **asyncio.coroutine usage**: 2 occurrences
+
+## Detailed findings
+
+### app\routes.py
+- **Line 424**: legacy string formatting
+  - Code: `filename = f"{product['platform']}_{product['product_id']}_reviews_{datetime.now().strftime('%Y%m%d')}.csv"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+- **Line 516**: legacy string formatting
+  - Code: `filename = f"{product['platform']}_{product['product_id']}_reviews_{datetime.now().strftime('%Y%m%d')}.json"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### app\scrapers\amazon_scraper.py
+- **Line 159**: legacy string formatting
+  - Code: `review_date = datetime.strptime(date_parts, '%B %d, %Y').strftime('%Y-%m-%d')`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+- **Line 162**: legacy string formatting
+  - Code: `review_date = datetime.now().strftime('%Y-%m-%d')`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### app\tasks.py
+- **Line 241**: legacy string formatting
+  - Code: `date=datetime.strptime(review_data.get('date', '2023-01-01'), '%Y-%m-%d'),`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+- **Line 360**: legacy string formatting
+  - Code: `date=datetime.strptime(review_data.get('date', '2023-01-01'), '%Y-%m-%d'),`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### app\utils\mongodb.py
+- **Line 6**: typing Union
+  - Code: `from typing import Dict, List, Optional, Union, Any`
+  - Description: Union types can use X | Y syntax in Python 3.10+
+  - Suggestion: Consider using X | Y syntax instead of Union[X, Y]
+- **Line 6**: typing Optional
+  - Code: `from typing import Dict, List, Optional, Union, Any`
+  - Description: Optional[X] can use X | None syntax in Python 3.10+
+  - Suggestion: Consider using X | None syntax instead of Optional[X]
+
+### app\utils\mongodb_aggregations.py
+- **Line 8**: typing Union
+  - Code: `from typing import List, Dict, Any, Optional, Union, cast`
+  - Description: Union types can use X | Y syntax in Python 3.10+
+  - Suggestion: Consider using X | Y syntax instead of Union[X, Y]
+- **Line 8**: typing Optional
+  - Code: `from typing import List, Dict, Any, Optional, Union, cast`
+  - Description: Optional[X] can use X | None syntax in Python 3.10+
+  - Suggestion: Consider using X | None syntax instead of Optional[X]
+- **Line 57**: legacy string formatting
+  - Code: `date_format = "%Y-%m-%d"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### app_original.py
+- **Line 281**: legacy string formatting
+  - Code: `filename = f"{product['platform']}_{product['product_id']}_reviews_{datetime.now().strftime('%Y%m%d')}.csv"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+- **Line 323**: legacy string formatting
+  - Code: `filename = f"{product['platform']}_{product['product_id']}_reviews_{datetime.now().strftime('%Y%m%d')}.json"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### requirements.txt
+- **Line 2**: problematic dependency version
+  - Code: `Flask>=2.2.3,<3.0.0`
+  - Description: Package flask with constraint >=2.2.3,<3.0.0 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 3**: problematic dependency version
+  - Code: `Werkzeug>=2.2.3,<3.0.0`
+  - Description: Package werkzeug with constraint >=2.2.3,<3.0.0 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 4**: problematic dependency version
+  - Code: `flask-wtf>=1.1.1`
+  - Description: Package flask with constraint >=1.1.1 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 5**: problematic dependency version
+  - Code: `flask-login>=0.6.2`
+  - Description: Package flask with constraint >=0.6.2 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 6**: problematic dependency version
+  - Code: `flask-limiter>=3.3.0`
+  - Description: Package flask with constraint >=3.3.0 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 7**: problematic dependency version
+  - Code: `flask-talisman>=1.0.0`
+  - Description: Package flask with constraint >=1.0.0 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 8**: problematic dependency version
+  - Code: `flask-caching>=2.0.2`
+  - Description: Package flask with constraint >=2.0.2 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 13**: problematic dependency version
+  - Code: `flask-pymongo>=2.3.0`
+  - Description: Package flask with constraint >=2.3.0 might have issues with Python 3.10
+  - Suggestion: Upgrade to 2.0.0 or later for Python 3.10 compatibility
+- **Line 28**: problematic dependency version
+  - Code: `pandas>=2.0.0,<2.1.0  # Capped for Python 3.10 compatibility`
+  - Description: Package pandas with constraint >=2.0.0,<2.1.0  # Capped for Python 3.10 compatibility might have issues with Python 3.10
+  - Suggestion: Upgrade to 1.3.0 or later for Python 3.10 compatibility
+- **Line 29**: problematic dependency version
+  - Code: `numpy>=1.24.2,<2.0.0  # Capped for stability`
+  - Description: Package numpy with constraint >=1.24.2,<2.0.0  # Capped for stability might have issues with Python 3.10
+  - Suggestion: Upgrade to 1.21.0 or later for Python 3.10 compatibility
+- **Line 45**: problematic dependency version
+  - Code: `click>=8.1.3`
+  - Description: Package click with constraint >=8.1.3 might have issues with Python 3.10
+  - Suggestion: Upgrade to 8.0.0 or later for Python 3.10 compatibility
+
+### scripts\migrate_to_mongodb.py
+- **Line 23**: typing Optional
+  - Code: `from typing import Dict, List, Any, Optional`
+  - Description: Optional[X] can use X | None syntax in Python 3.10+
+  - Suggestion: Consider using X | None syntax instead of Optional[X]
+
+### scripts\run_mongodb_performance_test.py
+- **Line 263**: legacy string formatting
+  - Code: `report.append(f"\nGenerated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### scripts\upgrade_python.py
+- **Line 32**: Abstract Base Classes
+  - Code: `'name': 'from collections import abc import',`
+  - Description: Abstract Base Classes API changes in Python 3.10
+  - Suggestion: Check @abstractproperty usage, it was removed in 3.8, use @property @abstractmethod instead
+- **Line 83**: asyncio.coroutine usage
+  - Code: `'name': 'asyncio.coroutine usage',`
+  - Description: asyncio.coroutine() is deprecated in Python 3.8+
+  - Suggestion: Use async/await syntax instead
+- **Line 85**: asyncio.coroutine usage
+  - Code: `'description': 'asyncio.coroutine() is deprecated in Python 3.8+',`
+  - Description: asyncio.coroutine() is deprecated in Python 3.8+
+  - Suggestion: Use async/await syntax instead
+- **Line 89**: use of assert
+  - Code: `'name': 'use of assert',`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 163**: Abstract Base Classes
+  - Code: `if pattern_name == 'from collections import abc import' and 'collections_abc' in pattern_info:`
+  - Description: Abstract Base Classes API changes in Python 3.10
+  - Suggestion: Check @abstractproperty usage, it was removed in 3.8, use @property @abstractmethod instead
+
+### single_app.py
+- **Line 625**: legacy string formatting
+  - Code: `filename = f"{product['platform']}_{product['product_id']}_reviews_{datetime.now().strftime('%Y%m%d')}.csv"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+- **Line 661**: legacy string formatting
+  - Code: `filename = f"{product['platform']}_{product['product_id']}_reviews_{datetime.now().strftime('%Y%m%d')}.json"`
+  - Description: Legacy % string formatting found
+  - Suggestion: Use f-strings or str.format() instead
+
+### tests\test_async.py
+- **Line 30**: use of assert
+  - Code: `assert redis_mock.get('test_key').decode() == 'test_value'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 33**: use of assert
+  - Code: `assert patched_cache.get('test_key') == 'test_value'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 51**: use of assert
+  - Code: `assert result1 == "result"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 52**: use of assert
+  - Code: `assert result2 == "result"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 53**: use of assert
+  - Code: `assert call_count == 1`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 78**: use of assert
+  - Code: `assert response1.data == response2.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 79**: use of assert
+  - Code: `assert len(calls) == 1`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 128**: use of assert
+  - Code: `assert len(executions) == 1`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 130**: use of assert
+  - Code: `assert args[0] == "B01LYCLS24"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 131**: use of assert
+  - Code: `assert args[1] == 1`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 134**: use of assert
+  - Code: `assert result.id == "mock_task_id"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 135**: use of assert
+  - Code: `assert result.status == "SUCCESS"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 148**: use of assert
+  - Code: `assert len(executions) == 1`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 150**: use of assert
+  - Code: `assert args[0] == "123456789"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 151**: use of assert
+  - Code: `assert args[1] == 2`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 154**: use of assert
+  - Code: `assert result.id == "mock_task_id"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 155**: use of assert
+  - Code: `assert result.status == "SUCCESS"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 168**: use of assert
+  - Code: `assert len(executions) == 1`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 170**: use of assert
+  - Code: `assert args[0] == 3`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 173**: use of assert
+  - Code: `assert result.id == "mock_task_id"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 174**: use of assert
+  - Code: `assert result.status == "SUCCESS"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 190**: use of assert
+  - Code: `assert len(executions) == 2`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 193**: use of assert
+  - Code: `assert first_args[0] == "B01LYCLS24"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 194**: use of assert
+  - Code: `assert first_args[1] == 4`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 197**: use of assert
+  - Code: `assert second_args[0] == 4`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 200**: use of assert
+  - Code: `assert scrape_result.id == "mock_task_id"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 201**: use of assert
+  - Code: `assert analyze_result.id == "mock_task_id"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+
+### tests\test_forms.py
+- **Line 12**: use of assert
+  - Code: `assert form.validate() is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 20**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 21**: use of assert
+  - Code: `assert 'Invalid email address' in form.email.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 26**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 27**: use of assert
+  - Code: `assert 'Email is required' in form.email.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 28**: use of assert
+  - Code: `assert 'Password is required' in form.password.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 39**: use of assert
+  - Code: `assert form.validate() is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 49**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 50**: use of assert
+  - Code: `assert 'Passwords must match' in form.confirm_password.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 60**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 61**: use of assert
+  - Code: `assert 'Username can only contain letters, numbers, and underscores' in form.username.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 71**: use of assert
+  - Code: `assert form.validate() is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 84**: use of assert
+  - Code: `assert form.validate() is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 94**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 95**: use of assert
+  - Code: `assert 'URL is required for custom websites' in form.url.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 105**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 106**: use of assert
+  - Code: `assert 'Review selector is required for custom websites' in form.review_selector.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 119**: use of assert
+  - Code: `assert form.validate() is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 127**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 128**: use of assert
+  - Code: `assert 'Maximum rating must be greater than or equal to minimum rating' in form.max_rating.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 133**: use of assert
+  - Code: `assert form.validate() is True  # All fields are optional`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 143**: use of assert
+  - Code: `assert form.validate() is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 151**: use of assert
+  - Code: `assert form.validate() is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 152**: use of assert
+  - Code: `assert 'Please select an export format' in form.export_format.errors`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+
+### tests\test_resilient_scraper.py
+- **Line 31**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 32**: use of assert
+  - Code: `assert response.text == '<html><body>Test content</body></html>'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 56**: use of assert
+  - Code: `assert len(user_agents) == 3`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 57**: use of assert
+  - Code: `assert len(set(user_agents)) > 1  # At least some should be different`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 86**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 87**: use of assert
+  - Code: `assert response.text == '<html><body>Success after failure</body></html>'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 90**: use of assert
+  - Code: `assert len(responses.calls) == 3`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 138**: use of assert
+  - Code: `assert len(elements) == 3`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 139**: use of assert
+  - Code: `assert elements[0].text == 'Product 1'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 140**: use of assert
+  - Code: `assert elements[1].text == 'Product 2'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 141**: use of assert
+  - Code: `assert elements[2].text == 'Product 3'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 153**: use of assert
+  - Code: `assert scraper.min_delay <= delay <= scraper.max_delay`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 160**: use of assert
+  - Code: `assert scraper._detect_captcha(html) is True`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 164**: use of assert
+  - Code: `assert scraper._detect_captcha(html) is False`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+
+### tests\test_routes.py
+- **Line 9**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 10**: use of assert
+  - Code: `assert b'<form action="/analyze"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 11**: use of assert
+  - Code: `assert b'method="post"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 12**: use of assert
+  - Code: `assert b'csrf_token' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 21**: use of assert
+  - Code: `assert response.status_code == 302`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 22**: use of assert
+  - Code: `assert '/auth/login' in response.headers.get('Location', '')`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 28**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 29**: use of assert
+  - Code: `assert b'Analyze a Product' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 37**: use of assert
+  - Code: `assert response.status_code == 302`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 38**: use of assert
+  - Code: `assert '/dashboard/' in response.headers.get('Location', '')`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 60**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 61**: use of assert
+  - Code: `assert b'Filtered Reviews' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 62**: use of assert
+  - Code: `assert b'Applied Filters' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 80**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 81**: use of assert
+  - Code: `assert response.mimetype == 'text/csv'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 82**: use of assert
+  - Code: `assert 'attachment' in response.headers.get('Content-Disposition', '')`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 100**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 101**: use of assert
+  - Code: `assert response.mimetype == 'application/json'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 102**: use of assert
+  - Code: `assert 'attachment' in response.headers.get('Content-Disposition', '')`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 108**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 109**: use of assert
+  - Code: `assert b'<form' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 110**: use of assert
+  - Code: `assert b'method="post"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 111**: use of assert
+  - Code: `assert b'csrf_token' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 118**: use of assert
+  - Code: `assert response.status_code == 302  # Redirect on success`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 122**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 123**: use of assert
+  - Code: `assert b'<form' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 124**: use of assert
+  - Code: `assert b'method="post"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 125**: use of assert
+  - Code: `assert b'csrf_token' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 134**: use of assert
+  - Code: `assert response.status_code == 302  # Redirect on success`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 147**: use of assert
+  - Code: `assert response.status_code == 429`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 150**: use of assert
+  - Code: `assert response.status_code != 429`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 153**: use of assert
+  - Code: `assert i >= 10, "Rate limit was not applied"`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+
+### tests\test_security.py
+- **Line 11**: use of assert
+  - Code: `assert response.status_code == 400`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 18**: use of assert
+  - Code: `assert 'Content-Security-Policy' in response.headers`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 21**: use of assert
+  - Code: `assert 'X-Frame-Options' in response.headers`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 22**: use of assert
+  - Code: `assert response.headers['X-Frame-Options'] == 'DENY'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 25**: use of assert
+  - Code: `assert 'X-Content-Type-Options' in response.headers`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 26**: use of assert
+  - Code: `assert response.headers['X-Content-Type-Options'] == 'nosniff'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 30**: use of assert
+  - Code: `assert response.headers['X-XSS-Protection'] == '1; mode=block'`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 36**: use of assert
+  - Code: `assert b'<input id="csrf_token" name="csrf_token"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 40**: use of assert
+  - Code: `assert b'<input id="csrf_token" name="csrf_token"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 44**: use of assert
+  - Code: `assert b'<input id="csrf_token" name="csrf_token"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 48**: use of assert
+  - Code: `assert b'<input id="csrf_token" name="csrf_token"' in response.data`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 53**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 56**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+- **Line 59**: use of assert
+  - Code: `assert response.status_code == 200`
+  - Description: Assert statements are used, might behave differently in 3.10+ debug vs. optimized mode
+  - Suggestion: Ensure assertions are not being used for input validation
+
+## Next steps
+1. Review each issue and determine if changes are needed
+2. Run unit tests after each change to ensure functionality is preserved
+3. Update requirement versions to ensure compatibility with Python 3.10+

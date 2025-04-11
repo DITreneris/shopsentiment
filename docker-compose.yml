@@ -1,0 +1,186 @@
+version: '3.8'
+
+services:
+  # Flask web application
+  web:
+    build: .
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+    environment:
+      - FLASK_APP=app
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-default_dev_key_please_change_in_production}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/}
+      - MONGODB_DB_NAME=${MONGODB_DB_NAME:-shopsentiment}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - app-network
+
+  # Redis for caching and as message broker
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+
+  # Celery worker for background tasks
+  worker:
+    build: .
+    restart: always
+    depends_on:
+      - redis
+      - web
+    command: celery -A app.tasks.celery worker --loglevel=info -E
+    environment:
+      - FLASK_APP=app
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-default_dev_key_please_change_in_production}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/}
+      - MONGODB_DB_NAME=${MONGODB_DB_NAME:-shopsentiment}
+    volumes:
+      - ./data:/app/data
+    networks:
+      - app-network
+
+  # Celery beat for scheduled tasks (if needed)
+  beat:
+    build: .
+    command: celery -A app.tasks.celery beat --loglevel=info
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - redis
+      - worker
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_ENV=production
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+    networks:
+      - app-network
+
+  mongo:
+    image: mongo:6
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - app-network
+
+  # MongoDB Monitoring
+  mongodb-monitoring:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python mongodb_monitoring.py
+    restart: always
+    depends_on:
+      - mongo
+    environment:
+      - MONGODB_URI=${MONGODB_URI:-mongodb://mongo:27017/}
+      - MONGODB_DB_NAME=${MONGODB_DB_NAME:-shopsentiment}
+    volumes:
+      - ./:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - app-network
+
+  # Redis & Celery Monitoring
+  redis-celery-monitoring:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python redis_celery_monitoring.py
+    restart: always
+    depends_on:
+      - redis
+      - worker
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./:/app
+    ports:
+      - "8001:8001"
+    networks:
+      - app-network
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.37.0
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    networks:
+      - app-network
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:9.0.5
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
+    networks:
+      - app-network
+
+# Uncomment this section to use MongoDB Express for database management
+# mongo-express:
+#   image: mongo-express:latest
+#   restart: always
+#   ports:
+#     - "8081:8081"
+#   environment:
+#     - ME_CONFIG_MONGODB_SERVER=mongo
+#     - ME_CONFIG_MONGODB_PORT=27017
+#     - ME_CONFIG_BASICAUTH_USERNAME=admin
+#     - ME_CONFIG_BASICAUTH_PASSWORD=pass
+#   depends_on:
+#     - mongo
+#   networks:
+#     - app-network
+
+volumes:
+  redis-data:
+  mongo-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  app-network:
+    driver: bridge 

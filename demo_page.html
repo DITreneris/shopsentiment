@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Sentiment Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+        }
+        .nav {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .nav a:hover {
+            text-decoration: underline;
+        }
+        .breadcrumb {
+            background-color: #f1f1f1;
+            padding: 8px 16px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .content {
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .success-message {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .visualization {
+            margin-top: 20px;
+            height: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            position: relative;
+        }
+        .chart-container {
+            display: flex;
+            justify-content: space-around;
+            height: 250px;
+            align-items: flex-end;
+        }
+        .bar {
+            width: 40px;
+            background-color: #007bff;
+            margin: 0 5px;
+            transition: height 0.5s ease;
+        }
+        .time-range {
+            margin: 10px 0;
+        }
+        .time-range button {
+            background-color: #f8f9fa;
+            color: #007bff;
+            margin-right: 5px;
+            padding: 5px 10px;
+        }
+        .time-range button.active {
+            background-color: #007bff;
+            color: white;
+        }
+        #error-page {
+            display: none;
+            text-align: center;
+            padding: 50px;
+        }
+        #error-page h1 {
+            color: #dc3545;
+            font-size: 72px;
+            margin-bottom: 20px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .page {
+            display: none;
+        }
+        #home-page {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="nav">
+        <a href="#" id="home-link">Home</a>
+        <a href="#" id="dashboard-link">Dashboard</a>
+        <a href="#" id="feedback-link">Feedback</a>
+        <a href="#" id="error-link">Trigger Error</a>
+    </div>
+
+    <div class="breadcrumb" id="breadcrumb">
+        Home
+    </div>
+
+    <!-- Home Page -->
+    <div class="page" id="home-page">
+        <div class="content">
+            <h1>Shop Sentiment Demo</h1>
+            <p>Welcome to the Shop Sentiment demo page. This page demonstrates integration testing capabilities including:</p>
+            <ul>
+                <li>Form submission and validation</li>
+                <li>Data visualization updates</li>
+                <li>Navigation flows</li>
+                <li>Error handling</li>
+            </ul>
+            <p>Click on the navigation links above to explore different sections of the demo.</p>
+        </div>
+    </div>
+
+    <!-- Dashboard Page -->
+    <div class="page" id="dashboard-page">
+        <div class="content">
+            <h1>Dashboard</h1>
+            <p>Product Sentiment Analysis Dashboard</p>
+
+            <div class="visualization">
+                <h3>Sentiment Over Time</h3>
+                <div class="time-range">
+                    <button class="time-btn active" data-days="7">7 Days</button>
+                    <button class="time-btn" data-days="30">30 Days</button>
+                    <button class="time-btn" data-days="90">90 Days</button>
+                </div>
+                <div class="chart-container">
+                    <div class="bar" style="height: 50px;" title="Day 1: 20%"></div>
+                    <div class="bar" style="height: 75px;" title="Day 2: 30%"></div>
+                    <div class="bar" style="height: 125px;" title="Day 3: 50%"></div>
+                    <div class="bar" style="height: 100px;" title="Day 4: 40%"></div>
+                    <div class="bar" style="height: 150px;" title="Day 5: 60%"></div>
+                    <div class="bar" style="height: 200px;" title="Day 6: 80%"></div>
+                    <div class="bar" style="height: 175px;" title="Day 7: 70%"></div>
+                </div>
+                <div class="loading">Loading data...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Page -->
+    <div class="page" id="feedback-page">
+        <div class="content">
+            <h1>Submit Feedback</h1>
+            <p>Please share your thoughts about our product.</p>
+
+            <form id="feedback-form">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required>
+                    <div class="error-message" id="name-error">Please enter your name</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" required>
+                    <div class="error-message" id="email-error">Please enter a valid email address</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="rating">Rating:</label>
+                    <select id="rating" name="rating" required>
+                        <option value="">Select a rating</option>
+                        <option value="5">5 - Excellent</option>
+                        <option value="4">4 - Good</option>
+                        <option value="3">3 - Average</option>
+                        <option value="2">2 - Poor</option>
+                        <option value="1">1 - Very Poor</option>
+                    </select>
+                    <div class="error-message" id="rating-error">Please select a rating</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Comments:</label>
+                    <textarea id="comment" name="comment" rows="4" required></textarea>
+                    <div class="error-message" id="comment-error">Please enter your comments</div>
+                </div>
+
+                <button type="submit">Submit Feedback</button>
+                <div class="success-message" id="form-success">Thank you for your feedback!</div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Error Page -->
+    <div class="page" id="error-page">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p>Sorry, the page you are looking for doesn't exist or has been moved.</p>
+        <button id="back-to-home">Back to Home</button>
+    </div>
+
+    <script>
+        // Navigation
+        document.getElementById('home-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage('home-page');
+            updateBreadcrumb('Home');
+        });
+
+        document.getElementById('dashboard-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage('dashboard-page');
+            updateBreadcrumb('Home > Dashboard');
+        });
+
+        document.getElementById('feedback-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage('feedback-page');
+            updateBreadcrumb('Home > Feedback');
+        });
+
+        document.getElementById('error-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            showPage('error-page');
+            updateBreadcrumb('Error');
+        });
+
+        document.getElementById('back-to-home').addEventListener('click', function() {
+            showPage('home-page');
+            updateBreadcrumb('Home');
+        });
+
+        // Form validation
+        document.getElementById('feedback-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            let isValid = true;
+            
+            // Name validation
+            const name = document.getElementById('name').value.trim();
+            if (name === '') {
+                showError('name-error');
+                isValid = false;
+            } else {
+                hideError('name-error');
+            }
+            
+            // Email validation
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError('email-error');
+                isValid = false;
+            } else {
+                hideError('email-error');
+            }
+            
+            // Rating validation
+            const rating = document.getElementById('rating').value;
+            if (rating === '') {
+                showError('rating-error');
+                isValid = false;
+            } else {
+                hideError('rating-error');
+            }
+            
+            // Comment validation
+            const comment = document.getElementById('comment').value.trim();
+            if (comment === '') {
+                showError('comment-error');
+                isValid = false;
+            } else {
+                hideError('comment-error');
+            }
+            
+            // If form is valid, show success message
+            if (isValid) {
+                document.getElementById('form-success').style.display = 'block';
+                document.getElementById('feedback-form').reset();
+                
+                // Hide success message after 3 seconds
+                setTimeout(function() {
+                    document.getElementById('form-success').style.display = 'none';
+                }, 3000);
+            }
+        });
+
+        // Chart visualization update
+        const timeButtons = document.querySelectorAll('.time-btn');
+        timeButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                timeButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                
+                // Show loading state
+                document.querySelector('.loading').style.display = 'block';
+                document.querySelector('.chart-container').style.opacity = '0.5';
+                
+                // Simulate data loading
+                setTimeout(() => {
+                    const days = this.getAttribute('data-days');
+                    updateChart(days);
+                    
+                    // Hide loading state
+                    document.querySelector('.loading').style.display = 'none';
+                    document.querySelector('.chart-container').style.opacity = '1';
+                }, 1000);
+            });
+        });
+
+        // Helper functions
+        function showPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => {
+                page.style.display = 'none';
+            });
+            document.getElementById(pageId).style.display = 'block';
+        }
+
+        function updateBreadcrumb(text) {
+            document.getElementById('breadcrumb').textContent = text;
+        }
+
+        function showError(errorId) {
+            document.getElementById(errorId).style.display = 'block';
+        }
+
+        function hideError(errorId) {
+            document.getElementById(errorId).style.display = 'none';
+        }
+
+        function updateChart(days) {
+            const bars = document.querySelectorAll('.chart-container .bar');
+            
+            // Generate random data based on time period
+            bars.forEach((bar, index) => {
+                let height;
+                if (days === '7') {
+                    height = Math.floor(Math.random() * 200) + 50;
+                } else if (days === '30') {
+                    height = Math.floor(Math.random() * 150) + 100;
+                } else {
+                    height = Math.floor(Math.random() * 100) + 150;
+                }
+                
+                bar.style.height = height + 'px';
+                bar.setAttribute('title', `Day ${index + 1}: ${Math.floor(height / 2.5)}%`);
+            });
+        }
+    </script>
+</body>
+</html> 

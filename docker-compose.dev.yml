@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+  # Flask web application in development mode
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_ENV=development
+      - FLASK_DEBUG=1
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - PYTHONUNBUFFERED=1
+    command: flask run --host=0.0.0.0 --port=5000
+    restart: unless-stopped
+
+  # Redis for caching and as message broker
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+
+  # Celery worker for background tasks
+  worker:
+    build: .
+    command: celery -A app.tasks.celery worker --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_ENV=development
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+  # Celery beat for scheduled tasks (if needed)
+  beat:
+    build: .
+    command: celery -A app.tasks.celery beat --loglevel=info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      - worker
+    environment:
+      - FLASK_APP=wsgi.py
+      - FLASK_ENV=development
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/1
+      - CELERY_RESULT_BACKEND=redis://redis:6379/2
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+volumes:
+  redis-data: 

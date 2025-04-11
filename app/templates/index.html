@@ -15,31 +15,59 @@
                     </div>
                     
                     <form action="{{ url_for('analyze') }}" method="post" class="mb-5">
+                        {{ form.csrf_token }}
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <select class="form-select" id="platform" name="platform" required data-tooltip="platform-select">
-                                        <option value="" selected disabled>Choose platform...</option>
-                                        <option value="amazon">Amazon</option>
-                                        <option value="bestbuy">Best Buy</option>
-                                        <option value="walmart">Walmart</option>
-                                        <option value="target">Target</option>
-                                    </select>
-                                    <label for="platform">E-commerce Platform</label>
+                                    {{ form.platform(class="form-select", id="platform-select", **{"data-tooltip": "platform-select"}) }}
+                                    {{ form.platform.label }}
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="product_id" name="product_id" placeholder="Product ID" required data-tooltip="product-id">
-                                    <label for="product_id">Product ID or URL</label>
+                                    {{ form.product_id(class="form-control", placeholder="Product ID", **{"data-tooltip": "product-id"}) }}
+                                    {{ form.product_id.label }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom URL field (hidden initially) -->
+                        <div class="form-floating mb-3 d-none" id="url-group">
+                            {{ form.url(class="form-control", placeholder="Full URL") }}
+                            {{ form.url.label }}
+                        </div>
+                        
+                        <!-- Custom selectors (hidden initially) -->
+                        <div id="selectors-group" class="d-none mb-3">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                For custom sites, you'll need to provide CSS selectors
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.review_selector(class="form-control", placeholder="Review Selector") }}
+                                        {{ form.review_selector.label }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.rating_selector(class="form-control", placeholder="Rating Selector") }}
+                                        {{ form.rating_selector.label }}
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-floating">
+                                        {{ form.date_selector(class="form-control", placeholder="Date Selector") }}
+                                        {{ form.date_selector.label }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         
                         <div class="d-grid">
-                            <button type="submit" class="btn btn-primary btn-lg" data-tooltip="analyze-button">
-                                <i class="bi bi-search me-2"></i>Analyze Reviews
-                            </button>
+                            {{ form.submit(class="btn btn-primary btn-lg", **{"data-tooltip": "analyze-button"}) }}
                         </div>
                     </form>
                     
@@ -101,6 +129,17 @@
             </div>
         </div>
     </div>
+    
+    <!-- Feedback Component -->
+    <div class="row mt-4">
+        <div class="col-md-10 mx-auto">
+            <div>
+                {% set entity_type = 'app' %}
+                {% set entity_id = 'homepage' %}
+                {% include 'components/feedback_display.html' with context %}
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -114,6 +153,24 @@
                 window.tooltipManager.startTour('home');
             });
         }
+        
+        // Configure custom fields visibility
+        const platformSelect = document.getElementById('platform-select');
+        const urlGroup = document.getElementById('url-group');
+        const selectorsGroup = document.getElementById('selectors-group');
+        
+        platformSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                urlGroup.classList.remove('d-none');
+                selectorsGroup.classList.remove('d-none');
+            } else {
+                urlGroup.classList.add('d-none');
+                selectorsGroup.classList.add('d-none');
+            }
+        });
+        
+        // Trigger change event on load to set initial state
+        platformSelect.dispatchEvent(new Event('change'));
     });
 </script>
 {% endblock %} 

@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}Submit Feedback{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="card-title h4 mb-0">
+                        <i class="fas fa-comment-alt me-2"></i>Submit Feedback
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form id="feedbackForm" action="{{ url_for('feedback.create_feedback') }}" method="POST" class="needs-validation" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <!-- Hidden fields for entity type and ID -->
+                        <input type="hidden" id="entity_type" name="entity_type" value="{{ entity_type or 'app' }}">
+                        <input type="hidden" id="entity_id" name="entity_id" value="{{ entity_id or 'general' }}">
+                        
+                        <!-- Rating field -->
+                        <div class="form-group mb-3">
+                            <label for="rating" class="form-label">Rating <span class="text-danger">*</span></label>
+                            <div class="rating-container">
+                                <div class="rating">
+                                    <input type="radio" id="star5" name="rating" value="5" required><label for="star5" title="5 stars"></label>
+                                    <input type="radio" id="star4" name="rating" value="4"><label for="star4" title="4 stars"></label>
+                                    <input type="radio" id="star3" name="rating" value="3"><label for="star3" title="3 stars"></label>
+                                    <input type="radio" id="star2" name="rating" value="2"><label for="star2" title="2 stars"></label>
+                                    <input type="radio" id="star1" name="rating" value="1"><label for="star1" title="1 star"></label>
+                                </div>
+                                <div class="invalid-feedback">
+                                    Please provide a rating.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Title field -->
+                        <div class="form-group mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" placeholder="Summarize your feedback">
+                        </div>
+                        
+                        <!-- Content field -->
+                        <div class="form-group mb-3">
+                            <label for="content" class="form-label">Your Feedback</label>
+                            <textarea class="form-control" id="content" name="content" rows="5" placeholder="Tell us more about your experience..."></textarea>
+                        </div>
+                        
+                        <!-- Tags field -->
+                        <div class="form-group mb-3">
+                            <label for="tags" class="form-label">Tags (comma-separated)</label>
+                            <input type="text" class="form-control" id="tags" name="tags" placeholder="user interface, performance, feature request">
+                            <div class="form-text text-muted">
+                                Help us categorize your feedback by adding relevant tags.
+                            </div>
+                        </div>
+                        
+                        <!-- Submit button -->
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Feedback
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success message modal -->
+<div class="modal fade" id="feedbackSuccessModal" tabindex="-1" aria-labelledby="feedbackSuccessModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="feedbackSuccessModalLabel">
+                    <i class="fas fa-check-circle me-2"></i>Thank You!
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Your feedback has been submitted successfully. We appreciate your input!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<style>
+    /* Star Rating Styles */
+    .rating-container {
+        display: block;
+        position: relative;
+        margin-bottom: 1rem;
+    }
+    .rating {
+        display: inline-block;
+        position: relative;
+        height: 50px;
+        line-height: 50px;
+        font-size: 50px;
+        direction: rtl; /* Right to left */
+    }
+    .rating label {
+        position: relative;
+        display: inline-block;
+        color: #ddd;
+        cursor: pointer;
+        width: 50px;
+    }
+    .rating label:before {
+        content: '\2605'; /* Star symbol */
+        position: absolute;
+        opacity: 0;
+        color: #ffc107; /* Bootstrap warning color */
+    }
+    .rating label:hover:before,
+    .rating label:hover ~ label:before,
+    .rating input:checked ~ label:before {
+        opacity: 1;
+    }
+    .rating input {
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Form validation
+    (function() {
+        'use strict';
+        
+        // Fetch all forms with needs-validation class
+        var forms = document.querySelectorAll('.needs-validation');
+        
+        // Loop over forms and prevent submission
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                } else {
+                    // Valid form, submit via AJAX
+                    event.preventDefault();
+                    submitFeedbackForm();
+                }
+                
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+    
+    // Function to submit the form via AJAX
+    function submitFeedbackForm() {
+        // Get form data
+        const form = document.getElementById('feedbackForm');
+        const formData = new FormData(form);
+        
+        // Convert tags from comma-separated string to array
+        const tagsInput = document.getElementById('tags').value;
+        const tags = tagsInput.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+        
+        // Create JSON payload
+        const payload = {
+            entity_type: document.getElementById('entity_type').value,
+            entity_id: document.getElementById('entity_id').value,
+            rating: parseFloat(formData.get('rating')),
+            title: document.getElementById('title').value,
+            content: document.getElementById('content').value,
+            tags: tags
+        };
+        
+        // Send AJAX request
+        fetch('{{ url_for("feedback.create_feedback") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(payload),
+            credentials: 'same-origin'
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(data => {
+                    throw new Error(data.error || 'Failed to submit feedback');
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Show success modal
+            const successModal = new bootstrap.Modal(document.getElementById('feedbackSuccessModal'));
+            successModal.show();
+            
+            // Reset form
+            form.reset();
+            form.classList.remove('was-validated');
+        })
+        .catch(error => {
+            alert('Error: ' + error.message);
+        });
+    }
+</script>
+{% endblock %} 

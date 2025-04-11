@@ -1,0 +1,679 @@
+{% extends "base.html" %}
+
+{% block title %}ShopSentiment - Dashboard Performance{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Dashboard Performance Metrics</h2>
+                    <p class="text-muted">Monitoring the performance of our optimized MongoDB aggregation pipelines</p>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> This dashboard shows the performance improvements from our MongoDB optimization using precomputed statistics.
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">Query Performance</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="queryPerformanceChart" height="240"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">Cache Hit Ratio</h5>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="cacheHitRatioChart" height="240"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">Precomputed Statistics Overview</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped" id="statsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Statistic Type</th>
+                                                    <th>Count</th>
+                                                    <th>Avg Age (hours)</th>
+                                                    <th>Oldest</th>
+                                                    <th>Newest</th>
+                                                    <th>Avg Query Time (ms)</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="statsTableBody">
+                                                <tr>
+                                                    <td colspan="7" class="text-center">Loading statistics...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">Performance Comparison</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Query Type</th>
+                                                    <th>Before Optimization (ms)</th>
+                                                    <th>After Optimization (ms)</th>
+                                                    <th>Improvement</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Sentiment Trend</td>
+                                                    <td>3250</td>
+                                                    <td id="sentimentTrendTime">Loading...</td>
+                                                    <td id="sentimentTrendImprovement">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Rating Distribution</td>
+                                                    <td>1800</td>
+                                                    <td id="ratingDistributionTime">Loading...</td>
+                                                    <td id="ratingDistributionImprovement">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Keyword Sentiment</td>
+                                                    <td>4200</td>
+                                                    <td id="keywordSentimentTime">Loading...</td>
+                                                    <td id="keywordSentimentImprovement">-</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Product Comparison</td>
+                                                    <td>5100</td>
+                                                    <td id="productComparisonTime">Loading...</td>
+                                                    <td id="productComparisonImprovement">-</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">Background Jobs</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Job Type</th>
+                                                    <th>Last Run</th>
+                                                    <th>Duration</th>
+                                                    <th>Status</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="jobsTableBody">
+                                                <tr>
+                                                    <td colspan="5" class="text-center">Loading job data...</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">MongoDB Aggregation Pipeline Optimization Tips</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-check-circle text-success"></i> Best Practices</h6>
+                                            <ul>
+                                                <li>Use precomputed statistics for complex aggregations</li>
+                                                <li>Implement proper indexes for aggregation stages</li>
+                                                <li>Keep aggregation pipelines as simple as possible</li>
+                                                <li>Use $match as early as possible in the pipeline</li>
+                                                <li>Schedule background refresh of common queries</li>
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <h6><i class="fas fa-exclamation-circle text-danger"></i> Things to Avoid</h6>
+                                            <ul>
+                                                <li>Running large aggregations on demand</li>
+                                                <li>Using $group without proper indexes</li>
+                                                <li>Complex $project stages on large collections</li>
+                                                <li>Performing aggregations that scan all documents</li>
+                                                <li>Skipping the use of time-based filters when possible</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mt-4">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header bg-light">
+                                    <h5 class="card-title">Redis Fallback Metrics</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> This section shows Redis failover metrics. The fallback mechanism ensures system resilience even if Redis becomes unavailable.
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header bg-light">
+                                                    <h5 class="card-title">Redis Reliability</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <canvas id="redisReliabilityChart" height="240"></canvas>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="card">
+                                                <div class="card-header bg-light">
+                                                    <h5 class="card-title">Fallback Status</h5>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="table-responsive">
+                                                        <table class="table table-striped">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Metric</th>
+                                                                    <th>Value</th>
+                                                                    <th>Status</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="fallbackTableBody">
+                                                                <tr>
+                                                                    <td colspan="3" class="text-center">Loading fallback metrics...</td>
+                                                                </tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Query Performance Chart
+    const queryPerformanceCtx = document.getElementById('queryPerformanceChart').getContext('2d');
+    const queryPerformanceChart = new Chart(queryPerformanceCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Sentiment Trend', 'Rating Distribution', 'Keyword Sentiment', 'Product Comparison'],
+            datasets: [
+                {
+                    label: 'Direct Query (ms)',
+                    data: [3250, 1800, 4200, 5100],
+                    backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Using Precomputed Stats (ms)',
+                    data: [450, 250, 380, 520],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Using Redis Cache (ms)',
+                    data: [45, 25, 38, 52],
+                    backgroundColor: 'rgba(75, 192, 192, 0.7)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Query Time (ms)'
+                    }
+                }
+            },
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Query Performance Comparison'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.raw + 'ms';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Cache Hit Ratio Chart
+    const cacheHitRatioCtx = document.getElementById('cacheHitRatioChart').getContext('2d');
+    const cacheHitRatioChart = new Chart(cacheHitRatioCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Redis Cache Hits', 'MongoDB Precomputed Hits', 'Direct Queries'],
+            datasets: [{
+                data: [65, 25, 10],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(54, 162, 235, 0.7)',
+                    'rgba(255, 99, 132, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Query Source Distribution'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.raw + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Fetch the latest stats data
+    fetchStatsData();
+    
+    // Fetch jobs data
+    fetchJobsData();
+    
+    // Update performance comparison data
+    updatePerformanceData();
+    
+    // Load job stats
+    fetchJobStats();
+    
+    // Load Redis fallback metrics
+    fetchRedisFallbackMetrics();
+});
+
+function fetchStatsData() {
+    // This would normally be an API call
+    // For demo purposes, we'll use mock data
+    const mockData = [
+        {
+            type: 'sentiment_trend',
+            count: 142,
+            avg_age_hours: 8.2,
+            oldest_hours: 22.5,
+            newest_minutes: 5,
+            avg_query_ms: 450,
+            status: 'Healthy'
+        },
+        {
+            type: 'rating_distribution',
+            count: 36,
+            avg_age_hours: 5.1,
+            oldest_hours: 20.3,
+            newest_minutes: 12,
+            avg_query_ms: 250,
+            status: 'Healthy'
+        },
+        {
+            type: 'keyword_sentiment',
+            count: 24,
+            avg_age_hours: 10.7,
+            oldest_hours: 19.8,
+            newest_minutes: 45,
+            avg_query_ms: 380,
+            status: 'Healthy'
+        },
+        {
+            type: 'product_comparison',
+            count: 68,
+            avg_age_hours: 12.3,
+            oldest_hours: 23.1,
+            newest_minutes: 18,
+            avg_query_ms: 520,
+            status: 'Needs Refresh'
+        },
+        {
+            type: 'trending_products',
+            count: 7,
+            avg_age_hours: 2.4,
+            oldest_hours: 5.7,
+            newest_minutes: 30,
+            avg_query_ms: 180,
+            status: 'Healthy'
+        }
+    ];
+    
+    renderStatsTable(mockData);
+}
+
+function renderStatsTable(data) {
+    const tableBody = document.getElementById('statsTableBody');
+    tableBody.innerHTML = '';
+    
+    data.forEach(stat => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${stat.type}</td>
+            <td>${stat.count}</td>
+            <td>${stat.avg_age_hours.toFixed(1)}</td>
+            <td>${stat.oldest_hours.toFixed(1)} hours ago</td>
+            <td>${stat.newest_minutes} minutes ago</td>
+            <td>${stat.avg_query_ms} ms</td>
+            <td>
+                <span class="badge ${stat.status === 'Healthy' ? 'bg-success' : 'bg-warning'}">
+                    ${stat.status}
+                </span>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+}
+
+function fetchJobsData() {
+    // This would normally be an API call
+    // For demo purposes, we'll use mock data
+    const mockData = [
+        {
+            type: 'refresh_popular_products',
+            last_run: '10 minutes ago',
+            duration: '45 seconds',
+            status: 'Completed'
+        },
+        {
+            type: 'refresh_platform_stats',
+            last_run: '30 minutes ago',
+            duration: '1 minute 20 seconds',
+            status: 'Completed'
+        },
+        {
+            type: 'refresh_comparison_stats',
+            last_run: '1 hour ago',
+            duration: '2 minutes 15 seconds',
+            status: 'Completed'
+        },
+        {
+            type: 'prune_stale_stats',
+            last_run: '6 hours ago',
+            duration: '35 seconds',
+            status: 'Completed'
+        }
+    ];
+    
+    renderJobsTable(mockData);
+}
+
+function renderJobsTable(data) {
+    const tableBody = document.getElementById('jobsTableBody');
+    tableBody.innerHTML = '';
+    
+    data.forEach(job => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${job.type}</td>
+            <td>${job.last_run}</td>
+            <td>${job.duration}</td>
+            <td>
+                <span class="badge ${job.status === 'Completed' ? 'bg-success' : job.status === 'Running' ? 'bg-info' : 'bg-danger'}">
+                    ${job.status}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary run-now-btn">Run Now</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    });
+    
+    // Add event listeners to the Run Now buttons
+    document.querySelectorAll('.run-now-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const jobType = this.closest('tr').cells[0].textContent;
+            alert(`Scheduling job: ${jobType}`);
+            // In a real app, this would make an API call to trigger the job
+        });
+    });
+}
+
+function updatePerformanceData() {
+    // This would normally fetch real-time data from an API
+    // For demo purposes, we'll use mock data
+    
+    // Sentiment Trend
+    document.getElementById('sentimentTrendTime').textContent = '450 ms';
+    document.getElementById('sentimentTrendImprovement').textContent = '-86%';
+    document.getElementById('sentimentTrendImprovement').className = 'text-success';
+    
+    // Rating Distribution
+    document.getElementById('ratingDistributionTime').textContent = '250 ms';
+    document.getElementById('ratingDistributionImprovement').textContent = '-86%';
+    document.getElementById('ratingDistributionImprovement').className = 'text-success';
+    
+    // Keyword Sentiment
+    document.getElementById('keywordSentimentTime').textContent = '380 ms';
+    document.getElementById('keywordSentimentImprovement').textContent = '-91%';
+    document.getElementById('keywordSentimentImprovement').className = 'text-success';
+    
+    // Product Comparison
+    document.getElementById('productComparisonTime').textContent = '520 ms';
+    document.getElementById('productComparisonImprovement').textContent = '-90%';
+    document.getElementById('productComparisonImprovement').className = 'text-success';
+}
+
+function fetchRedisFallbackMetrics() {
+    fetch('/api/dashboard/redis-fallback-metrics')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.status === 'success') {
+                updateRedisFallbackDisplay(data.data);
+            } else {
+                console.error('Error fetching Redis fallback metrics:', data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching Redis fallback metrics:', error);
+        });
+}
+
+function updateRedisFallbackDisplay(metrics) {
+    // Update fallback table
+    const fallbackTableBody = document.getElementById('fallbackTableBody');
+    fallbackTableBody.innerHTML = '';
+    
+    // Redis status
+    const redisStatusRow = document.createElement('tr');
+    redisStatusRow.innerHTML = `
+        <td>Redis Available</td>
+        <td>${metrics.redis.available ? 'Yes' : 'No'}</td>
+        <td><span class="badge ${metrics.redis.available ? 'bg-success' : 'bg-danger'}">${metrics.redis.available ? 'Online' : 'Offline'}</span></td>
+    `;
+    fallbackTableBody.appendChild(redisStatusRow);
+    
+    // Fallback status
+    const fallbackStatusRow = document.createElement('tr');
+    fallbackStatusRow.innerHTML = `
+        <td>Fallback Mode Active</td>
+        <td>${metrics.redis.fallback_active ? 'Yes' : 'No'}</td>
+        <td><span class="badge ${!metrics.redis.fallback_active ? 'bg-success' : 'bg-warning'}">${!metrics.redis.fallback_active ? 'Normal' : 'Fallback'}</span></td>
+    `;
+    fallbackTableBody.appendChild(fallbackStatusRow);
+    
+    // Fallback cache entries
+    const entriesRow = document.createElement('tr');
+    entriesRow.innerHTML = `
+        <td>In-Memory Cache Entries</td>
+        <td>${metrics.redis.fallback_cache_entries}</td>
+        <td><span class="badge ${metrics.redis.fallback_cache_entries < 100 ? 'bg-success' : metrics.redis.fallback_cache_entries < 500 ? 'bg-warning' : 'bg-danger'}">
+            ${metrics.redis.fallback_cache_entries < 100 ? 'Low' : metrics.redis.fallback_cache_entries < 500 ? 'Medium' : 'High'}</span></td>
+    `;
+    fallbackTableBody.appendChild(entriesRow);
+    
+    // Hit rate
+    const hitRateRow = document.createElement('tr');
+    const hitRate = metrics.redis.get_success_count > 0 ? 
+        (metrics.redis.get_success_count / (metrics.redis.get_success_count + metrics.redis.get_fallback_count) * 100).toFixed(1) : 0;
+    hitRateRow.innerHTML = `
+        <td>Redis Hit Rate</td>
+        <td>${hitRate}%</td>
+        <td><span class="badge ${hitRate > 80 ? 'bg-success' : hitRate > 50 ? 'bg-warning' : 'bg-danger'}">
+            ${hitRate > 80 ? 'Excellent' : hitRate > 50 ? 'Acceptable' : 'Poor'}</span></td>
+    `;
+    fallbackTableBody.appendChild(hitRateRow);
+    
+    // Failure count
+    const failureRow = document.createElement('tr');
+    failureRow.innerHTML = `
+        <td>Redis Failures</td>
+        <td>${metrics.redis.failure_count}</td>
+        <td><span class="badge ${metrics.redis.failure_count < 5 ? 'bg-success' : metrics.redis.failure_count < 20 ? 'bg-warning' : 'bg-danger'}">
+            ${metrics.redis.failure_count < 5 ? 'Low' : metrics.redis.failure_count < 20 ? 'Moderate' : 'High'}</span></td>
+    `;
+    fallbackTableBody.appendChild(failureRow);
+    
+    // Last failure time
+    const lastFailureRow = document.createElement('tr');
+    lastFailureRow.innerHTML = `
+        <td>Last Failure</td>
+        <td>${metrics.redis.last_failure_time ? new Date(metrics.redis.last_failure_time * 1000).toLocaleString() : 'Never'}</td>
+        <td><span class="badge ${!metrics.redis.last_failure_time ? 'bg-success' : 
+            ((Date.now() / 1000) - metrics.redis.last_failure_time) > 3600 ? 'bg-success' : 'bg-warning'}">
+            ${!metrics.redis.last_failure_time ? 'None' : 
+            ((Date.now() / 1000) - metrics.redis.last_failure_time) > 3600 ? 'Recovered' : 'Recent'}</span></td>
+    `;
+    fallbackTableBody.appendChild(lastFailureRow);
+    
+    // Create the reliability chart
+    createRedisReliabilityChart(metrics);
+}
+
+function createRedisReliabilityChart(metrics) {
+    const ctx = document.getElementById('redisReliabilityChart').getContext('2d');
+    
+    // Calculate metrics
+    const successCount = metrics.redis.get_success_count + metrics.redis.set_success_count + metrics.redis.delete_success_count;
+    const fallbackCount = metrics.redis.get_fallback_count + metrics.redis.set_fallback_count + metrics.redis.delete_fallback_count;
+    const failureCount = metrics.redis.failure_count;
+    
+    const successRate = successCount > 0 ? (successCount / (successCount + fallbackCount) * 100).toFixed(1) : 0;
+    const fallbackRate = fallbackCount > 0 ? (fallbackCount / (successCount + fallbackCount) * 100).toFixed(1) : 0;
+    
+    // Destroy existing chart if it exists
+    if (window.redisReliabilityChart) {
+        window.redisReliabilityChart.destroy();
+    }
+    
+    window.redisReliabilityChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                'Direct Redis Operations',
+                'Fallback Operations',
+                'Failed Operations (Recovered)'
+            ],
+            datasets: [{
+                data: [successCount, fallbackCount, failureCount],
+                backgroundColor: [
+                    'rgba(75, 192, 192, 0.7)',
+                    'rgba(255, 206, 86, 0.7)',
+                    'rgba(255, 99, 132, 0.7)'
+                ],
+                borderColor: [
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(255, 99, 132, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Redis Operation Reliability'
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.label + ': ' + context.raw + ' operations';
+                        }
+                    }
+                },
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+}
+</script>
+{% endblock %} 

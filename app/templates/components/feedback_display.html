@@ -1,0 +1,440 @@
+<!-- Feedback Display Component -->
+<div class="feedback-display" id="feedback-display-{{ entity_type }}-{{ entity_id }}">
+    <div class="card shadow-sm mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title h5 mb-0">
+                <i class="fas fa-comments me-2"></i>User Feedback
+            </h3>
+            <a href="{{ url_for('feedback.feedback_form', entity_type=entity_type, entity_id=entity_id) }}" 
+               class="btn btn-sm btn-primary" target="_blank">
+                <i class="fas fa-plus me-1"></i>Add Feedback
+            </a>
+        </div>
+        <div class="card-body">
+            <div class="feedback-summary mb-3">
+                <div class="row align-items-center">
+                    <div class="col-md-4 text-center">
+                        <div class="display-4 fw-bold text-primary" id="avg-rating-{{ entity_type }}-{{ entity_id }}">0.0</div>
+                        <div class="text-muted small">Average Rating</div>
+                        <div class="rating-stars mt-1">
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                            <i class="far fa-star"></i>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="rating-bars">
+                            <div class="rating-bar d-flex align-items-center mb-1">
+                                <div class="rating-label me-2">5</div>
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-success" id="rating-5-bar-{{ entity_type }}-{{ entity_id }}" style="width: 0%"></div>
+                                </div>
+                                <div class="rating-count ms-2 small" id="rating-5-count-{{ entity_type }}-{{ entity_id }}">0</div>
+                            </div>
+                            <div class="rating-bar d-flex align-items-center mb-1">
+                                <div class="rating-label me-2">4</div>
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-success" id="rating-4-bar-{{ entity_type }}-{{ entity_id }}" style="width: 0%"></div>
+                                </div>
+                                <div class="rating-count ms-2 small" id="rating-4-count-{{ entity_type }}-{{ entity_id }}">0</div>
+                            </div>
+                            <div class="rating-bar d-flex align-items-center mb-1">
+                                <div class="rating-label me-2">3</div>
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" id="rating-3-bar-{{ entity_type }}-{{ entity_id }}" style="width: 0%"></div>
+                                </div>
+                                <div class="rating-count ms-2 small" id="rating-3-count-{{ entity_type }}-{{ entity_id }}">0</div>
+                            </div>
+                            <div class="rating-bar d-flex align-items-center mb-1">
+                                <div class="rating-label me-2">2</div>
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-warning" id="rating-2-bar-{{ entity_type }}-{{ entity_id }}" style="width: 0%"></div>
+                                </div>
+                                <div class="rating-count ms-2 small" id="rating-2-count-{{ entity_type }}-{{ entity_id }}">0</div>
+                            </div>
+                            <div class="rating-bar d-flex align-items-center">
+                                <div class="rating-label me-2">1</div>
+                                <div class="progress flex-grow-1" style="height: 8px;">
+                                    <div class="progress-bar bg-danger" id="rating-1-bar-{{ entity_type }}-{{ entity_id }}" style="width: 0%"></div>
+                                </div>
+                                <div class="rating-count ms-2 small" id="rating-1-count-{{ entity_type }}-{{ entity_id }}">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feedback-filter mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="filter-options">
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-secondary active" data-filter="all">All</button>
+                            <button class="btn btn-outline-secondary" data-filter="5,4">Positive</button>
+                            <button class="btn btn-outline-secondary" data-filter="3">Neutral</button>
+                            <button class="btn btn-outline-secondary" data-filter="2,1">Negative</button>
+                        </div>
+                    </div>
+                    <div class="sort-options">
+                        <select class="form-select form-select-sm" id="feedback-sort-{{ entity_type }}-{{ entity_id }}">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                            <option value="highest">Highest Rated</option>
+                            <option value="lowest">Lowest Rated</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="feedback-list" id="feedback-list-{{ entity_type }}-{{ entity_id }}">
+                <div class="text-center py-4 feedback-loading">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading feedback...</p>
+                </div>
+                <div class="feedback-empty d-none">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>No feedback available yet.
+                    </div>
+                </div>
+                <div class="feedback-items">
+                    <!-- Feedback items will be loaded here dynamically -->
+                </div>
+            </div>
+            
+            <div class="feedback-pagination mt-3 d-none">
+                <nav aria-label="Feedback pagination">
+                    <ul class="pagination pagination-sm justify-content-center" id="feedback-pagination-{{ entity_type }}-{{ entity_id }}">
+                        <!-- Pagination will be generated dynamically -->
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Template for feedback item -->
+<template id="feedback-item-template">
+    <div class="feedback-item card mb-3">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <h4 class="feedback-item-title h6 mb-0"></h4>
+                <div class="feedback-item-rating">
+                    <!-- Rating stars will be added dynamically -->
+                </div>
+            </div>
+            <div class="feedback-item-content mb-2"></div>
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="feedback-item-tags">
+                    <!-- Tags will be added dynamically -->
+                </div>
+                <div class="feedback-item-date small text-muted"></div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize feedback display
+        initFeedbackDisplay('{{ entity_type }}', '{{ entity_id }}');
+    });
+    
+    function initFeedbackDisplay(entityType, entityId) {
+        // Load feedback data
+        loadFeedbackData(entityType, entityId);
+        
+        // Set up event listeners
+        setupFeedbackEventListeners(entityType, entityId);
+    }
+    
+    function loadFeedbackData(entityType, entityId, page = 1, limit = 5) {
+        const feedbackList = document.getElementById(`feedback-list-${entityType}-${entityId}`);
+        const loadingEl = feedbackList.querySelector('.feedback-loading');
+        const emptyEl = feedbackList.querySelector('.feedback-empty');
+        const itemsEl = feedbackList.querySelector('.feedback-items');
+        
+        // Show loading state
+        loadingEl.classList.remove('d-none');
+        emptyEl.classList.add('d-none');
+        itemsEl.innerHTML = '';
+        
+        // Load feedback data from API
+        fetch(`/api/feedback/entity/${entityType}/${entityId}?limit=${limit}&offset=${(page-1)*limit}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load feedback');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading state
+                loadingEl.classList.add('d-none');
+                
+                // Check if there's any feedback
+                if (data.feedback.length === 0) {
+                    emptyEl.classList.remove('d-none');
+                    return;
+                }
+                
+                // Process feedback data
+                processFeedbackData(entityType, entityId, data.feedback);
+                
+                // Update pagination if needed
+                if (data.count > 0) {
+                    updatePagination(entityType, entityId, page, Math.ceil(data.count / limit));
+                }
+            })
+            .catch(error => {
+                console.error('Error loading feedback:', error);
+                loadingEl.classList.add('d-none');
+                emptyEl.classList.remove('d-none');
+                emptyEl.querySelector('.alert').textContent = 'Error loading feedback. Please try again later.';
+            });
+    }
+    
+    function processFeedbackData(entityType, entityId, feedbackList) {
+        const container = document.getElementById(`feedback-list-${entityType}-${entityId}`);
+        const itemsEl = container.querySelector('.feedback-items');
+        const template = document.getElementById('feedback-item-template');
+        
+        // Calculate rating statistics
+        const ratingCounts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0};
+        let totalRating = 0;
+        
+        feedbackList.forEach(feedback => {
+            // Count ratings
+            const rating = Math.round(feedback.rating);
+            if (rating >= 1 && rating <= 5) {
+                ratingCounts[rating]++;
+                totalRating += rating;
+            }
+            
+            // Create feedback item from template
+            const item = template.content.cloneNode(true);
+            const feedbackItem = item.querySelector('.feedback-item');
+            
+            // Set feedback data
+            feedbackItem.dataset.rating = rating;
+            feedbackItem.dataset.id = feedback._id;
+            
+            // Set title
+            const titleEl = item.querySelector('.feedback-item-title');
+            titleEl.textContent = feedback.title || 'Feedback';
+            
+            // Set rating stars
+            const ratingEl = item.querySelector('.feedback-item-rating');
+            for (let i = 1; i <= 5; i++) {
+                const star = document.createElement('i');
+                star.className = i <= rating ? 'fas fa-star text-warning' : 'far fa-star';
+                ratingEl.appendChild(star);
+            }
+            
+            // Set content
+            const contentEl = item.querySelector('.feedback-item-content');
+            contentEl.textContent = feedback.content || '';
+            
+            // Set tags
+            const tagsEl = item.querySelector('.feedback-item-tags');
+            if (feedback.tags && feedback.tags.length > 0) {
+                feedback.tags.forEach(tag => {
+                    const tagBadge = document.createElement('span');
+                    tagBadge.className = 'badge bg-secondary me-1';
+                    tagBadge.textContent = tag;
+                    tagsEl.appendChild(tagBadge);
+                });
+            }
+            
+            // Set date
+            const dateEl = item.querySelector('.feedback-item-date');
+            const date = new Date(feedback.created_at);
+            dateEl.textContent = date.toLocaleDateString();
+            
+            // Add item to container
+            itemsEl.appendChild(item);
+        });
+        
+        // Update statistics display
+        updateFeedbackStats(entityType, entityId, ratingCounts, totalRating);
+    }
+    
+    function updateFeedbackStats(entityType, entityId, ratingCounts, totalRating) {
+        // Calculate total count and average
+        const totalCount = Object.values(ratingCounts).reduce((sum, count) => sum + count, 0);
+        const avgRating = totalCount > 0 ? (totalRating / totalCount).toFixed(1) : '0.0';
+        
+        // Update average rating display
+        const avgRatingEl = document.getElementById(`avg-rating-${entityType}-${entityId}`);
+        avgRatingEl.textContent = avgRating;
+        
+        // Update rating stars
+        const starsContainer = avgRatingEl.closest('.col-md-4').querySelector('.rating-stars');
+        starsContainer.innerHTML = '';
+        const avgRatingValue = parseFloat(avgRating);
+        
+        for (let i = 1; i <= 5; i++) {
+            const star = document.createElement('i');
+            if (i <= Math.floor(avgRatingValue)) {
+                star.className = 'fas fa-star text-warning';
+            } else if (i - avgRatingValue < 1 && i - avgRatingValue > 0) {
+                star.className = 'fas fa-star-half-alt text-warning';
+            } else {
+                star.className = 'far fa-star';
+            }
+            starsContainer.appendChild(star);
+        }
+        
+        // Update rating bars
+        for (let rating = 1; rating <= 5; rating++) {
+            const count = ratingCounts[rating] || 0;
+            const percentage = totalCount > 0 ? (count / totalCount * 100).toFixed(0) : 0;
+            
+            // Update bar width
+            const barEl = document.getElementById(`rating-${rating}-bar-${entityType}-${entityId}`);
+            barEl.style.width = `${percentage}%`;
+            
+            // Update count
+            const countEl = document.getElementById(`rating-${rating}-count-${entityType}-${entityId}`);
+            countEl.textContent = count;
+        }
+    }
+    
+    function updatePagination(entityType, entityId, currentPage, totalPages) {
+        const paginationEl = document.getElementById(`feedback-pagination-${entityType}-${entityId}`);
+        const paginationContainer = paginationEl.closest('.feedback-pagination');
+        
+        // Show pagination if more than one page
+        if (totalPages > 1) {
+            paginationContainer.classList.remove('d-none');
+        } else {
+            paginationContainer.classList.add('d-none');
+            return;
+        }
+        
+        // Clear pagination
+        paginationEl.innerHTML = '';
+        
+        // Previous button
+        const prevLi = document.createElement('li');
+        prevLi.className = `page-item ${currentPage === 1 ? 'disabled' : ''}`;
+        const prevLink = document.createElement('a');
+        prevLink.className = 'page-link';
+        prevLink.href = '#';
+        prevLink.setAttribute('aria-label', 'Previous');
+        prevLink.innerHTML = '<span aria-hidden="true">&laquo;</span>';
+        prevLi.appendChild(prevLink);
+        paginationEl.appendChild(prevLi);
+        
+        // Page numbers
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, startPage + 4);
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageLi = document.createElement('li');
+            pageLi.className = `page-item ${i === currentPage ? 'active' : ''}`;
+            const pageLink = document.createElement('a');
+            pageLink.className = 'page-link';
+            pageLink.href = '#';
+            pageLink.textContent = i;
+            pageLink.dataset.page = i;
+            pageLi.appendChild(pageLink);
+            paginationEl.appendChild(pageLi);
+        }
+        
+        // Next button
+        const nextLi = document.createElement('li');
+        nextLi.className = `page-item ${currentPage === totalPages ? 'disabled' : ''}`;
+        const nextLink = document.createElement('a');
+        nextLink.className = 'page-link';
+        nextLink.href = '#';
+        nextLink.setAttribute('aria-label', 'Next');
+        nextLink.innerHTML = '<span aria-hidden="true">&raquo;</span>';
+        nextLi.appendChild(nextLink);
+        paginationEl.appendChild(nextLi);
+        
+        // Add event listeners
+        paginationEl.querySelectorAll('.page-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                let newPage = currentPage;
+                
+                if (this.dataset.page) {
+                    newPage = parseInt(this.dataset.page);
+                } else if (this.getAttribute('aria-label') === 'Previous') {
+                    newPage = Math.max(1, currentPage - 1);
+                } else if (this.getAttribute('aria-label') === 'Next') {
+                    newPage = Math.min(totalPages, currentPage + 1);
+                }
+                
+                if (newPage !== currentPage) {
+                    loadFeedbackData(entityType, entityId, newPage);
+                }
+            });
+        });
+    }
+    
+    function setupFeedbackEventListeners(entityType, entityId) {
+        // Filter buttons
+        const container = document.getElementById(`feedback-display-${entityType}-${entityId}`);
+        container.querySelectorAll('.filter-options button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active state
+                container.querySelectorAll('.filter-options button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // Apply filter
+                const filterValue = this.dataset.filter;
+                const items = container.querySelectorAll('.feedback-item');
+                
+                if (filterValue === 'all') {
+                    items.forEach(item => item.style.display = '');
+                } else {
+                    const ratings = filterValue.split(',').map(r => parseInt(r));
+                    items.forEach(item => {
+                        const rating = parseInt(item.dataset.rating);
+                        item.style.display = ratings.includes(rating) ? '' : 'none';
+                    });
+                }
+            });
+        });
+        
+        // Sort dropdown
+        const sortSelect = document.getElementById(`feedback-sort-${entityType}-${entityId}`);
+        sortSelect.addEventListener('change', function() {
+            const sortValue = this.value;
+            const itemsContainer = container.querySelector('.feedback-items');
+            const items = Array.from(itemsContainer.querySelectorAll('.feedback-item'));
+            
+            // Sort items
+            items.sort((a, b) => {
+                const ratingA = parseInt(a.dataset.rating);
+                const ratingB = parseInt(b.dataset.rating);
+                const dateA = new Date(a.querySelector('.feedback-item-date').textContent);
+                const dateB = new Date(b.querySelector('.feedback-item-date').textContent);
+                
+                switch (sortValue) {
+                    case 'newest':
+                        return dateB - dateA;
+                    case 'oldest':
+                        return dateA - dateB;
+                    case 'highest':
+                        return ratingB - ratingA;
+                    case 'lowest':
+                        return ratingA - ratingB;
+                    default:
+                        return 0;
+                }
+            });
+            
+            // Reorder items
+            items.forEach(item => {
+                itemsContainer.appendChild(item);
+            });
+        });
+    }
+</script> 

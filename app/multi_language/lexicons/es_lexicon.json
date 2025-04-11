@@ -1,0 +1,36 @@
+{
+  "positive": [
+    "good",
+    "excellent",
+    "great"
+  ],
+  "negative": [
+    "bad",
+    "poor",
+    "terrible"
+  ],
+  "neutral": [
+    "the",
+    "and",
+    "or"
+  ],
+  "intensifiers": [
+    "very",
+    "extremely",
+    "highly"
+  ],
+  "diminishers": [
+    "slightly",
+    "somewhat",
+    "barely"
+  ],
+  "negators": [
+    "not",
+    "never",
+    "no"
+  ],
+  "language": "Spanish",
+  "created_at": "2025-04-11T16:05:44.554909",
+  "updated_at": "2025-04-11T16:05:44.554909",
+  "version": "0.1"
+}

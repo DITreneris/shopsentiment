@@ -1,0 +1,33 @@
+{
+    "thresholds": {
+        "mongodb_storage_gb": 10,
+        "redis_memory_mb": 500,
+        "api_requests_per_min": 1000,
+        "worker_queue_length": 100
+    },
+    "budget": {
+        "monthly_limit_usd": 500,
+        "alert_thresholds": [0.5, 0.75, 0.9]
+    },
+    "alert_endpoints": {
+        "email": "alerts@shopsentiment.example.com",
+        "webhook": "https://hooks.slack.com/services/YOUR_SLACK_WEBHOOK"
+    },
+    "scaling": {
+        "enabled": true,
+        "worker_ratio": 1.5,
+        "max_workers": 10,
+        "min_workers": 2
+    },
+    "cleanup": {
+        "temp_data_ttl_days": 7,
+        "log_retention_days": 30,
+        "backup_retention_days": 90
+    },
+    "cost_allocation": {
+        "enabled": true,
+        "track_by_feature": true,
+        "track_by_team": true,
+        "tag_prefix": "cost-center"
+    }
+} 

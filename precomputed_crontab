@@ -1,0 +1,2 @@
+# Refresh precomputed collections every 6 hours
+0 */6 * * * cd /path/to/shopsentiment && python refresh_precomputed_collections.py >> /var/log/shopsentiment/precomputed_refresh.log 2>&1

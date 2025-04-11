@@ -1,0 +1,72 @@
+MongoDB Performance Optimization Report
+=====================================
+
+Generated: 2025-04-11 11:17:15.223310
+Test Iterations: 5
+
+Performance Summary
+-----------------
+Total Tests: 11
+Tests Improved: 4
+Tests Worsened: 7
+Overall Improvement: 3.87%
+
+Detailed Test Results
+-------------------
+Test: Keyword Sentiment Analysis (min count: 5)
+  Original: 994.2ms
+  Optimized: 654.85ms
+  Improvement: 339.35ms (34.13%)
+
+Test: Sentiment Over Time (30 days)
+  Original: 50.27ms
+  Optimized: 38.25ms
+  Improvement: 12.02ms (23.91%)
+
+Test: Keyword Sentiment Analysis (min count: 25)
+  Original: 736.61ms
+  Optimized: 641.03ms
+  Improvement: 95.58ms (12.98%)
+
+Test: Sentiment Over Time (90 days)
+  Original: 40.18ms
+  Optimized: 40.0ms
+  Improvement: 0.18ms (0.45%)
+
+Test: Rating Distribution by Platform (180 days)
+  Original: 168.32ms
+  Optimized: 186.64ms
+  Improvement: -18.32ms (-10.88%)
+
+Test: Rating Distribution by Platform (90 days)
+  Original: 102.89ms
+  Optimized: 120.4ms
+  Improvement: -17.51ms (-17.02%)
+
+Test: Keyword Sentiment Analysis (min count: 10)
+  Original: 634.62ms
+  Optimized: 779.85ms
+  Improvement: -145.23ms (-22.88%)
+
+Test: Rating Distribution by Platform (30 days)
+  Original: 114.74ms
+  Optimized: 155.97ms
+  Improvement: -41.23ms (-35.93%)
+
+Test: Product Comparison (2 products)
+  Original: 39.8ms
+  Optimized: 75.04ms
+  Improvement: -35.24ms (-88.54%)
+
+Test: Product Comparison (3 products)
+  Original: 36.65ms
+  Optimized: 69.21ms
+  Improvement: -32.56ms (-88.84%)
+
+Test: Product Comparison (5 products)
+  Original: 43.68ms
+  Optimized: 86.19ms
+  Improvement: -42.51ms (-97.32%)
+
+Recommendations
+--------------

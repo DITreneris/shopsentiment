@@ -1,0 +1,5 @@
+query,original_ms,optimized_ms,improvement_percent,speedup_factor
+Sentiment Over Time (30 days),33.97,67.24,-97.94,0.51
+Rating Distribution by Platform,369.12,382.02,-3.49,0.97
+Keyword Sentiment Analysis,1154.0,1710.13,-48.19,0.67
+Product Comparison,46.39,77.85,-67.82,0.6

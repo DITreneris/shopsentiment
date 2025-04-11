@@ -4,6 +4,30 @@ import sqlite3
 import nltk
 from flask_login import LoginManager
 import json
+from flask_caching import Cache
+from app.celery import make_celery
+from flask_wtf.csrf import CSRFProtect
+from flask_talisman import Talisman
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import logging
+from datetime import timedelta
+
+# Import MongoDB utilities
+from app.utils.mongodb import init_app as init_mongodb
+
+# Import Atlas Search utilities
+from app.utils.atlas_search import init_app as init_atlas_search
+
+# Initialize dashboard service after app is configured
+from app.services.dashboard_service import init_dashboard_service
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__, 
@@ -11,6 +35,83 @@ app = Flask(__name__,
             static_folder='static')
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-development')
 app.config['DATABASE'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'reviews.db')
+
+# Security Configuration
+app.config['WTF_CSRF_ENABLED'] = True
+app.config['WTF_CSRF_TIME_LIMIT'] = 3600  # 1 hour
+app.config['SESSION_COOKIE_SECURE'] = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['REMEMBER_COOKIE_SECURE'] = os.environ.get('REMEMBER_COOKIE_SECURE', 'False').lower() == 'true'
+app.config['REMEMBER_COOKIE_HTTPONLY'] = True
+app.config['REMEMBER_COOKIE_DURATION'] = 2592000  # 30 days
+
+# Configure Redis cache
+app.config['CACHE_TYPE'] = os.environ.get('CACHE_TYPE', 'simple')  # Default to simple cache for development
+if app.config['CACHE_TYPE'] == 'redis':
+    app.config['CACHE_REDIS_HOST'] = os.environ.get('REDIS_HOST', 'localhost')
+    app.config['CACHE_REDIS_PORT'] = int(os.environ.get('REDIS_PORT', 6379))
+    app.config['CACHE_REDIS_DB'] = int(os.environ.get('REDIS_DB', 0))
+    app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+app.config['CACHE_DEFAULT_TIMEOUT'] = int(os.environ.get('CACHE_TIMEOUT', 300))  # 5 minutes default
+
+# Celery configuration
+app.config['CELERY_BROKER_URL'] = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+app.config['CELERY_RESULT_BACKEND'] = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+celery = make_celery(app)
+
+# Initialize security extensions
+csrf = CSRFProtect(app)
+
+# Initialize Talisman for security headers
+csp = {
+    'default-src': ['\'self\''],
+    'script-src': ['\'self\'', '\'unsafe-inline\'', 'https://cdn.jsdelivr.net', 'https://code.jquery.com'],
+    'style-src': ['\'self\'', '\'unsafe-inline\'', 'https://cdn.jsdelivr.net', 'https://fonts.googleapis.com'],
+    'font-src': ['\'self\'', 'https://fonts.gstatic.com', 'https://cdn.jsdelivr.net'],
+    'img-src': ['\'self\'', 'data:', 'https://cdn.jsdelivr.net'],
+    'connect-src': ['\'self\'']
+}
+
+# Determine if we're in development mode
+is_development = os.environ.get('FLASK_ENV', 'development') == 'development'
+
+# Initialize Talisman with comprehensive security headers
+talisman = Talisman(
+    app,
+    content_security_policy=csp,
+    content_security_policy_nonce_in=['script-src'],
+    force_https=not is_development,
+    session_cookie_secure=not is_development,
+    frame_options='DENY',
+    frame_options_allow_from=None,
+    strict_transport_security=True,
+    strict_transport_security_preload=True,
+    strict_transport_security_max_age=31536000,
+    strict_transport_security_include_subdomains=True,
+    referrer_policy='strict-origin-when-cross-origin',
+    x_content_type_options='nosniff',
+    x_xss_protection=True,
+    feature_policy={
+        'geolocation': '\'none\'',
+        'microphone': '\'none\'',
+        'camera': '\'none\'',
+        'payment': '\'none\'',
+        'usb': '\'none\''
+    }
+)
+
+# Initialize Flask-Limiter for rate limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri=os.environ.get('REDIS_URL', 'memory://'),
+    strategy="fixed-window",
+)
+
+# Initialize cache
+cache = Cache(app)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -103,4 +204,53 @@ from app.routes.auth import auth_bp
 app.register_blueprint(auth_bp, url_prefix='/auth')
 
 # Initialize the database
-init_db() 
+init_db()
+
+# Initialize MongoDB
+init_mongodb(app)
+
+# Initialize Atlas Search
+init_atlas_search(app)
+
+# Register blueprints
+from app.routes import main, api
+app.register_blueprint(main.bp)
+app.register_blueprint(api.bp, url_prefix='/api/v1')
+
+# Register dashboard blueprint
+from app.routes.dashboard import dashboard_bp
+app.register_blueprint(dashboard_bp)
+
+# Register feedback blueprint
+from app.routes.feedback_routes import feedback_bp
+app.register_blueprint(feedback_bp)
+
+# Register search blueprint
+from app.routes.search_routes import search_bp
+app.register_blueprint(search_bp)
+
+# Register webhook blueprint
+from app.routes.webhook_routes import webhook_bp
+app.register_blueprint(webhook_bp)
+
+# Initialize dashboard service with app and cache
+init_dashboard_service(app, cache)
+
+# A simple route to confirm the app is working
+@app.route('/health')
+@limiter.exempt
+def health_check():
+    return {'status': 'healthy'}
+
+# Additional security headers
+@app.after_request
+def add_security_headers(response):
+    response.headers['X-Content-Security-Policy'] = "default-src 'self'"
+    response.headers['X-Permitted-Cross-Domain-Policies'] = 'none'
+    response.headers['Cross-Origin-Opener-Policy'] = 'same-origin'
+    response.headers['Cross-Origin-Embedder-Policy'] = 'require-corp'
+    response.headers['Cross-Origin-Resource-Policy'] = 'same-origin'
+    response.headers['Permissions-Policy'] = 'accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()'
+    response.headers['X-Download-Options'] = 'noopen'
+    response.headers['X-DNS-Prefetch-Control'] = 'off'
+    return response 

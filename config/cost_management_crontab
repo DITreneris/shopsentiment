@@ -1,0 +1,20 @@
+# ShopSentiment Cost Management Scheduled Tasks
+# 
+# This crontab schedules the cost management tasks:
+# - Daily cost monitoring and optimization
+# - Weekly cleanup and comprehensive report
+# - Monthly cost allocation report
+#
+# m h dom mon dow command
+
+# Run daily cost management tasks at 3:00 AM
+0 3 * * * cd /path/to/shopsentiment && python scripts/cost_management_cron.py --daily >> logs/cost_management_cron_daily.log 2>&1
+
+# Run weekly cost management tasks on Monday at 4:00 AM
+0 4 * * 1 cd /path/to/shopsentiment && python scripts/cost_management_cron.py --weekly >> logs/cost_management_cron_weekly.log 2>&1
+
+# Run monthly cost management tasks on the 1st of the month at 5:00 AM
+0 5 1 * * cd /path/to/shopsentiment && python scripts/cost_management_cron.py --monthly >> logs/cost_management_cron_monthly.log 2>&1
+
+# Run usage-based scaling check every hour during business hours
+0 9-17 * * 1-5 cd /path/to/shopsentiment && python scripts/manage_costs.py optimize --skip-mongodb --skip-redis --skip-cleanup >> logs/cost_scaling_hourly.log 2>&1 

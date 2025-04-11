@@ -1,0 +1,28 @@
+{
+  "name": "ShopSentiment",
+  "description": "An application for analyzing sentiment in shopping reviews",
+  "repository": "https://github.com/yourusername/shopsentiment",
+  "keywords": ["python", "flask", "mongodb", "sentiment", "analysis"],
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key for the Flask application",
+      "generator": "secret"
+    },
+    "FLASK_ENV": {
+      "description": "Environment configuration for Flask",
+      "value": "production"
+    },
+    "MONGODB_URI": {
+      "description": "MongoDB connection URI",
+      "required": true
+    }
+  },
+  "addons": [
+    "mongolab"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ]
+} 

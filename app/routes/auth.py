@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 from app.models.user import User
+from app.forms import LoginForm, RegistrationForm
+from app import limiter
 import os
 import json
 
@@ -32,24 +34,24 @@ def save_users_db(users):
         json.dump(users, f, indent=2)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute")  # Rate limiting for login attempts
 def login():
     """Handle user login"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
-    if request.method == 'POST':
-        email = request.form.get('email')
-        password = request.form.get('password')
-        
-        if not email or not password:
-            flash('Please fill in all fields', 'error')
-            return render_template('auth/login.html')
+    form = LoginForm()
+    
+    if form.validate_on_submit():
+        email = form.email.data
+        password = form.password.data
+        remember = form.remember.data
         
         users_db = get_users_db()
         user = User.get_by_email(email, users_db)
         
         if user and user.check_password(password):
-            login_user(user)
+            login_user(user, remember=remember)
             user.update_last_login()
             
             # Update the last_login in the database
@@ -66,38 +68,32 @@ def login():
         
         flash('Invalid email or password', 'error')
     
-    return render_template('auth/login.html')
+    return render_template('auth/login.html', form=form)
 
 @auth_bp.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per hour")  # Rate limiting for registration
 def register():
     """Handle user registration"""
     if current_user.is_authenticated:
         return redirect(url_for('index'))
     
-    if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirm_password')
-        
-        if not username or not email or not password or not confirm_password:
-            flash('Please fill in all fields', 'error')
-            return render_template('auth/register.html')
-        
-        if password != confirm_password:
-            flash('Passwords do not match', 'error')
-            return render_template('auth/register.html')
+    form = RegistrationForm()
+    
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
+        password = form.password.data
         
         users_db = get_users_db()
         
         # Check if email or username already exists
         if User.get_by_email(email, users_db):
             flash('Email already registered', 'error')
-            return render_template('auth/register.html')
+            return render_template('auth/register.html', form=form)
         
         if User.get_by_username(username, users_db):
             flash('Username already taken', 'error')
-            return render_template('auth/register.html')
+            return render_template('auth/register.html', form=form)
         
         # Generate a new ID (max id + 1)
         user_id = 1
@@ -121,7 +117,7 @@ def register():
         flash('Registration successful! Please log in.', 'success')
         return redirect(url_for('auth.login'))
     
-    return render_template('auth/register.html')
+    return render_template('auth/register.html', form=form)
 
 @auth_bp.route('/logout')
 @login_required
@@ -141,13 +137,22 @@ def profile():
 @login_required
 def edit_profile():
     """Edit user profile"""
+    form = RegistrationForm(obj=current_user)
+    
+    # Remove password validators for edit profile
+    form.password.validators = []
+    form.confirm_password.validators = []
+    
+    # Only validate if password fields are empty
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        
-        if not username or not email:
-            flash('Please fill in all fields', 'error')
-            return render_template('auth/edit_profile.html')
+        if not form.password.data and not form.confirm_password.data:
+            # If password fields are empty, don't validate them
+            del form.password
+            del form.confirm_password
+    
+    if form.validate_on_submit():
+        username = form.username.data
+        email = form.email.data
         
         users_db = get_users_db()
         
@@ -156,10 +161,10 @@ def edit_profile():
             if user['id'] != current_user.id:
                 if user['username'] == username:
                     flash('Username already taken', 'error')
-                    return render_template('auth/edit_profile.html')
+                    return render_template('auth/edit_profile.html', form=form)
                 if user['email'] == email:
                     flash('Email already registered', 'error')
-                    return render_template('auth/edit_profile.html')
+                    return render_template('auth/edit_profile.html', form=form)
         
         # Update the current user
         for user in users_db:
@@ -168,6 +173,11 @@ def edit_profile():
                 user['email'] = email
                 current_user.username = username
                 current_user.email = email
+                
+                # Update password if provided
+                if form.password.data:
+                    user['password_hash'] = generate_password_hash(form.password.data)
+                    current_user.password_hash = user['password_hash']
                 break
                 
         save_users_db(users_db)
@@ -175,4 +185,4 @@ def edit_profile():
         flash('Profile updated successfully', 'success')
         return redirect(url_for('auth.profile'))
     
-    return render_template('auth/edit_profile.html') 
+    return render_template('auth/edit_profile.html', form=form) 

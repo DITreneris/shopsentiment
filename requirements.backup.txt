@@ -1,0 +1,66 @@
+# Web Framework
+Flask>=2.2.3,<3.0.0
+Werkzeug>=2.2.3,<3.0.0
+flask-wtf>=1.1.1
+flask-login>=0.6.2
+flask-limiter>=3.3.0
+flask-talisman>=1.0.0
+flask-caching>=2.0.2
+
+# Database
+pymongo==4.6.1
+dnspython>=2.3.0
+flask-pymongo>=2.3.0
+
+# Redis - Enhanced caching support
+redis>=4.5.4,<5.0.0
+redisearch>=2.1.1  # For advanced Redis search capabilities
+redis-om>=0.2.1  # Object mapping for Redis
+
+# Scraping
+beautifulsoup4>=4.12.0
+requests>=2.28.2
+tenacity>=8.2.2
+lxml>=4.9.2
+
+# Sentiment Analysis
+nltk>=3.8.1
+pandas>=2.0.0,<2.1.0  # Capped for Python 3.10 compatibility
+numpy==1.26.3
+
+# Async Tasks
+celery>=5.2.7,<6.0.0
+kombu>=5.2.4  # Messaging library for Celery
+
+# Testing
+pytest>=7.3.1
+pytest-flask>=1.2.0
+pytest-cov>=4.1.0
+locust>=2.15.1  # Load testing
+
+# Utilities
+python-dotenv==1.0.0
+tqdm>=4.65.0
+pytz>=2023.3
+click>=8.1.3
+statistics>=1.0.3  # For load test statistics
+msgpack>=1.0.5  # Efficient serialization for Redis
+ujson>=5.7.0  # Faster JSON for caching
+
+# Type Hints
+mypy>=1.3.0
+types-requests>=2.28.11
+types-redis>=4.5.5
+typing-extensions>=4.5.0  # For Python 3.10 compatibility
+
+# Monitoring
+prometheus-flask-exporter>=0.22.4
+prometheus-client>=0.16.0  # For custom metrics
+
+# Development
+black>=23.3.0
+flake8>=6.0.0
+isort>=5.12.0
+
+# Added from the code block
+faker==22.5.1 

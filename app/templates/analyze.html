@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+
+{% block title %}ShopSentiment - Analyze Product{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Analyze a Product</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('analyze') }}">
+                        {{ form.csrf_token }}
+                        
+                        <div class="mb-4">
+                            {{ form.platform.label(class="form-label") }}
+                            {{ form.platform(class="form-select", id="platform-select") }}
+                            {% if form.platform.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.platform.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.product_id.label(class="form-label") }}
+                            {{ form.product_id(class="form-control", placeholder="Enter the product ID") }}
+                            {% if form.product_id.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.product_id.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="form-text mt-1" id="platform-help-text">
+                                <span id="amazon-help" class="d-none">For Amazon, use the ASIN (10 character product ID) found in the product URL</span>
+                                <span id="ebay-help" class="d-none">For eBay, use the item number found in the product URL</span>
+                                <span id="custom-help" class="d-none">For custom websites, enter a unique identifier for your product</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Custom URL field (hidden initially) -->
+                        <div class="mb-4 d-none" id="url-group">
+                            {{ form.url.label(class="form-label") }}
+                            {{ form.url(class="form-control", placeholder="Enter the full URL to the product page") }}
+                            {% if form.url.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.url.errors %}
+                                        {{ error }}
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Custom selectors (hidden initially) -->
+                        <div id="selectors-group" class="d-none">
+                            <div class="alert alert-info mb-4">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                Enter CSS selectors to extract reviews from the custom website
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.review_selector.label(class="form-label") }}
+                                {{ form.review_selector(class="form-control", placeholder=".review-text or div.review p.content") }}
+                                {% if form.review_selector.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.review_selector.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">CSS selector for review text elements (e.g., ".review-text")</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.rating_selector.label(class="form-label") }}
+                                {{ form.rating_selector(class="form-control", placeholder=".rating or span.stars") }}
+                                {% if form.rating_selector.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.rating_selector.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">CSS selector for rating elements (e.g., ".rating")</div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                {{ form.date_selector.label(class="form-label") }}
+                                {{ form.date_selector(class="form-control", placeholder=".review-date or time.date") }}
+                                {% if form.date_selector.errors %}
+                                    <div class="text-danger">
+                                        {% for error in form.date_selector.errors %}
+                                            {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                                <div class="form-text">CSS selector for review date elements (e.g., ".review-date")</div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid mt-4">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const platformSelect = document.getElementById('platform-select');
+        const urlGroup = document.getElementById('url-group');
+        const selectorsGroup = document.getElementById('selectors-group');
+        const amazonHelp = document.getElementById('amazon-help');
+        const ebayHelp = document.getElementById('ebay-help');
+        const customHelp = document.getElementById('custom-help');
+        
+        // Show/hide fields based on platform selection
+        platformSelect.addEventListener('change', function() {
+            // Hide all help texts
+            amazonHelp.classList.add('d-none');
+            ebayHelp.classList.add('d-none');
+            customHelp.classList.add('d-none');
+            
+            // Show appropriate help text
+            if (this.value === 'amazon') {
+                amazonHelp.classList.remove('d-none');
+                urlGroup.classList.add('d-none');
+                selectorsGroup.classList.add('d-none');
+            } else if (this.value === 'ebay') {
+                ebayHelp.classList.remove('d-none');
+                urlGroup.classList.add('d-none');
+                selectorsGroup.classList.add('d-none');
+            } else if (this.value === 'custom') {
+                customHelp.classList.remove('d-none');
+                urlGroup.classList.remove('d-none');
+                selectorsGroup.classList.remove('d-none');
+            }
+        });
+        
+        // Trigger change event on load to set initial state
+        platformSelect.dispatchEvent(new Event('change'));
+    });
+</script>
+{% endblock %} 

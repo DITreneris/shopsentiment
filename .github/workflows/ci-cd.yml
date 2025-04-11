@@ -1,0 +1,71 @@
+name: ShopSentiment CI/CD
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f requirements-py310.txt ]; then pip install -r requirements-py310.txt; fi
+        
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+    - name: Test with pytest
+      run: |
+        pytest
+        
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build
+        pip install -r requirements-py310.txt
+        
+    - name: Build package
+      run: python -m build
+      
+    # Placeholder for actual deployment steps
+    # This would be replaced with specific deployment instructions
+    # for your chosen hosting platform (Heroku, AWS, etc.)
+    - name: Deploy
+      run: |
+        echo "Deployment step - to be implemented"
+        # Example for Heroku deployment (would need secrets configuration)
+        # if [ -f Procfile ]; then
+        #   pip install gunicorn
+        #   pip install heroku3
+        #   python deploy_to_heroku.py
+        # fi 

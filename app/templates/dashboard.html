@@ -1,439 +1,1375 @@
 {% extends "base.html" %}
 
-{% block title %}ShopSentiment - Dashboard{% endblock %}
+{% block title %}Dashboard - ShopSentiment{% endblock %}
 
-{% block additional_head %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.1/css/dataTables.bootstrap5.min.css">
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 {% endblock %}
 
 {% block content %}
-<div class="mb-4 d-flex justify-content-between align-items-center">
-    <div>
-        <h2>Analysis Results</h2>
-        <p>
-            Platform: <span class="fw-bold">{{ product.platform }}</span> |
-            Product ID: <span class="fw-bold">{{ product.product_id }}</span>
-        </p>
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1>Sentiment Analysis Dashboard</h1>
+      <p class="header-subtitle">Monitor and analyze customer sentiment across multiple platforms</p>
     </div>
-    <div class="d-flex">
-        <a href="{{ url_for('export_csv', product_id=product.id) }}" class="btn btn-outline-primary me-2" data-tooltip="export-csv">
-            <i class="bi bi-file-earmark-excel"></i> Export CSV
-        </a>
-        <a href="{{ url_for('export_json', product_id=product.id) }}" class="btn btn-outline-primary" data-tooltip="export-json">
-            <i class="bi bi-file-earmark-code"></i> Export JSON
-        </a>
+    <div class="refresh-controls">
+      <button id="refreshDashboard" class="btn btn-primary focusable">
+        <span class="refresh-icon">↻</span>
+        Refresh Data
+      </button>
+      <div class="last-updated">
+        <span class="update-icon">⏰</span>
+        <span id="lastUpdated">Last updated: {{ last_updated }}</span>
+      </div>
     </div>
-</div>
+  </div>
 
-<div class="row">
-    <!-- Sentiment Distribution -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header">
-                <h5 class="mb-0">Sentiment Distribution</h5>
-            </div>
-            <div class="card-body">
-                <canvas id="sentimentChart" data-tooltip="sentiment-chart"></canvas>
-            </div>
-            <div class="card-footer">
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input filter-sentiment" type="checkbox" id="filter-positive" value="positive" checked data-tooltip="filter-sentiment">
-                    <label class="form-check-label" for="filter-positive">Positive</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input filter-sentiment" type="checkbox" id="filter-neutral" value="neutral" checked>
-                    <label class="form-check-label" for="filter-neutral">Neutral</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input filter-sentiment" type="checkbox" id="filter-negative" value="negative" checked>
-                    <label class="form-check-label" for="filter-negative">Negative</label>
-                </div>
-            </div>
+  <div class="dashboard-grid">
+    <!-- Sentiment Trend Card -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Sentiment Trend</h3>
+          <p class="card-subtitle">Track sentiment changes over time</p>
         </div>
+        <div class="card-controls">
+          <div class="control-group">
+            <label for="productSelector">Product</label>
+            <select id="productSelector" class="form-control focusable" required>
+              {% for product in products %}
+                <option value="{{ product._id }}">{{ product.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="invalid-feedback">Please select a product</div>
+          </div>
+          <div class="control-group">
+            <label for="timeframeSelector">Timeframe</label>
+            <select id="timeframeSelector" class="form-control focusable" required>
+              <option value="7">Last 7 days</option>
+              <option value="30" selected>Last 30 days</option>
+              <option value="90">Last 90 days</option>
+            </select>
+            <div class="invalid-feedback">Please select a timeframe</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="sentimentTrendChart"></canvas>
+        </div>
+        <div id="sentimentTrendLoader" class="loader-container">
+          <div class="loader"></div>
+          <span class="loading-text">Loading sentiment data...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Rating Distribution Card -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Rating Distribution</h3>
+          <p class="card-subtitle">Analyze review ratings across platforms</p>
+        </div>
+        <div class="card-controls">
+          <div class="control-group">
+            <label for="platformSelector">Platform</label>
+            <select id="platformSelector" class="form-control focusable" required>
+              <option value="all">All Platforms</option>
+              <option value="amazon">Amazon</option>
+              <option value="walmart">Walmart</option>
+              <option value="bestbuy">Best Buy</option>
+            </select>
+            <div class="invalid-feedback">Please select a platform</div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="ratingDistributionChart"></canvas>
+        </div>
+        <div id="ratingDistributionLoader" class="loader-container">
+          <div class="loader"></div>
+          <span class="loading-text">Loading rating data...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Keyword Sentiment Card -->
+    <div class="dashboard-card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Keyword Sentiment</h3>
+          <p class="card-subtitle">Identify key terms and their sentiment</p>
+        </div>
+        <div class="card-controls">
+          <div class="control-group">
+            <label for="keywordCountSlider">Minimum Mentions</label>
+            <div class="slider-container">
+              <input type="range" id="keywordCountSlider" min="5" max="30" value="10" class="form-range focusable">
+              <span id="keywordCountValue">10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="keywordSentimentChart"></canvas>
+        </div>
+        <div id="keywordSentimentLoader" class="loader-container">
+          <div class="loader"></div>
+          <span class="loading-text">Loading keyword data...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Product Comparison Card -->
+    <div class="dashboard-card wide-card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Product Comparison</h3>
+          <p class="card-subtitle">Compare sentiment across multiple products</p>
+        </div>
+        <div class="card-controls">
+          <div class="comparison-products" id="comparisonProducts">
+            <!-- Product comparison tags will be added here dynamically -->
+          </div>
+          <button id="addComparisonProduct" class="btn btn-outline-primary focusable">
+            <span class="add-icon">+</span>
+            Add Product
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart-container">
+          <canvas id="productComparisonChart"></canvas>
+        </div>
+        <div id="productComparisonLoader" class="loader-container">
+          <div class="loader"></div>
+          <span class="loading-text">Loading comparison data...</span>
+        </div>
+      </div>
     </div>
     
-    <!-- Top Keywords -->
-    <div class="col-md-6 mb-4">
-        <div class="card h-100">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Top Keywords</h5>
-                <div class="form-floating" style="width: 200px">
-                    <select class="form-select" id="keyword-filter-sentiment" data-tooltip="keyword-filter">
-                        <option value="all" selected>All Sentiments</option>
-                        <option value="positive">Positive Only</option>
-                        <option value="neutral">Neutral Only</option>
-                        <option value="negative">Negative Only</option>
-                    </select>
-                    <label for="keyword-filter-sentiment">Filter by</label>
-                </div>
-            </div>
-            <div class="card-body">
-                <canvas id="keywordsChart" data-tooltip="keywords-chart"></canvas>
-            </div>
-            <div class="card-footer">
-                <div id="keyword-tags" class="d-flex flex-wrap">
-                    {% for keyword in keywords.keys() %}
-                        <span class="badge bg-secondary me-2 mb-2 keyword-tag" data-keyword="{{ keyword }}">{{ keyword }}</span>
-                    {% endfor %}
-                </div>
-            </div>
+    <!-- Advanced filters section with form elements -->
+    <div class="dashboard-card wide-card">
+      <div class="card-header">
+        <div class="card-title">
+          <h3>Advanced Filters</h3>
+          <p class="card-subtitle">Refine your analysis with additional filters</p>
         </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Sentiment Over Time -->
-    <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Sentiment Trend</h5>
-                <div class="btn-group" role="group" data-tooltip="timeframe-filter">
-                    <button type="button" class="btn btn-outline-primary active" data-timeframe="all">All</button>
-                    <button type="button" class="btn btn-outline-primary" data-timeframe="month">Month</button>
-                    <button type="button" class="btn btn-outline-primary" data-timeframe="week">Week</button>
-                </div>
-            </div>
-            <div class="card-body">
-                <canvas id="trendChart" data-tooltip="trend-chart"></canvas>
-            </div>
+        <div class="card-controls">
+          <button id="toggleFilters" class="btn btn-outline-primary focusable">
+            Show Filters
+          </button>
         </div>
-    </div>
-</div>
-
-<div class="row">
-    <!-- Reviews Table -->
-    <div class="col-12 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">All Reviews</h5>
-                <div class="d-flex">
-                    <input type="text" id="review-search" class="form-control" placeholder="Search reviews..." data-tooltip="search-reviews">
-                </div>
+      </div>
+      <div class="card-body" id="advancedFilters" style="display: none;">
+        <form id="filtersForm" class="filters-form">
+          <div class="form-row">
+            <div class="control-group">
+              <label for="dateRangeStart">Date Range</label>
+              <div class="input-group">
+                <input type="date" id="dateRangeStart" class="form-control focusable" required>
+                <div class="input-group-text">to</div>
+                <input type="date" id="dateRangeEnd" class="form-control focusable" required>
+              </div>
+              <div class="invalid-feedback">Please provide a valid date range</div>
             </div>
-            <div class="card-body">
-                <div class="table-responsive" data-tooltip="reviews-table">
-                    <table id="reviewsTable" class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Rating</th>
-                                <th>Sentiment</th>
-                                <th>Review</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for review in reviews %}
-                            <tr data-sentiment="{{ 'positive' if review.sentiment > 0.05 else 'negative' if review.sentiment < -0.05 else 'neutral' }}">
-                                <td>{{ review.date }}</td>
-                                <td>{{ review.rating }}</td>
-                                <td>
-                                    {% if review.sentiment > 0.05 %}
-                                        <span class="badge bg-success">Positive</span>
-                                    {% elif review.sentiment < -0.05 %}
-                                        <span class="badge bg-danger">Negative</span>
-                                    {% else %}
-                                        <span class="badge bg-warning text-dark">Neutral</span>
-                                    {% endif %}
-                                </td>
-                                <td>{{ review.text|truncate(100) }}</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+            
+            <div class="control-group">
+              <label for="keywordFilter">Keyword Filter</label>
+              <input type="text" id="keywordFilter" class="form-control focusable" placeholder="e.g. quality, price">
+              <div class="valid-feedback">Keywords look good!</div>
             </div>
-        </div>
+            
+            <div class="control-group">
+              <label for="minReviewCount">Minimum Reviews</label>
+              <input type="number" id="minReviewCount" class="form-control focusable" min="1" value="10" required>
+              <div class="invalid-feedback">Please enter a number greater than 0</div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="control-group">
+              <label>Rating Filter</label>
+              <div class="rating-checks">
+                <div class="form-check">
+                  <input type="checkbox" id="rating5" class="form-check-input focusable" checked>
+                  <label for="rating5" class="form-check-label">5 Stars</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" id="rating4" class="form-check-input focusable" checked>
+                  <label for="rating4" class="form-check-label">4 Stars</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" id="rating3" class="form-check-input focusable" checked>
+                  <label for="rating3" class="form-check-label">3 Stars</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" id="rating2" class="form-check-input focusable" checked>
+                  <label for="rating2" class="form-check-label">2 Stars</label>
+                </div>
+                <div class="form-check">
+                  <input type="checkbox" id="rating1" class="form-check-input focusable" checked>
+                  <label for="rating1" class="form-check-label">1 Star</label>
+                </div>
+              </div>
+            </div>
+            
+            <div class="control-group">
+              <label>Sentiment</label>
+              <div class="sentiment-options">
+                <div class="form-check">
+                  <input type="radio" name="sentiment" id="sentimentAll" class="form-check-input focusable" value="all" checked>
+                  <label for="sentimentAll" class="form-check-label">All</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" name="sentiment" id="sentimentPositive" class="form-check-input focusable" value="positive">
+                  <label for="sentimentPositive" class="form-check-label">Positive</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" name="sentiment" id="sentimentNeutral" class="form-check-input focusable" value="neutral">
+                  <label for="sentimentNeutral" class="form-check-label">Neutral</label>
+                </div>
+                <div class="form-check">
+                  <input type="radio" name="sentiment" id="sentimentNegative" class="form-check-input focusable" value="negative">
+                  <label for="sentimentNegative" class="form-check-label">Negative</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row filter-actions">
+            <button type="submit" id="applyFilters" class="btn btn-primary focusable">Apply Filters</button>
+            <button type="reset" id="resetFilters" class="btn btn-outline-primary focusable">Reset</button>
+          </div>
+        </form>
+      </div>
     </div>
+  </div>
+  
+  <!-- Custom tooltip template (hidden) -->
+  <div id="customTooltipTemplate" style="display: none;">
+    <div class="custom-tooltip">
+      <div class="tooltip-header"></div>
+      <div class="tooltip-body"></div>
+    </div>
+  </div>
+  
+  <!-- Notification templates (hidden) -->
+  <div id="notificationTemplates" style="display: none;">
+    <div class="notification notification-success">
+      <div class="notification-icon">✓</div>
+      <div class="notification-content">
+        <h4 class="notification-title">Success</h4>
+        <p class="notification-message"></p>
+      </div>
+      <button class="notification-close" onclick="this.parentNode.remove()">&times;</button>
+    </div>
+    
+    <div class="notification notification-error">
+      <div class="notification-icon">⚠</div>
+      <div class="notification-content">
+        <h4 class="notification-title">Error</h4>
+        <p class="notification-message"></p>
+      </div>
+      <button class="notification-close" onclick="this.parentNode.remove()">&times;</button>
+    </div>
+    
+    <div class="notification notification-info">
+      <div class="notification-icon">ℹ</div>
+      <div class="notification-content">
+        <h4 class="notification-title">Information</h4>
+        <p class="notification-message"></p>
+      </div>
+      <button class="notification-close" onclick="this.parentNode.remove()">&times;</button>
+    </div>
+    
+    <div class="notification notification-warning">
+      <div class="notification-icon">⚠</div>
+      <div class="notification-content">
+        <h4 class="notification-title">Warning</h4>
+        <p class="notification-message"></p>
+      </div>
+      <button class="notification-close" onclick="this.parentNode.remove()">&times;</button>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/datatables.net@1.13.1/js/jquery.dataTables.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/datatables.net-bs5@1.13.1/js/dataTables.bootstrap5.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.6.3/dist/jquery.min.js"></script>
-<script src="{{ url_for('static', filename='js/cache-manager.js') }}"></script>
-<script src="{{ url_for('static', filename='js/chart-themes.js') }}"></script>
-
 <script>
-    // Cache keys for this dashboard
-    const CACHE_PREFIX = 'product_{{ product.id }}_';
-    const CACHE_KEYS = {
-        sentimentData: CACHE_PREFIX + 'sentiment',
-        keywordsData: CACHE_PREFIX + 'keywords',
-        trendData: CACHE_PREFIX + 'trend',
-        reviewsData: CACHE_PREFIX + 'reviews'
-    };
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Initialize charts and DataTable
-        initializeCharts();
-        initializeDataTable();
-        setupFilters();
-        
-        // Cache DOM elements
-        const keywordTags = document.querySelectorAll('.keyword-tag');
-        const sentimentFilters = document.querySelectorAll('.filter-sentiment');
-        const timeframeButtons = document.querySelectorAll('[data-timeframe]');
-        const keywordFilterSelect = document.getElementById('keyword-filter-sentiment');
-        
-        // Setup event listeners
-        keywordTags.forEach(tag => {
-            tag.addEventListener('click', function() {
-                const keyword = this.dataset.keyword;
-                filterReviewsByKeyword(keyword);
-                highlightKeyword(this);
-            });
-        });
-        
-        sentimentFilters.forEach(filter => {
-            filter.addEventListener('change', updateSentimentFilters);
-        });
-        
-        timeframeButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                timeframeButtons.forEach(btn => btn.classList.remove('active'));
-                this.classList.add('active');
-                updateTimeframe(this.dataset.timeframe);
-            });
-        });
-        
-        keywordFilterSelect.addEventListener('change', function() {
-            updateKeywordChart(this.value);
-        });
+  // Dashboard initialization and data loading
+  document.addEventListener('DOMContentLoaded', function() {
+    // Set Chart.js global defaults
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+    Chart.defaults.font.size = 12;
+    Chart.defaults.color = 'var(--text-secondary)';
+    Chart.defaults.animation.duration = 800;
+    Chart.defaults.animation.easing = 'easeOutQuart';
+    Chart.defaults.elements.line.tension = 0.4;
+    Chart.defaults.elements.point.radius = 3;
+    Chart.defaults.elements.point.hoverRadius = 5;
+    
+    // Initialize charts
+    initSentimentTrendChart();
+    initRatingDistributionChart();
+    initKeywordSentimentChart();
+    initProductComparisonChart();
+    
+    // Add event listeners for controls
+    document.getElementById('productSelector').addEventListener('change', function(e) {
+      validateField(e.target);
+      updateSentimentTrend();
     });
     
-    // Initialize all charts
-    function initializeCharts() {
-        // Cache chart data for better performance
-        cacheChartData();
-        
-        // Sentiment Distribution Chart
-        const sentimentCtx = document.getElementById('sentimentChart').getContext('2d');
-        window.sentimentChart = new Chart(sentimentCtx, {
-            type: 'pie',
-            data: {
-                labels: ['Positive', 'Neutral', 'Negative'],
-                datasets: [{
-                    data: [
-                        {{ sentiment_counts.Positive }}, 
-                        {{ sentiment_counts.Neutral }}, 
-                        {{ sentiment_counts.Negative }}
-                    ],
-                    backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'right',
-                    },
-                    title: {
-                        display: true,
-                        text: 'Review Sentiment'
-                    }
-                }
-            }
-        });
-        
-        // Keywords Chart
-        const keywordsCtx = document.getElementById('keywordsChart').getContext('2d');
-        window.keywordsChart = new Chart(keywordsCtx, {
-            type: 'bar',
-            data: {
-                labels: [
-                    {% for keyword in keywords.keys() %}
-                        "{{ keyword }}",
-                    {% endfor %}
-                ],
-                datasets: [{
-                    label: 'Frequency',
-                    data: [
-                        {% for count in keywords.values() %}
-                            {{ count }},
-                        {% endfor %}
-                    ],
-                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-        
-        // Trend Chart
-        const allDates = [];
-        const allSentiments = [];
-        {% for review in sentiment_by_date %}
-            allDates.push("{{ review.date }}");
-            allSentiments.push({{ review.sentiment }});
-        {% endfor %}
-        
-        window.allTrendData = {
-            dates: allDates,
-            sentiments: allSentiments
-        };
-        
-        // Store trend data in cache
-        window.shopCache.set(CACHE_KEYS.trendData, window.allTrendData);
-        
-        const trendCtx = document.getElementById('trendChart').getContext('2d');
-        window.trendChart = new Chart(trendCtx, {
-            type: 'line',
-            data: {
-                labels: allDates,
-                datasets: [{
-                    label: 'Sentiment Score',
-                    data: allSentiments,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    tension: 0.1,
-                    fill: false
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        min: -1,
-                        max: 1
-                    }
-                }
-            }
-        });
+    document.getElementById('timeframeSelector').addEventListener('change', function(e) {
+      validateField(e.target);
+      updateSentimentTrend();
+    });
+    
+    document.getElementById('platformSelector').addEventListener('change', function(e) {
+      validateField(e.target);
+      updateRatingDistribution();
+    });
+    
+    document.getElementById('keywordCountSlider').addEventListener('input', function() {
+      document.getElementById('keywordCountValue').textContent = this.value;
+    });
+    
+    document.getElementById('keywordCountSlider').addEventListener('change', updateKeywordSentiment);
+    document.getElementById('refreshDashboard').addEventListener('click', refreshAllData);
+    document.getElementById('addComparisonProduct').addEventListener('click', addProductToComparison);
+    
+    // Setup advanced filters
+    document.getElementById('toggleFilters').addEventListener('click', toggleAdvancedFilters);
+    
+    // Setup form validation
+    setupFormValidation();
+    
+    // Load initial data
+    updateSentimentTrend();
+    updateRatingDistribution();
+    updateKeywordSentiment();
+    setupInitialComparison();
+    
+    // Set default dates for the date range filter
+    setDefaultDateRange();
+  });
+  
+  function refreshAllData() {
+    // Add refresh animation to button
+    const refreshButton = document.getElementById('refreshDashboard');
+    const refreshIcon = refreshButton.querySelector('.refresh-icon');
+    refreshIcon.style.animation = 'spin 1s linear';
+    
+    setTimeout(() => {
+      refreshIcon.style.animation = 'none';
+    }, 1000);
+    
+    // Show success notification
+    showNotification('success', 'Data Refreshed', 'Dashboard data has been successfully updated.');
+    
+    updateSentimentTrend();
+    updateRatingDistribution();
+    updateKeywordSentiment();
+    
+    const comparisonProducts = document.getElementById('comparisonProducts');
+    const tags = comparisonProducts.querySelectorAll('.product-tag');
+    const productIds = Array.from(tags).map(tag => tag.dataset.productId);
+    
+    if (productIds.length > 0) {
+      updateProductComparison(productIds);
     }
     
-    // Initialize DataTable
-    function initializeDataTable() {
-        window.reviewsTable = $('#reviewsTable').DataTable({
-            order: [[0, 'desc']], // Sort by date, most recent first
-            pageLength: 10,
-            lengthMenu: [10, 25, 50, 100],
-            dom: 'rtip', // Hide default search box
-            drawCallback: function() {
-                // Store the current state in cache
-                window.shopCache.set(CACHE_KEYS.reviewsData, {
-                    page: this.api().page(),
-                    length: this.api().page.len(),
-                    search: this.api().search()
-                });
-            }
-        });
+    // Update the last updated timestamp
+    document.getElementById('lastUpdated').textContent = `Last updated: ${new Date().toLocaleString()}`;
+  }
+  
+  // Form validation functionality
+  function setupFormValidation() {
+    // Get all forms that need validation
+    const forms = document.querySelectorAll('.filters-form');
+    
+    // Setup validation for each form
+    forms.forEach(form => {
+      // Add validation on submit
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
         
-        // Restore from cache if available
-        const cachedReviews = window.shopCache.get(CACHE_KEYS.reviewsData);
-        if (cachedReviews) {
-            window.reviewsTable.page(cachedReviews.page).draw('page');
-            window.reviewsTable.search(cachedReviews.search).draw();
-            $('#review-search').val(cachedReviews.search);
-        }
-        
-        // Custom search box
-        $('#review-search').on('keyup', function() {
-            window.reviewsTable.search(this.value).draw();
-        });
-    }
-    
-    // Setup additional filters
-    function setupFilters() {
-        // Store original data for filtering
-        window.originalTableData = [];
-        $('#reviewsTable tbody tr').each(function() {
-            window.originalTableData.push({
-                element: this,
-                sentiment: this.dataset.sentiment,
-                text: this.cells[3].textContent
-            });
-        });
-    }
-    
-    // Cache chart data for faster reloads
-    function cacheChartData() {
-        // Cache sentiment data
-        window.shopCache.set(CACHE_KEYS.sentimentData, {
-            positive: {{ sentiment_counts.Positive }},
-            neutral: {{ sentiment_counts.Neutral }},
-            negative: {{ sentiment_counts.Negative }}
-        });
-        
-        // Cache keywords data
-        const keywordsData = {};
-        {% for keyword, count in keywords.items() %}
-            keywordsData["{{ keyword }}"] = {{ count }};
-        {% endfor %}
-        window.shopCache.set(CACHE_KEYS.keywordsData, keywordsData);
-    }
-    
-    // Filter reviews by keyword
-    function filterReviewsByKeyword(keyword) {
-        $('#review-search').val(keyword);
-        window.reviewsTable.search(keyword).draw();
-    }
-    
-    // Highlight selected keyword
-    function highlightKeyword(element) {
-        const keywords = document.querySelectorAll('.keyword-tag');
-        keywords.forEach(k => k.classList.remove('bg-primary'));
-        element.classList.add('bg-primary');
-    }
-    
-    // Update sentiment filters
-    function updateSentimentFilters() {
-        const selectedSentiments = [];
-        document.querySelectorAll('.filter-sentiment:checked').forEach(checkbox => {
-            selectedSentiments.push(checkbox.value);
-        });
-        
-        // Filter DataTable
-        window.reviewsTable.column(2).search(selectedSentiments.join('|'), true, false).draw();
-    }
-    
-    // Update timeframe for trend chart
-    function updateTimeframe(timeframe) {
-        let filteredDates = [];
-        let filteredSentiments = [];
-        
-        if (timeframe === 'all') {
-            filteredDates = window.allTrendData.dates;
-            filteredSentiments = window.allTrendData.sentiments;
+        if (!validateForm(this)) {
+          event.stopPropagation();
+          showNotification('error', 'Validation Error', 'Please correct the errors in the form.');
         } else {
-            // Simple implementation - would be more sophisticated with real date parsing
-            const cutoff = timeframe === 'week' ? 7 : 30;
-            const recentItems = Math.min(cutoff, window.allTrendData.dates.length);
-            
-            filteredDates = window.allTrendData.dates.slice(-recentItems);
-            filteredSentiments = window.allTrendData.sentiments.slice(-recentItems);
+          // Form is valid, apply filters
+          applyAdvancedFilters();
+          showNotification('success', 'Filters Applied', 'The dashboard has been updated with your filters.');
         }
+      });
+      
+      // Add validation on input
+      const inputs = form.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('input', function() {
+          validateField(this);
+        });
         
-        window.trendChart.data.labels = filteredDates;
-        window.trendChart.data.datasets[0].data = filteredSentiments;
-        window.trendChart.update();
+        input.addEventListener('blur', function() {
+          validateField(this);
+        });
+      });
+      
+      // Reset form validation on reset
+      form.addEventListener('reset', function() {
+        const inputs = this.querySelectorAll('input, select, textarea');
+        inputs.forEach(input => {
+          input.classList.remove('is-invalid', 'is-valid');
+        });
+        
+        // Reset the dashboard to initial state
+        resetAdvancedFilters();
+        showNotification('info', 'Filters Reset', 'All filters have been reset to their default values.');
+      });
+    });
+  }
+  
+  // Validate a single form field
+  function validateField(field) {
+    if (field.hasAttribute('required') && !field.value.trim()) {
+      field.classList.add('is-invalid');
+      field.classList.remove('is-valid');
+      return false;
     }
     
-    // Update keyword chart based on sentiment filter
-    function updateKeywordChart(sentimentFilter) {
-        // This would typically make an AJAX call to get filtered data
-        // For the demo, we'll just simulate a response
+    if (field.type === 'email' && field.value.trim() && !isValidEmail(field.value)) {
+      field.classList.add('is-invalid');
+      field.classList.remove('is-valid');
+      return false;
+    }
+    
+    if (field.type === 'number' && field.value.trim()) {
+      const min = field.hasAttribute('min') ? parseFloat(field.getAttribute('min')) : null;
+      const max = field.hasAttribute('max') ? parseFloat(field.getAttribute('max')) : null;
+      const value = parseFloat(field.value);
+      
+      if ((min !== null && value < min) || (max !== null && value > max)) {
+        field.classList.add('is-invalid');
+        field.classList.remove('is-valid');
+        return false;
+      }
+    }
+    
+    if (field.type === 'date' && field.value.trim()) {
+      // For date range validation
+      if (field.id === 'dateRangeEnd') {
+        const startDate = document.getElementById('dateRangeStart').value;
+        if (startDate && new Date(field.value) < new Date(startDate)) {
+          field.classList.add('is-invalid');
+          field.classList.remove('is-valid');
+          return false;
+        }
+      }
+    }
+    
+    // Field is valid
+    field.classList.remove('is-invalid');
+    
+    // For text inputs with content, show the valid state
+    if ((field.type === 'text' || field.type === 'email' || field.type === 'date' || field.type === 'number') && field.value.trim()) {
+      field.classList.add('is-valid');
+    } else {
+      field.classList.remove('is-valid');
+    }
+    
+    return true;
+  }
+  
+  // Validate entire form
+  function validateForm(form) {
+    let isValid = true;
+    const inputs = form.querySelectorAll('input, select, textarea');
+    
+    inputs.forEach(input => {
+      if (!validateField(input)) {
+        isValid = false;
+      }
+    });
+    
+    return isValid;
+  }
+  
+  // Email validation helper
+  function isValidEmail(email) {
+    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+  }
+  
+  // Toggle advanced filters section
+  function toggleAdvancedFilters() {
+    const filtersSection = document.getElementById('advancedFilters');
+    const toggleButton = document.getElementById('toggleFilters');
+    
+    // Toggle the show class instead of using display style directly
+    filtersSection.classList.toggle('show');
+    
+    // Update button text based on state
+    if (filtersSection.classList.contains('show')) {
+      toggleButton.textContent = 'Hide Filters';
+    } else {
+      toggleButton.textContent = 'Show Filters';
+    }
+  }
+  
+  // Set default date range (last 90 days)
+  function setDefaultDateRange() {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 90);
+    
+    document.getElementById('dateRangeEnd').valueAsDate = endDate;
+    document.getElementById('dateRangeStart').valueAsDate = startDate;
+  }
+  
+  // Apply advanced filters
+  function applyAdvancedFilters() {
+    // Get filter values
+    const startDate = document.getElementById('dateRangeStart').value;
+    const endDate = document.getElementById('dateRangeEnd').value;
+    const keywords = document.getElementById('keywordFilter').value;
+    const minReviews = document.getElementById('minReviewCount').value;
+    
+    // Get selected ratings
+    const selectedRatings = [];
+    for (let i = 1; i <= 5; i++) {
+      if (document.getElementById(`rating${i}`).checked) {
+        selectedRatings.push(i);
+      }
+    }
+    
+    // Get selected sentiment
+    const sentiment = document.querySelector('input[name="sentiment"]:checked').value;
+    
+    // Create filter object
+    const filters = {
+      startDate,
+      endDate,
+      keywords: keywords.split(',').map(k => k.trim()).filter(k => k),
+      minReviews: parseInt(minReviews),
+      ratings: selectedRatings,
+      sentiment
+    };
+    
+    // Apply the filters to the dashboard
+    applyFiltersToData(filters);
+  }
+  
+  // Reset advanced filters
+  function resetAdvancedFilters() {
+    setDefaultDateRange();
+    
+    // Reset the form and update the dashboard
+    updateSentimentTrend();
+    updateRatingDistribution();
+    updateKeywordSentiment();
+    
+    const comparisonProducts = document.getElementById('comparisonProducts');
+    const tags = comparisonProducts.querySelectorAll('.product-tag');
+    const productIds = Array.from(tags).map(tag => tag.dataset.productId);
+    
+    if (productIds.length > 0) {
+      updateProductComparison(productIds);
+    }
+  }
+  
+  // Show notification
+  function showNotification(type, title, message) {
+    // Clone the appropriate notification template
+    const template = document.querySelector(`#notificationTemplates .notification-${type}`);
+    if (!template) return;
+    
+    const notification = template.cloneNode(true);
+    notification.querySelector('.notification-title').textContent = title;
+    notification.querySelector('.notification-message').textContent = message;
+    
+    // Add to document
+    document.body.appendChild(notification);
+    
+    // Add close handler
+    notification.querySelector('.notification-close').addEventListener('click', function() {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    });
+    
+    // Show with animation
+    setTimeout(() => {
+      notification.classList.add('show');
+    }, 10);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => {
+        notification.remove();
+      }, 300);
+    }, 5000);
+  }
+
+  // Sentiment Trend Chart
+  function initSentimentTrendChart() {
+    const ctx = document.getElementById('sentimentTrendChart').getContext('2d');
+    window.sentimentTrendChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          {
+            label: 'Positive',
+            data: [],
+            borderColor: 'var(--success-color)',
+            backgroundColor: 'rgba(34, 197, 94, 0.1)',
+            tension: 0.4,
+            borderWidth: 2,
+            pointBackgroundColor: 'var(--success-color)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'var(--success-color)',
+            pointHoverBorderWidth: 2,
+            fill: true
+          },
+          {
+            label: 'Neutral',
+            data: [],
+            borderColor: 'var(--secondary-color)',
+            backgroundColor: 'rgba(100, 116, 139, 0.1)',
+            tension: 0.4,
+            borderWidth: 2,
+            pointBackgroundColor: 'var(--secondary-color)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'var(--secondary-color)',
+            pointHoverBorderWidth: 2,
+            fill: true
+          },
+          {
+            label: 'Negative',
+            data: [],
+            borderColor: 'var(--danger-color)',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            tension: 0.4,
+            borderWidth: 2,
+            pointBackgroundColor: 'var(--danger-color)',
+            pointBorderColor: '#fff',
+            pointHoverBackgroundColor: '#fff',
+            pointHoverBorderColor: 'var(--danger-color)',
+            pointHoverBorderWidth: 2,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              font: {
+                weight: 500
+              }
+            }
+          },
+          tooltip: {
+            enabled: false,
+            external: externalTooltipHandler,
+            callbacks: {
+              label: function(context) {
+                return context.dataset.label + ': ' + context.raw + '%';
+              }
+            }
+          }
+        },
+        animations: {
+          tension: {
+            duration: 1000,
+            easing: 'linear',
+            from: 0.4,
+            to: 0.4,
+            loop: true
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: 'var(--text-secondary)',
+              maxRotation: 45,
+              minRotation: 45
+            }
+          },
+          y: {
+            beginAtZero: true,
+            max: 100,
+            grid: {
+              color: 'var(--border-color)'
+            },
+            ticks: {
+              color: 'var(--text-secondary)',
+              callback: function(value) {
+                return value + '%';
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  function updateSentimentTrendChart(data) {
+    const chart = window.sentimentTrendChart;
+    
+    // Format dates
+    const newLabels = data.map(item => {
+      const date = new Date(item.date);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    });
+    
+    // Update chart data with smooth transition
+    chart.data.labels = newLabels;
+    chart.data.datasets[0].data = data.map(item => item.positive_percentage);
+    chart.data.datasets[1].data = data.map(item => item.neutral_percentage);
+    chart.data.datasets[2].data = data.map(item => item.negative_percentage);
+    
+    // Apply animation
+    chart.update();
+    
+    // Highlight significant changes
+    highlightSignificantChanges(data);
+  }
+  
+  function updateSentimentTrend() {
+    const productId = document.getElementById('productSelector').value;
+    const days = document.getElementById('timeframeSelector').value;
+    
+    showLoader('sentimentTrendLoader');
+    
+    fetch(`/api/dashboard/sentiment-trend/${productId}?days=${days}&interval=day`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch sentiment trend data');
+        }
+        return response.json();
+      })
+      .then(data => {
+        updateSentimentTrendChart(data);
+        hideLoader('sentimentTrendLoader');
+      })
+      .catch(error => {
+        console.error('Error fetching sentiment trend data:', error);
+        showNotification('error', 'Data Error', 'Failed to load sentiment trend data.');
+        hideLoader('sentimentTrendLoader');
+      });
+  }
+  
+  function highlightSignificantChanges(data) {
+    if (data.length < 2) return;
+    
+    // Compare first and last values to detect significant trends
+    const first = data[0];
+    const last = data[data.length - 1];
+    
+    const positiveDiff = last.positive_percentage - first.positive_percentage;
+    const negativeDiff = last.negative_percentage - first.negative_percentage;
+    
+    // If change is significant (more than 15%), highlight the trend
+    if (Math.abs(positiveDiff) > 15 || Math.abs(negativeDiff) > 15) {
+      const trendType = positiveDiff > 15 ? 'positive' : (negativeDiff > 15 ? 'negative' : 'neutral');
+      const message = document.createElement('div');
+      message.className = 'data-highlight';
+      message.textContent = trendType === 'positive' 
+        ? `Positive sentiment increased by ${positiveDiff.toFixed(1)}%` 
+        : `Negative sentiment increased by ${negativeDiff.toFixed(1)}%`;
+      
+      const chart = document.querySelector('#sentimentTrendChart').closest('.card-body');
+      message.style.position = 'absolute';
+      message.style.top = '10px';
+      message.style.right = '10px';
+      message.style.padding = '5px 10px';
+      message.style.borderRadius = '4px';
+      message.style.fontSize = '0.8rem';
+      message.style.fontWeight = '500';
+      message.style.backgroundColor = trendType === 'positive' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)';
+      message.style.color = trendType === 'positive' ? 'var(--success-color)' : 'var(--danger-color)';
+      message.style.zIndex = '5';
+      
+      // Remove existing highlight
+      const existingHighlight = chart.querySelector('.data-highlight');
+      if (existingHighlight) {
+        existingHighlight.remove();
+      }
+      
+      chart.appendChild(message);
+    }
+  }
+
+  // Rating Distribution Chart
+  function initRatingDistributionChart() {
+    const ctx = document.getElementById('ratingDistributionChart').getContext('2d');
+    window.ratingDistributionChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['1 Star', '2 Stars', '3 Stars', '4 Stars', '5 Stars'],
+        datasets: [{
+          label: 'Rating Count',
+          data: [],
+          backgroundColor: [
+            'rgba(239, 68, 68, 0.7)',
+            'rgba(245, 158, 11, 0.7)',
+            'rgba(100, 116, 139, 0.7)',
+            'rgba(34, 197, 94, 0.6)',
+            'rgba(34, 197, 94, 0.9)'
+          ],
+          borderColor: [
+            'var(--danger-color)',
+            'var(--warning-color)',
+            'var(--secondary-color)',
+            'var(--success-color)',
+            'var(--success-color)'
+          ],
+          borderWidth: 1,
+          borderRadius: 6,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false,
+            external: externalTooltipHandler,
+            callbacks: {
+              title: function(context) {
+                return context[0].label + ' Reviews';
+              },
+              label: function(context) {
+                return 'Count: ' + context.raw.toLocaleString();
+              }
+            }
+          }
+        },
+        animation: {
+          delay: function(context) {
+            return context.dataIndex * 100;
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'var(--border-color)'
+            },
+            ticks: {
+              color: 'var(--text-secondary)',
+              font: {
+                weight: 500
+              },
+              callback: function(value) {
+                return value >= 1000 ? value / 1000 + 'k' : value;
+              }
+            }
+          },
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: 'var(--text-secondary)',
+              font: {
+                weight: 500
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  function updateRatingDistributionChart(data, platform) {
+    const chart = window.ratingDistributionChart;
+    
+    if (platform === 'all') {
+      // If all platforms, sum up the counts for each rating
+      const ratings = [1, 2, 3, 4, 5];
+      chart.data.datasets[0].data = ratings.map(rating => {
+        return Object.values(data).reduce((sum, platform) => {
+          return sum + (platform[rating.toString()] || 0);
+        }, 0);
+      });
+    } else {
+      // For a specific platform
+      const platformData = data[platform] || {};
+      chart.data.datasets[0].data = [
+        platformData['1'] || 0,
+        platformData['2'] || 0,
+        platformData['3'] || 0,
+        platformData['4'] || 0,
+        platformData['5'] || 0
+      ];
+    }
+    
+    // Apply animation with different delays for each bar
+    chart.update();
+  }
+
+  function updateRatingDistribution() {
+    const platform = document.getElementById('platformSelector').value;
+    
+    showLoader('ratingDistributionLoader');
+    
+    fetch(`/api/dashboard/rating-distribution?platform=${platform}&days=90`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch rating distribution data');
+        }
+        return response.json();
+      })
+      .then(data => {
+        updateRatingDistributionChart(data, platform);
+        hideLoader('ratingDistributionLoader');
+      })
+      .catch(error => {
+        console.error('Error fetching rating distribution data:', error);
+        showNotification('error', 'Data Error', 'Failed to load rating distribution data.');
+        hideLoader('ratingDistributionLoader');
+      });
+  }
+
+  // Keyword Sentiment Chart
+  function initKeywordSentimentChart() {
+    const ctx = document.getElementById('keywordSentimentChart').getContext('2d');
+    window.keywordSentimentChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Sentiment Score',
+          data: [],
+          backgroundColor: [],
+          borderColor: [],
+          borderWidth: 1,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: false,
+            external: externalTooltipHandler,
+            callbacks: {
+              title: function(context) {
+                return context[0].label.split(' (')[0]; // Keyword without count
+              },
+              label: function(context) {
+                const score = context.raw;
+                let sentiment = '';
+                if (score > 0.5) sentiment = 'Very Positive';
+                else if (score > 0) sentiment = 'Positive';
+                else if (score > -0.5) sentiment = 'Negative';
+                else sentiment = 'Very Negative';
+                
+                return [
+                  'Sentiment: ' + sentiment,
+                  'Score: ' + score.toFixed(2),
+                  'Mentions: ' + context.label.split('(')[1].replace(')', '')
+                ];
+              }
+            }
+          }
+        },
+        animations: {
+          y: {
+            duration: 1000,
+            easing: 'easeOutQuart',
+            from: (ctx) => {
+              if (ctx.type === 'data' && ctx.mode === 'default') {
+                return ctx.chart.scales.y.getPixelForValue(100);
+              }
+              return ctx.chart.scales.y.getPixelForValue(0);
+            }
+          },
+          x: {
+            duration: 1000,
+            delay: (ctx) => ctx.dataIndex * 50
+          }
+        },
+        scales: {
+          x: {
+            beginAtZero: false,
+            min: -1,
+            max: 1,
+            grid: {
+              color: 'var(--border-color)'
+            },
+            ticks: {
+              color: 'var(--text-secondary)',
+              callback: function(value) {
+                if (value === -1) return 'Negative';
+                if (value === 0) return 'Neutral';
+                if (value === 1) return 'Positive';
+                return '';
+              }
+            }
+          },
+          y: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              color: 'var(--text-secondary)',
+              font: {
+                size: 11
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  function updateKeywordSentimentChart(data) {
+    const chart = window.keywordSentimentChart;
+    
+    // Sort by sentiment score
+    data.sort((a, b) => b.sentiment_score - a.sentiment_score);
+    
+    // Limit to top 15 keywords for better visualization
+    if (data.length > 15) {
+      data = data.slice(0, 15);
+    }
+    
+    chart.data.labels = data.map(item => `${item.keyword} (${item.count})`);
+    chart.data.datasets[0].data = data.map(item => item.sentiment_score);
+    
+    // Set gradient colors based on sentiment score
+    chart.data.datasets[0].backgroundColor = data.map(item => {
+      const score = item.sentiment_score;
+      if (score > 0.5) return 'rgba(34, 197, 94, 0.9)';
+      if (score > 0) return 'rgba(34, 197, 94, 0.6)';
+      if (score > -0.5) return 'rgba(239, 68, 68, 0.6)';
+      return 'rgba(239, 68, 68, 0.9)';
+    });
+    
+    chart.data.datasets[0].borderColor = data.map(item => {
+      return item.sentiment_score > 0 ? 'var(--success-color)' : 'var(--danger-color)';
+    });
+    
+    chart.update();
+  }
+
+  // Product Comparison Chart
+  function initProductComparisonChart() {
+    const ctx = document.getElementById('productComparisonChart').getContext('2d');
+    window.productComparisonChart = new Chart(ctx, {
+      type: 'radar',
+      data: {
+        labels: ['Overall Rating', 'Positive %', 'Response Time', 'Review Volume', 'Price Value'],
+        datasets: []
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              padding: 20,
+              usePointStyle: true,
+              pointStyle: 'circle',
+              font: {
+                weight: 500
+              }
+            }
+          },
+          tooltip: {
+            enabled: false,
+            external: externalTooltipHandler,
+            callbacks: {
+              title: function(context) {
+                return context[0].dataset.label;
+              },
+              label: function(context) {
+                const value = context.raw;
+                let label = context.chart.data.labels[context.dataIndex];
+                
+                switch(label) {
+                  case 'Overall Rating':
+                    return `${label}: ${(value / 20).toFixed(1)} / 5`;
+                  case 'Positive %':
+                    return `${label}: ${value.toFixed(1)}%`;
+                  case 'Response Time':
+                    // Convert back from score to hours
+                    const hours = ((100 - value) / 100) * 48;
+                    return `${label}: ${hours.toFixed(1)} hours`;
+                  case 'Review Volume':
+                    return `${label}: ${value.toFixed(0)}%`;
+                  case 'Price Value':
+                    return `${label}: ${value.toFixed(1)}%`;
+                  default:
+                    return `${label}: ${value}`;
+                }
+              }
+            }
+          }
+        },
+        animations: {
+          tension: {
+            duration: 1000,
+            easing: 'linear',
+            from: 0.1,
+            to: 0.4,
+            loop: false
+          }
+        },
+        elements: {
+          line: {
+            borderWidth: 3
+          },
+          point: {
+            radius: 4,
+            hoverRadius: 6,
+            borderWidth: 2,
+            hoverBorderWidth: 3
+          }
+        },
+        scales: {
+          r: {
+            angleLines: {
+              color: 'var(--border-color)'
+            },
+            grid: {
+              color: 'var(--border-color)'
+            },
+            pointLabels: {
+              color: 'var(--text-primary)',
+              font: {
+                weight: 500
+              }
+            },
+            ticks: {
+              backdropColor: 'transparent',
+              color: 'var(--text-secondary)',
+              showLabelBackdrop: false
+            },
+            suggestedMin: 0,
+            suggestedMax: 100
+          }
+        }
+      }
+    });
+  }
+  
+  function updateProductComparisonChart(data) {
+    const chart = window.productComparisonChart;
+    
+    // Clear existing datasets
+    chart.data.datasets = [];
+    
+    // Create a dataset for each product
+    const colorPalette = [
+      ['rgba(37, 99, 235, 0.2)', 'rgba(37, 99, 235, 1)'],
+      ['rgba(236, 72, 153, 0.2)', 'rgba(236, 72, 153, 1)'],
+      ['rgba(234, 179, 8, 0.2)', 'rgba(234, 179, 8, 1)'],
+      ['rgba(16, 185, 129, 0.2)', 'rgba(16, 185, 129, 1)'],
+      ['rgba(168, 85, 247, 0.2)', 'rgba(168, 85, 247, 1)']
+    ];
+    
+    Object.keys(data).forEach((productId, index) => {
+      const product = data[productId];
+      const colorIndex = index % colorPalette.length;
+      
+      chart.data.datasets.push({
+        label: product.name,
+        data: [
+          product.avg_rating * 20, // Scale 0-5 to 0-100
+          product.positive_percentage,
+          100 - (product.avg_response_time / 48) * 100, // Convert hours to a 0-100 scale (lower is better)
+          Math.min(product.review_count / 10, 100), // Cap at 100
+          product.price_value_score
+        ],
+        backgroundColor: colorPalette[colorIndex][0],
+        borderColor: colorPalette[colorIndex][1],
+        borderWidth: 2,
+        pointBackgroundColor: colorPalette[colorIndex][1],
+        pointBorderColor: '#fff',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: colorPalette[colorIndex][1]
+      });
+    });
+    
+    // Apply animation
+    chart.update();
+  }
+  
+  function setupInitialComparison() {
+    // Get the first two products for initial comparison
+    const productSelector = document.getElementById('productSelector');
+    if (productSelector.options.length >= 2) {
+      const productIds = [
+        productSelector.options[0].value,
+        productSelector.options[1].value
+      ];
+      
+      updateProductComparison(productIds);
+      
+      // Add the initial products to the comparison products list
+      productIds.forEach(id => {
+        const option = Array.from(productSelector.options).find(opt => opt.value === id);
+        if (option) {
+          addProductTag(id, option.text);
+        }
+      });
+    }
+  }
+  
+  function addProductToComparison() {
+    const productSelector = document.getElementById('productSelector');
+    const productId = productSelector.value;
+    const productName = productSelector.options[productSelector.selectedIndex].text;
+    
+    // Check if product already in comparison
+    const comparisonProducts = document.getElementById('comparisonProducts');
+    const existingTags = comparisonProducts.querySelectorAll('.product-tag');
+    const productIds = Array.from(existingTags).map(tag => tag.dataset.productId);
+    
+    if (productIds.includes(productId)) {
+      alert('This product is already in the comparison');
+      return;
+    }
+    
+    // Maximum 5 products
+    if (productIds.length >= 5) {
+      alert('Maximum 5 products can be compared at once');
+      return;
+    }
+    
+    // Add the product to the list
+    addProductTag(productId, productName);
+    
+    // Update the chart
+    productIds.push(productId);
+    updateProductComparison(productIds);
+  }
+  
+  function addProductTag(productId, productName) {
+    const comparisonProducts = document.getElementById('comparisonProducts');
+    
+    const tag = document.createElement('div');
+    tag.className = 'product-tag';
+    tag.dataset.productId = productId;
+    tag.innerHTML = `
+      <span>${productName}</span>
+      <button class="remove-product" onclick="removeProductFromComparison('${productId}')">&times;</button>
+    `;
+    
+    // Add with animation
+    tag.style.opacity = 0;
+    tag.style.transform = 'translateY(10px)';
+    comparisonProducts.appendChild(tag);
+    
+    // Trigger animation after DOM update
+    setTimeout(() => {
+      tag.style.transition = 'all 0.3s ease';
+      tag.style.opacity = 1;
+      tag.style.transform = 'translateY(0)';
+    }, 10);
+  }
+  
+  function removeProductFromComparison(productId) {
+    const comparisonProducts = document.getElementById('comparisonProducts');
+    const tag = comparisonProducts.querySelector(`.product-tag[data-product-id="${productId}"]`);
+    
+    if (tag) {
+      // Animate removal
+      tag.style.transition = 'all 0.3s ease';
+      tag.style.opacity = 0;
+      tag.style.transform = 'translateY(10px)';
+      
+      setTimeout(() => {
+        tag.remove();
         
-        if (sentimentFilter === 'all') {
-            // Reset to original data
-            window.keywordsChart.data.datasets[0].backgroundColor = 'rgba(54, 162, 235, 0.5)';
-        } else if (sentimentFilter === 'positive') {
-            window.keywordsChart.data.datasets[0].backgroundColor = 'rgba(40, 167, 69, 0.5)';
-        } else if (sentimentFilter === 'neutral') {
-            window.keywordsChart.data.datasets[0].backgroundColor = 'rgba(255, 193, 7, 0.5)';
-        } else if (sentimentFilter === 'negative') {
-            window.keywordsChart.data.datasets[0].backgroundColor = 'rgba(220, 53, 69, 0.5)';
+        // Update the comparison chart
+        const remainingTags = comparisonProducts.querySelectorAll('.product-tag');
+        const productIds = Array.from(remainingTags).map(tag => tag.dataset.productId);
+        
+        if (productIds.length > 0) {
+          updateProductComparison(productIds);
+        } else {
+          // Reset chart if no products
+          window.productComparisonChart.data.datasets = [];
+          window.productComparisonChart.update();
+        }
+      }, 300);
+    }
+  }
+
+  // Utility functions
+  function showLoader(id) {
+    const loader = document.getElementById(id);
+    if (loader) {
+      loader.style.display = 'flex';
+      
+      // Fade out the chart
+      const chartContainer = loader.closest('.card-body').querySelector('.chart-container');
+      if (chartContainer) {
+        chartContainer.style.opacity = 0.2;
+      }
+    }
+  }
+  
+  function hideLoader(id) {
+    const loader = document.getElementById(id);
+    if (loader) {
+      // Add delay to show loading state at least for a moment
+      setTimeout(() => {
+        // Fade out loader
+        loader.style.opacity = 0;
+        
+        // Fade in chart
+        const chartContainer = loader.closest('.card-body').querySelector('.chart-container');
+        if (chartContainer) {
+          chartContainer.style.opacity = 1;
         }
         
-        window.keywordsChart.update();
+        // Hide loader after transition completes
+        setTimeout(() => {
+          loader.style.display = 'none';
+          loader.style.opacity = 1;
+        }, 300);
+      }, 400);
     }
+  }
 </script>
 {% endblock %} 
