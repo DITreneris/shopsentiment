@@ -101,7 +101,7 @@ jsonschema==4.17.3
 jupyter_client==7.4.9
 jupyter_core==4.12.0
 kiwisolver==1.4.5
-kombu==4.6.11
+kombu==5.2.4
 lightgbm==4.6.0
 limits==3.10.1
 locust==2.17.0
