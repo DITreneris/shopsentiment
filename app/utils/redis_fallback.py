@@ -12,7 +12,14 @@ import threading
 import functools
 from datetime import datetime, timedelta
 from typing import Any, Dict, Optional, Callable, Union, List, Tuple
-from redis.exceptions import RedisError, ConnectionError
+try:
+    from redis.exceptions import RedisError, ConnectionError
+except ImportError:
+    # Define fallback exception classes if redis is not installed
+    class RedisError(Exception):
+        pass
+    class ConnectionError(Exception):
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +159,11 @@ class RedisFallback:
         self._retry_interval = 30  # seconds before retrying Redis after failure
         self._max_failures = 3     # number of failures before opening circuit
         self._memory_cache = _memory_cache
+        
+        # Check if Redis is not configured at all
+        if redis_client is None:
+            logger.warning("Redis client not provided, using in-memory cache only")
+            self._circuit_open = True
     
     def set_redis_client(self, redis_client) -> None:
         """Update the Redis client"""

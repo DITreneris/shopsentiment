@@ -55,10 +55,30 @@ if app.config['CACHE_TYPE'] == 'redis':
     app.config['CACHE_REDIS_URL'] = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
 app.config['CACHE_DEFAULT_TIMEOUT'] = int(os.environ.get('CACHE_TIMEOUT', 300))  # 5 minutes default
 
+# Set environment variables for Heroku
+is_heroku = 'DYNO' in os.environ
+if is_heroku:
+    # Force simple cache type if on Heroku without Redis add-on
+    if not os.environ.get('REDIS_URL'):
+        app.config['CACHE_TYPE'] = 'simple'
+        app.config['CELERY_BROKER_URL'] = None
+        app.config['CELERY_RESULT_BACKEND'] = None
+        logger.warning('Redis URL not found. Using simple cache instead.')
+
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
 app.config['CELERY_RESULT_BACKEND'] = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
-celery = make_celery(app)
+
+# Only initialize Celery if broker URL is set
+celery = None
+if app.config['CELERY_BROKER_URL']:
+    try:
+        celery = make_celery(app)
+    except Exception as e:
+        logger.error(f"Failed to initialize Celery: {e}")
+        # Fallback to no Celery
+        app.config['CELERY_BROKER_URL'] = None
+        app.config['CELERY_RESULT_BACKEND'] = None
 
 # Initialize security extensions
 csrf = CSRFProtect(app)
@@ -121,15 +141,29 @@ login_manager.login_message = 'Please log in to access this page'
 login_manager.login_message_category = 'error'
 
 # Ensure the NLTK data is downloaded
-try:
-    nltk.data.find('vader_lexicon')
-except LookupError:
-    nltk.download('vader_lexicon')
+def download_nltk_data():
+    try:
+        nltk.data.find('vader_lexicon')
+        logger.info("VADER lexicon already downloaded")
+    except (LookupError, OSError):
+        try:
+            logger.info("Downloading VADER lexicon")
+            nltk.download('vader_lexicon', quiet=True)
+        except Exception as e:
+            logger.error(f"Failed to download VADER lexicon: {e}")
 
-try:
-    nltk.data.find('tokenizers/punkt')
-except LookupError:
-    nltk.download('punkt')
+    try:
+        nltk.data.find('tokenizers/punkt')
+        logger.info("Punkt tokenizer already downloaded")
+    except (LookupError, OSError):
+        try:
+            logger.info("Downloading Punkt tokenizer")
+            nltk.download('punkt', quiet=True)
+        except Exception as e:
+            logger.error(f"Failed to download Punkt tokenizer: {e}")
+
+# Download NLTK data
+download_nltk_data()
 
 # Database connection helper
 def get_db_connection():
