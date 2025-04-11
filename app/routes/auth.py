@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash
 from app.models.user import User
@@ -13,119 +13,103 @@ USERS_FILE = 'data/users.json'
 
 def get_users_db():
     """Load users from JSON file or create empty list if file doesn't exist"""
-    if not os.path.exists(USERS_FILE):
+    users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', 'users.json')
+    
+    if not os.path.exists(users_file):
         # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+        os.makedirs(os.path.dirname(users_file), exist_ok=True)
         # Create empty users file
-        with open(USERS_FILE, 'w') as f:
+        with open(users_file, 'w') as f:
             json.dump([], f)
         return []
     
     try:
-        with open(USERS_FILE, 'r') as f:
+        with open(users_file, 'r') as f:
             return json.load(f)
     except (json.JSONDecodeError, FileNotFoundError):
         return []
 
-def save_users_db(users):
+def save_users_db(users_db):
     """Save users to JSON file"""
-    os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users, f, indent=2)
+    users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'data', 'users.json')
+    
+    with open(users_file, 'w') as f:
+        json.dump(users_db, f, indent=2)
 
-@auth_bp.route('/login', methods=['GET', 'POST'])
-@limiter.limit("10 per minute")  # Rate limiting for login attempts
+@auth_bp.route('/login', methods=['POST'])
 def login():
-    """Handle user login"""
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
     
-    form = LoginForm()
+    data = request.get_json()
     
-    if form.validate_on_submit():
-        email = form.email.data
-        password = form.password.data
-        remember = form.remember.data
-        
-        users_db = get_users_db()
-        user = User.get_by_email(email, users_db)
-        
-        if user and user.check_password(password):
-            login_user(user, remember=remember)
-            user.update_last_login()
-            
-            # Update the last_login in the database
-            for u in users_db:
-                if u['email'] == email:
-                    u['last_login'] = user.last_login.isoformat()
-                    break
-            save_users_db(users_db)
-            
-            next_page = request.args.get('next', '')
-            if next_page and next_page.startswith('/'):
-                return redirect(next_page)
-            return redirect(url_for('index'))
-        
-        flash('Invalid email or password', 'error')
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
     
-    return render_template('auth/login.html', form=form)
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not email or not password:
+        return jsonify({"error": "Email and password are required"}), 400
+    
+    users_db = get_users_db()
+    user = User.get_by_email(email, users_db)
+    
+    if user and user.check_password(password):
+        login_user(user)
+        return jsonify({"message": "Login successful", "user": user.username}), 200
+    
+    return jsonify({"error": "Invalid email or password"}), 401
 
-@auth_bp.route('/register', methods=['GET', 'POST'])
-@limiter.limit("5 per hour")  # Rate limiting for registration
-def register():
-    """Handle user registration"""
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    
-    form = RegistrationForm()
-    
-    if form.validate_on_submit():
-        username = form.username.data
-        email = form.email.data
-        password = form.password.data
-        
-        users_db = get_users_db()
-        
-        # Check if email or username already exists
-        if User.get_by_email(email, users_db):
-            flash('Email already registered', 'error')
-            return render_template('auth/register.html', form=form)
-        
-        if User.get_by_username(username, users_db):
-            flash('Username already taken', 'error')
-            return render_template('auth/register.html', form=form)
-        
-        # Generate a new ID (max id + 1)
-        user_id = 1
-        if users_db:
-            user_id = max(user['id'] for user in users_db) + 1
-        
-        # Create new user
-        user = User(user_id, username, email, password=password)
-        
-        # Add user to database
-        users_db.append({
-            'id': user.id,
-            'username': user.username,
-            'email': user.email,
-            'password_hash': user.password_hash,
-            'created_at': user.created_at.isoformat(),
-            'last_login': None
-        })
-        save_users_db(users_db)
-        
-        flash('Registration successful! Please log in.', 'success')
-        return redirect(url_for('auth.login'))
-    
-    return render_template('auth/register.html', form=form)
-
-@auth_bp.route('/logout')
+@auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
-    """Log out the current user"""
     logout_user()
-    flash('You have been logged out', 'info')
-    return redirect(url_for('auth.login'))
+    return jsonify({"message": "Logout successful"}), 200
+
+@auth_bp.route('/register', methods=['POST'])
+def register():
+    if not request.is_json:
+        return jsonify({"error": "Request must be JSON"}), 400
+    
+    data = request.get_json()
+    
+    if not data:
+        return jsonify({"error": "No input data provided"}), 400
+    
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    
+    if not username or not email or not password:
+        return jsonify({"error": "Username, email, and password are required"}), 400
+    
+    users_db = get_users_db()
+    
+    if User.get_by_email(email, users_db):
+        return jsonify({"error": "Email already registered"}), 400
+    
+    if User.get_by_username(username, users_db):
+        return jsonify({"error": "Username already taken"}), 400
+    
+    # Create user
+    user = User.create_user(username, email, password, users_db)
+    
+    # Save user to database
+    save_users_db(users_db)
+    
+    login_user(user)
+    return jsonify({"message": "Registration successful", "user": user.username}), 201
+
+@auth_bp.route('/me', methods=['GET'])
+@login_required
+def get_me():
+    return jsonify({
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "role": current_user.role
+    }), 200
 
 @auth_bp.route('/profile')
 @login_required

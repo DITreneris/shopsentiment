@@ -26,7 +26,10 @@ try:
 except Exception as e:
     # Log the error
     logger.error(f"Error importing Flask app: {e}", exc_info=True)
-    raise
+    # Fall back to simple app
+    logger.info("Falling back to simple app")
+    from simple_app import app
+    logger.info("Simple app successfully imported")
 
 if __name__ == "__main__":
     # Get port from environment variable or use default
