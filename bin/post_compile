@@ -1,13 +1,5 @@
 #!/usr/bin/env bash
 
 echo "-----> Running post-compile hook"
-
-# Create necessary directories
-mkdir -p bin
-
-# Download NLTK data
-echo "-----> Downloading NLTK data"
-python nltk_download.py
-
-# Print confirmation
+echo "-----> Simple app mode - skipping NLTK data download"
 echo "-----> Post-compile hook completed" 
