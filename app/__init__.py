@@ -122,6 +122,20 @@ try:
 except ImportError:
     logger.warning("Auth blueprint not found or could not be imported")
 
+# Register products blueprint
+try:
+    from app.routes.products import products_bp
+    app.register_blueprint(products_bp, url_prefix='/api/products')
+except ImportError:
+    logger.warning("Products blueprint not found or could not be imported")
+
+# Register reviews blueprint
+try:
+    from app.routes.reviews import reviews_bp
+    app.register_blueprint(reviews_bp, url_prefix='/api/reviews')
+except ImportError:
+    logger.warning("Reviews blueprint not found or could not be imported")
+
 # Initialize the database
 init_db()
 
@@ -133,4 +147,12 @@ def health_check():
 # A simple route for the home page
 @app.route('/')
 def home():
-    return {'status': 'ok', 'message': 'Shop Sentiment Analysis API is running'} 
+    return {'status': 'ok', 'message': 'Shop Sentiment Analysis API is running', 
+            'endpoints': [
+                '/api/products',
+                '/api/reviews',
+                '/auth/login',
+                '/auth/register',
+                '/auth/logout',
+                '/auth/me'
+            ]} 
