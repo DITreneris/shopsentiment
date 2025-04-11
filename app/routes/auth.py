@@ -1,11 +1,14 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, jsonify
 from flask_login import login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from app.models.user import User
 from app.forms import LoginForm, RegistrationForm
-from app import limiter
 import os
 import json
+import logging
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -38,6 +41,7 @@ def save_users_db(users_db):
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    logger.info("Login endpoint called")
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
     
@@ -64,11 +68,13 @@ def login():
 @auth_bp.route('/logout', methods=['POST'])
 @login_required
 def logout():
+    logger.info("Logout endpoint called")
     logout_user()
     return jsonify({"message": "Logout successful"}), 200
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
+    logger.info("Register endpoint called")
     if not request.is_json:
         return jsonify({"error": "Request must be JSON"}), 400
     
@@ -104,11 +110,12 @@ def register():
 @auth_bp.route('/me', methods=['GET'])
 @login_required
 def get_me():
+    logger.info("Me endpoint called")
     return jsonify({
         "id": current_user.id,
         "username": current_user.username,
         "email": current_user.email,
-        "role": current_user.role
+        "role": getattr(current_user, 'role', 'user')
     }), 200
 
 @auth_bp.route('/profile')
@@ -169,4 +176,10 @@ def edit_profile():
         flash('Profile updated successfully', 'success')
         return redirect(url_for('auth.profile'))
     
-    return render_template('auth/edit_profile.html', form=form) 
+    return render_template('auth/edit_profile.html', form=form)
+
+# New test endpoint to check if auth blueprint is working
+@auth_bp.route('/test', methods=['GET'])
+def test():
+    logger.info("Auth test endpoint called")
+    return jsonify({"message": "Auth blueprint is working"}), 200 

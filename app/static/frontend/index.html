@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: white;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        #api-status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status-ok {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        #response-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f1f1f1;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Shop Sentiment Analysis</h1>
+        
+        <div id="api-status"></div>
+        
+        <div class="tab-container">
+            <div class="tab active" data-tab="auth">Authentication</div>
+            <div class="tab" data-tab="products">Products</div>
+            <div class="tab" data-tab="reviews">Reviews</div>
+        </div>
+        
+        <!-- Authentication Tab -->
+        <div id="auth" class="tab-content active">
+            <div class="card">
+                <h2>Register</h2>
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="register-username">Username</label>
+                        <input type="text" id="register-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-email">Email</label>
+                        <input type="email" id="register-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="register-password">Password</label>
+                        <input type="password" id="register-password" required>
+                    </div>
+                    <button type="submit">Register</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>User Info</h2>
+                <div id="user-info">
+                    <p>Not logged in</p>
+                </div>
+                <button id="get-user-info" disabled>Get User Info</button>
+                <button id="logout" disabled>Logout</button>
+            </div>
+        </div>
+        
+        <!-- Products Tab -->
+        <div id="products" class="tab-content">
+            <div class="card">
+                <h2>Add Product</h2>
+                <form id="add-product-form">
+                    <div class="form-group">
+                        <label for="product-platform">Platform</label>
+                        <select id="product-platform" required>
+                            <option value="amazon">Amazon</option>
+                            <option value="ebay">eBay</option>
+                            <option value="custom">Custom Website</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-id">Product ID</label>
+                        <input type="text" id="product-id" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="product-url">URL</label>
+                        <input type="url" id="product-url">
+                    </div>
+                    <button type="submit">Add Product</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h2>Products List</h2>
+                <button id="get-products">Refresh Products</button>
+                <div id="products-list">
+                    <p>No products available</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Reviews Tab -->
+        <div id="reviews" class="tab-content">
+            <div class="card">
+                <h2>Reviews</h2>
+                <div class="form-group">
+                    <label for="product-selector">Select Product</label>
+                    <select id="product-selector">
+                        <option value="">-- Select a product --</option>
+                    </select>
+                </div>
+                <button id="get-reviews" disabled>Get Reviews</button>
+                <div id="reviews-list">
+                    <p>No reviews available</p>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Sentiment Analysis</h2>
+                <div id="sentiment-summary">
+                    <p>Select a product to view sentiment analysis</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>API Response</h2>
+            <div id="response-container">No API calls made yet</div>
+        </div>
+    </div>
+    
+    <script>
+        // API configuration
+        const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:5000' 
+            : '';  // Empty string for relative path when deployed
+        let token = null;
+        let currentUser = null;
+        
+        // DOM elements
+        const apiStatus = document.getElementById('api-status');
+        const responseContainer = document.getElementById('response-container');
+        const userInfo = document.getElementById('user-info');
+        const getUserInfoBtn = document.getElementById('get-user-info');
+        const logoutBtn = document.getElementById('logout');
+        const productsList = document.getElementById('products-list');
+        const productSelector = document.getElementById('product-selector');
+        const getReviewsBtn = document.getElementById('get-reviews');
+        const reviewsList = document.getElementById('reviews-list');
+        const sentimentSummary = document.getElementById('sentiment-summary');
+        
+        // Tab navigation
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show active content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+        
+        // Helper to display API responses
+        function displayResponse(response, isError = false) {
+            responseContainer.textContent = JSON.stringify(response, null, 2);
+            if (isError) {
+                responseContainer.style.color = '#721c24';
+            } else {
+                responseContainer.style.color = '#000';
+            }
+        }
+        
+        // Check API status on load
+        async function checkApiStatus() {
+            try {
+                const response = await fetch(`${API_URL}/`);
+                const data = await response.json();
+                apiStatus.textContent = `API Status: ${data.message}`;
+                apiStatus.className = 'status-ok';
+                displayResponse(data);
+            } catch (error) {
+                apiStatus.textContent = `API Status: Error connecting to API`;
+                apiStatus.className = 'status-error';
+                displayResponse(error.message, true);
+            }
+        }
+        
+        // Authentication functions
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, email, password })
+                });
+                
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    alert('Registration successful! You can now log in.');
+                    document.getElementById('register-form').reset();
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+        
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    alert('Login successful!');
+                    token = true; // In a real app, you would store the actual token
+                    currentUser = data.user;
+                    getUserInfoBtn.disabled = false;
+                    logoutBtn.disabled = false;
+                    document.getElementById('login-form').reset();
+                    updateUserInfo();
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+        
+        getUserInfoBtn.addEventListener('click', async () => {
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    updateUserInfo(data);
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+        
+        logoutBtn.addEventListener('click', async () => {
+            if (!token) return;
+            
+            try {
+                const response = await fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    token = null;
+                    currentUser = null;
+                    getUserInfoBtn.disabled = true;
+                    logoutBtn.disabled = true;
+                    updateUserInfo();
+                    alert('Logged out successfully!');
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+        
+        function updateUserInfo(userData = null) {
+            if (userData || currentUser) {
+                userInfo.innerHTML = `
+                    <p><strong>Status:</strong> Logged in</p>
+                    <p><strong>Username:</strong> ${userData?.username || currentUser}</p>
+                `;
+            } else {
+                userInfo.innerHTML = '<p>Not logged in</p>';
+            }
+        }
+        
+        // Products functions
+        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!token) {
+                alert('Please log in first');
+                return;
+            }
+            
+            const platform = document.getElementById('product-platform').value;
+            const productId = document.getElementById('product-id').value;
+            const url = document.getElementById('product-url').value;
+            
+            try {
+                const response = await fetch(`${API_URL}/api/products/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ platform, product_id: productId, url })
+                });
+                
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    alert('Product added successfully!');
+                    document.getElementById('add-product-form').reset();
+                    getProducts();
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        });
+        
+        document.getElementById('get-products').addEventListener('click', getProducts);
+        
+        async function getProducts() {
+            try {
+                const response = await fetch(`${API_URL}/api/products/`);
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    updateProductsList(data);
+                    updateProductSelector(data);
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        }
+        
+        function updateProductsList(products) {
+            if (products.length === 0) {
+                productsList.innerHTML = '<p>No products available</p>';
+                return;
+            }
+            
+            let html = '<table><thead><tr><th>Platform</th><th>Product ID</th><th>URL</th><th>Actions</th></tr></thead><tbody>';
+            
+            products.forEach(product => {
+                html += `
+                    <tr>
+                        <td>${product.platform}</td>
+                        <td>${product.product_id}</td>
+                        <td><a href="${product.url}" target="_blank">${product.url}</a></td>
+                        <td>
+                            <button onclick="getProductReviews('${product.id}')">View Reviews</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            productsList.innerHTML = html;
+        }
+        
+        function updateProductSelector(products) {
+            // Clear selector options except the default one
+            while (productSelector.options.length > 1) {
+                productSelector.remove(1);
+            }
+            
+            if (products.length === 0) {
+                getReviewsBtn.disabled = true;
+                return;
+            }
+            
+            // Add new options
+            products.forEach(product => {
+                const option = document.createElement('option');
+                option.value = product.id;
+                option.textContent = `${product.platform} - ${product.product_id}`;
+                productSelector.appendChild(option);
+            });
+            
+            getReviewsBtn.disabled = false;
+        }
+        
+        // Reviews functions
+        productSelector.addEventListener('change', () => {
+            getReviewsBtn.disabled = !productSelector.value;
+        });
+        
+        getReviewsBtn.addEventListener('click', () => {
+            const productId = productSelector.value;
+            if (productId) {
+                getProductReviews(productId);
+            }
+        });
+        
+        async function getProductReviews(productId) {
+            try {
+                const response = await fetch(`${API_URL}/api/products/${productId}/reviews`);
+                const data = await response.json();
+                displayResponse(data);
+                
+                if (response.ok) {
+                    updateReviewsList(data);
+                    getProductSentiment(productId);
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        }
+        
+        function updateReviewsList(reviews) {
+            if (reviews.length === 0) {
+                reviewsList.innerHTML = '<p>No reviews available for this product</p>';
+                return;
+            }
+            
+            let html = '<table><thead><tr><th>Text</th><th>Rating</th><th>Date</th><th>Sentiment</th></tr></thead><tbody>';
+            
+            reviews.forEach(review => {
+                let sentimentClass = '';
+                if (review.sentiment > 0.2) sentimentClass = 'style="color: green;"';
+                else if (review.sentiment < -0.2) sentimentClass = 'style="color: red;"';
+                
+                html += `
+                    <tr>
+                        <td>${review.text}</td>
+                        <td>${review.rating || 'N/A'}</td>
+                        <td>${review.date || 'N/A'}</td>
+                        <td ${sentimentClass}>${review.sentiment || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            reviewsList.innerHTML = html;
+        }
+        
+        async function getProductSentiment(productId) {
+            try {
+                const response = await fetch(`${API_URL}/api/products/${productId}/sentiment`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    updateSentimentSummary(data);
+                }
+            } catch (error) {
+                displayResponse(error.message, true);
+            }
+        }
+        
+        function updateSentimentSummary(sentimentData) {
+            sentimentSummary.innerHTML = `
+                <p><strong>Overall Sentiment:</strong> ${sentimentData.sentiment_score.toFixed(2)}</p>
+                <p><strong>Total Reviews:</strong> ${sentimentData.review_count}</p>
+                <p><strong>Positive Reviews:</strong> ${sentimentData.positive_count}</p>
+                <p><strong>Neutral Reviews:</strong> ${sentimentData.neutral_count}</p>
+                <p><strong>Negative Reviews:</strong> ${sentimentData.negative_count}</p>
+            `;
+        }
+        
+        // Initialize
+        checkApiStatus();
+        getProducts();
+        
+        // Global function for product reviews button
+        window.getProductReviews = getProductReviews;
+    </script>
+</body>
+</html> 
