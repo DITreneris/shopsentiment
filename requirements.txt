@@ -7,3 +7,4 @@ flask-cors==5.0.0
 flask-wtf==1.1.1
 wtforms==3.0.1
 flask-login==0.6.3
+email_validator==2.0.0.post2
