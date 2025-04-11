@@ -24,3 +24,4 @@ matplotlib==3.5.3
 seaborn==0.12.2
 plotly==5.18.0
 flask-talisman==1.1.0
+redis==5.0.8
