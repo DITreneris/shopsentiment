@@ -12,6 +12,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 import logging
 from datetime import timedelta
+import ssl
 
 # Import MongoDB utilities
 from app.utils.mongodb import init_app as init_mongodb
@@ -140,27 +141,52 @@ login_manager.login_view = 'auth.login'  # Specify the login route
 login_manager.login_message = 'Please log in to access this page'
 login_manager.login_message_category = 'error'
 
-# Ensure the NLTK data is downloaded
+# Create a directory for NLTK data if it doesn't exist
+nltk_data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'nltk_data')
+os.makedirs(nltk_data_dir, exist_ok=True)
+
+# Set NLTK data path
+nltk.data.path.append(nltk_data_dir)
+
+# Function to download NLTK data without interactive prompts
 def download_nltk_data():
     try:
-        nltk.data.find('vader_lexicon')
-        logger.info("VADER lexicon already downloaded")
-    except (LookupError, OSError):
+        # Workaround for SSL certificate verification issues in some environments
         try:
-            logger.info("Downloading VADER lexicon")
-            nltk.download('vader_lexicon', quiet=True)
-        except Exception as e:
-            logger.error(f"Failed to download VADER lexicon: {e}")
+            _create_unverified_https_context = ssl._create_unverified_context
+        except AttributeError:
+            pass
+        else:
+            ssl._create_default_https_context = _create_unverified_https_context
 
-    try:
-        nltk.data.find('tokenizers/punkt')
-        logger.info("Punkt tokenizer already downloaded")
-    except (LookupError, OSError):
+        # Try to find existing data first
         try:
+            nltk.data.find('vader_lexicon')
+            logger.info("VADER lexicon already downloaded")
+        except (LookupError, OSError):
+            logger.info("Downloading VADER lexicon")
+            try:
+                # Download directly specifying the download dir
+                nltk.download('vader_lexicon', download_dir=nltk_data_dir, quiet=True)
+            except Exception as e:
+                logger.error(f"Failed to download VADER lexicon: {e}")
+                logger.warning("Proceeding without VADER sentiment analysis")
+
+        try:
+            nltk.data.find('tokenizers/punkt')
+            logger.info("Punkt tokenizer already downloaded")
+        except (LookupError, OSError):
             logger.info("Downloading Punkt tokenizer")
-            nltk.download('punkt', quiet=True)
-        except Exception as e:
-            logger.error(f"Failed to download Punkt tokenizer: {e}")
+            try:
+                # Download directly specifying the download dir
+                nltk.download('punkt', download_dir=nltk_data_dir, quiet=True)
+            except Exception as e:
+                logger.error(f"Failed to download Punkt tokenizer: {e}")
+                logger.warning("Proceeding without Punkt tokenization")
+    
+    except Exception as e:
+        logger.error(f"Unhandled error in NLTK download: {e}")
+        logger.warning("Proceeding without NLTK components")
 
 # Download NLTK data
 download_nltk_data()
