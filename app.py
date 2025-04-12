@@ -15,19 +15,34 @@ def index():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Shop Sentiment</title>
+        <title>Simple Flask App</title>
         <style>
-            body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
-            .success { color: green; font-weight: bold; }
+            body { 
+                font-family: Arial, sans-serif; 
+                max-width: 600px; 
+                margin: 0 auto; 
+                padding: 20px;
+                line-height: 1.6;
+            }
+            h1 { color: #4285f4; }
+            .success { 
+                color: #28a745; 
+                font-weight: bold;
+            }
         </style>
     </head>
     <body>
-        <h1>Shop Sentiment Analysis</h1>
-        <p class="success">Working minimal application!</p>
-        <p>This is a basic working version that proves the Flask app can run on Heroku.</p>
+        <h1>Flask App on Heroku</h1>
+        <p class="success">✓ Application is working correctly!</p>
+        <p>This is a working Flask application deployed to Heroku.</p>
+        <p>Current time on server: <strong id="server-time"></strong></p>
+        
+        <script>
+            document.getElementById('server-time').textContent = new Date().toLocaleString();
+        </script>
     </body>
     </html>
     """
 
 if __name__ == '__main__':
-    app.run() 
+    app.run(debug=True) 
