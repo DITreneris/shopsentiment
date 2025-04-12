@@ -5,7 +5,7 @@ This is the main entry point for the ShopSentiment application.
 It initializes the Flask application and sets up the routes.
 """
 
-from flask import Flask, send_from_directory, jsonify, request
+from flask import Flask, send_from_directory, jsonify, request, render_template
 import os
 import json
 import logging
@@ -22,67 +22,101 @@ logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Mock data for API
+# Configure the app
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-for-development')
+app.config['DEBUG'] = os.environ.get('FLASK_ENV', 'development') == 'development'
+
+# Mock data for products
 PRODUCTS = [
     {
         "id": "B123456789",
         "name": "Example Product 1",
         "sentiment": "positive",
-        "reviews_count": 5
+        "reviews_count": 5,
+        "description": "This is a high-quality product with excellent features. Users love its durability and ease of use.",
+        "price": "$49.99",
+        "rating": 4.7,
+        "features": ["Durable", "Easy to use", "Long battery life", "Lightweight"],
+        "image_url": "https://via.placeholder.com/300x200?text=Product+1"
     },
     {
         "id": "E123456789",
         "name": "Example Product 2",
         "sentiment": "neutral",
-        "reviews_count": 3
+        "reviews_count": 3,
+        "description": "A standard product that meets most user expectations. Some find it useful while others think it's just average.",
+        "price": "$29.99",
+        "rating": 3.5,
+        "features": ["Affordable", "Standard quality", "Easy setup"],
+        "image_url": "https://via.placeholder.com/300x200?text=Product+2"
     },
     {
         "id": "C123456789",
         "name": "Example Product 3",
         "sentiment": "negative",
-        "reviews_count": 7
+        "reviews_count": 7,
+        "description": "This product has received mixed reviews, with many users reporting issues with quality and reliability.",
+        "price": "$39.99",
+        "rating": 2.1,
+        "features": ["Low cost", "Fast shipping", "Multiple colors"],
+        "image_url": "https://via.placeholder.com/300x200?text=Product+3"
     }
 ]
 
-# Mock reviews
+# Mock reviews data
 REVIEWS = {
     "B123456789": [
-        {"text": "Great product, very satisfied!", "sentiment": "positive"},
-        {"text": "Works as expected, good value.", "sentiment": "positive"},
-        {"text": "Better than I expected!", "sentiment": "positive"},
-        {"text": "Good quality for the price.", "sentiment": "positive"},
-        {"text": "Would recommend to friends.", "sentiment": "positive"}
+        {"text": "Great product, very satisfied!", "sentiment": "positive", "author": "John D.", "date": "2025-03-15", "rating": 5},
+        {"text": "Works as expected, good value.", "sentiment": "positive", "author": "Sarah M.", "date": "2025-03-10", "rating": 4},
+        {"text": "Better than I expected!", "sentiment": "positive", "author": "Robert K.", "date": "2025-02-28", "rating": 5},
+        {"text": "Good quality for the price.", "sentiment": "positive", "author": "Lisa T.", "date": "2025-02-22", "rating": 4},
+        {"text": "Would recommend to friends.", "sentiment": "positive", "author": "Michael P.", "date": "2025-02-15", "rating": 5}
     ],
     "E123456789": [
-        {"text": "It's okay, nothing special.", "sentiment": "neutral"},
-        {"text": "Average product, does the job.", "sentiment": "neutral"},
-        {"text": "Decent quality, expected more features.", "sentiment": "neutral"}
+        {"text": "It's okay, nothing special.", "sentiment": "neutral", "author": "David W.", "date": "2025-03-12", "rating": 3},
+        {"text": "Average product, does the job.", "sentiment": "neutral", "author": "Emily R.", "date": "2025-02-25", "rating": 3},
+        {"text": "Decent quality, expected more features.", "sentiment": "neutral", "author": "James L.", "date": "2025-02-10", "rating": 4}
     ],
     "C123456789": [
-        {"text": "Disappointed with the quality.", "sentiment": "negative"},
-        {"text": "Not worth the money.", "sentiment": "negative"},
-        {"text": "Broke after a week of use.", "sentiment": "negative"},
-        {"text": "Poor customer service experience.", "sentiment": "negative"},
-        {"text": "Would not recommend.", "sentiment": "negative"},
-        {"text": "Doesn't work as advertised.", "sentiment": "negative"},
-        {"text": "Very frustrating to use.", "sentiment": "negative"}
+        {"text": "Disappointed with the quality.", "sentiment": "negative", "author": "Patricia G.", "date": "2025-03-20", "rating": 2},
+        {"text": "Not worth the money.", "sentiment": "negative", "author": "Thomas H.", "date": "2025-03-05", "rating": 1},
+        {"text": "Broke after a week of use.", "sentiment": "negative", "author": "Jessica F.", "date": "2025-02-28", "rating": 1},
+        {"text": "Poor customer service experience.", "sentiment": "negative", "author": "Richard S.", "date": "2025-02-20", "rating": 2},
+        {"text": "Would not recommend.", "sentiment": "negative", "author": "Jennifer B.", "date": "2025-02-15", "rating": 2},
+        {"text": "Doesn't work as advertised.", "sentiment": "negative", "author": "Charles M.", "date": "2025-02-10", "rating": 2},
+        {"text": "Very frustrating to use.", "sentiment": "negative", "author": "Karen L.", "date": "2025-02-05", "rating": 3}
     ]
 }
 
-# Mock sentiment analysis
+# Mock sentiment analysis data
 SENTIMENT = {
     "B123456789": {"positive": 80, "neutral": 15, "negative": 5, "score": 0.8},
     "E123456789": {"positive": 30, "neutral": 60, "negative": 10, "score": 0.55},
     "C123456789": {"positive": 10, "neutral": 15, "negative": 75, "score": 0.2}
 }
 
-# API routes
+# Home page route
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+# Product detail page route
+@app.route('/product/<product_id>')
+def product_detail(product_id):
+    product = next((p for p in PRODUCTS if p["id"] == product_id), None)
+    if not product:
+        return render_template('error.html', message="Product not found"), 404
+    return render_template('product_detail.html', product=product)
+
+# API Routes
 @app.route('/api/products', methods=['GET'])
 def get_products():
+    """API endpoint to get all products"""
     return jsonify({"products": PRODUCTS})
 
 @app.route('/api/products/<product_id>', methods=['GET'])
 def get_product(product_id):
+    """API endpoint to get a specific product by ID"""
     product = next((p for p in PRODUCTS if p["id"] == product_id), None)
     if not product:
         return jsonify({"error": "Product not found"}), 404
@@ -90,24 +124,27 @@ def get_product(product_id):
 
 @app.route('/api/products/<product_id>/reviews', methods=['GET'])
 def get_product_reviews(product_id):
+    """API endpoint to get reviews for a specific product"""
     if product_id not in REVIEWS:
         return jsonify({"error": "Reviews not found"}), 404
     return jsonify({"reviews": REVIEWS[product_id]})
 
 @app.route('/api/products/<product_id>/sentiment', methods=['GET'])
 def get_product_sentiment(product_id):
+    """API endpoint to get sentiment analysis for a specific product"""
     if product_id not in SENTIMENT:
         return jsonify({"error": "Sentiment data not found"}), 404
     return jsonify({"sentiment": SENTIMENT[product_id]})
 
 @app.route('/api/analyze', methods=['POST'])
 def analyze_text():
+    """API endpoint to analyze sentiment of provided text"""
     data = request.json
     if not data or 'text' not in data:
         return jsonify({"error": "Text is required"}), 400
     
     text = data['text']
-    # Simple mock sentiment analysis
+    # Simple sentiment analysis
     if any(word in text.lower() for word in ['great', 'good', 'excellent', 'happy', 'satisfied']):
         sentiment = "positive"
         score = 0.8
@@ -126,47 +163,51 @@ def analyze_text():
         }
     })
 
+# Health check endpoint
 @app.route('/api/health')
 def health_check():
+    """API endpoint for health check"""
     return jsonify({
         "message": "Shop Sentiment Analysis API is running",
         "status": "ok"
     })
 
-# Debug route
+# Debug endpoint
 @app.route('/debug')
 def debug():
+    """Debug endpoint with system information"""
     return jsonify({
         "working_directory": os.getcwd(),
         "directory_contents": os.listdir('.'),
-        "frontend_exists": os.path.exists('frontend'),
-        "frontend_contents": os.listdir('frontend') if os.path.exists('frontend') else [],
-        "env_vars": {k: v for k, v in os.environ.items() if not k.startswith('AWS_') and not k.startswith('HEROKU_')}
+        "templates_exist": os.path.exists('templates'),
+        "static_exist": os.path.exists('static'),
+        "env_vars": {k: v for k, v in os.environ.items() 
+                    if not k.startswith('AWS_') and not k.startswith('HEROKU_')}
     })
 
-# Serve frontend
-@app.route('/')
-def serve_root():
-    try:
-        logger.info("Attempting to serve index.html from frontend directory")
-        return send_from_directory('frontend', 'index.html')
-    except Exception as e:
-        logger.error(f"Error serving index.html: {e}")
-        return jsonify({"error": str(e), "message": "Could not serve index.html"}), 500
-
-@app.route('/<path:path>')
+# Serve static files in development
+@app.route('/static/<path:path>')
 def serve_static(path):
-    try:
-        logger.info(f"Attempting to serve static file: {path}")
-        return send_from_directory('frontend', path)
-    except Exception as e:
-        logger.error(f"Error serving {path}: {e}")
-        try:
-            return send_from_directory('frontend', 'index.html')
-        except Exception as e2:
-            logger.error(f"Error serving fallback index.html: {e2}")
-            return jsonify({"error": str(e), "message": f"Could not serve {path}"}), 500
+    return send_from_directory('static', path)
+
+# Create an error template if it doesn't exist
+if not os.path.exists('templates/error.html'):
+    os.makedirs('templates', exist_ok=True)
+    with open('templates/error.html', 'w') as f:
+        f.write("""
+        {% extends 'base.html' %}
+        
+        {% block title %}Error - {{ message }}{% endblock %}
+        
+        {% block content %}
+        <div class="error-container">
+            <h2>Error</h2>
+            <p>{{ message }}</p>
+            <a href="{{ url_for('home') }}" class="back-button">Back to Home</a>
+        </div>
+        {% endblock %}
+        """)
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port, debug=True) 
+    app.run(host='0.0.0.0', port=port) 

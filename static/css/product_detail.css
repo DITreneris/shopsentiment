@@ -1,0 +1,168 @@
+/* Product detail page specific styling */
+.header-actions {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: 20px;
+}
+
+.back-button {
+    background-color: #f1f1f1;
+    color: #333;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 14px;
+}
+
+.back-button:hover {
+    background-color: #e0e0e0;
+}
+
+.product-details {
+    display: flex;
+    margin-bottom: 30px;
+}
+
+.product-image {
+    flex: 0 0 300px;
+    margin-right: 30px;
+}
+
+.product-image img {
+    max-width: 100%;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.product-info {
+    flex: 1;
+}
+
+.rating {
+    font-size: 24px;
+    color: #ffc107;
+    margin-bottom: 10px;
+}
+
+.price {
+    font-size: 22px;
+    color: #4CAF50;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+.features {
+    margin-top: 20px;
+}
+
+.features ul {
+    padding-left: 20px;
+}
+
+/* Sentiment summary section */
+.sentiment-summary {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 30px;
+}
+
+.sentiment-bars {
+    margin-top: 15px;
+}
+
+.sentiment-bar {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.sentiment-label {
+    width: 80px;
+    font-weight: bold;
+}
+
+.bar-container {
+    flex: 1;
+    background-color: #e9ecef;
+    height: 20px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.bar {
+    height: 100%;
+    width: 0%;
+    transition: width 1s ease-in-out;
+}
+
+.bar.positive {
+    background-color: #28a745;
+}
+
+.bar.neutral {
+    background-color: #ffc107;
+}
+
+.bar.negative {
+    background-color: #dc3545;
+}
+
+.sentiment-percentage {
+    width: 50px;
+    text-align: right;
+    padding-left: 10px;
+}
+
+/* Reviews section */
+.reviews {
+    margin-top: 30px;
+}
+
+.review-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.review-rating {
+    color: #ffc107;
+}
+
+.review-text {
+    margin-bottom: 10px;
+}
+
+.review-meta {
+    font-size: 12px;
+    color: #666;
+    text-align: right;
+}
+
+.review-sentiment {
+    font-weight: bold;
+}
+
+.review-sentiment.positive {
+    color: #28a745;
+}
+
+.review-sentiment.neutral {
+    color: #ffc107;
+}
+
+.review-sentiment.negative {
+    color: #dc3545;
+} 

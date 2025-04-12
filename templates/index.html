@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Home - Shop Sentiment Analysis{% endblock %}
+
+{% block header_content %}
+<div class="success-message">
+    <p>🎉 Application successfully deployed to Heroku! 🎉</p>
+    <p>The application is working correctly.</p>
+</div>
+{% endblock %}
+
+{% block content %}
+<section class="products">
+    <h2>Products</h2>
+    <div class="products-container" id="products-container">
+        <div class="loader" id="products-loader"></div>
+    </div>
+</section>
+
+<section class="sentiment-analyzer">
+    <h2>Analyze Sentiment</h2>
+    <p>Type or paste some text to analyze its sentiment:</p>
+    <textarea id="sentiment-text" placeholder="Enter text to analyze sentiment..."></textarea>
+    <button id="analyze-btn">Analyze Sentiment</button>
+    <div class="loader" id="analyze-loader"></div>
+    <div class="result" id="result"></div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/products.js') }}"></script>
+<script src="{{ url_for('static', filename='js/sentiment.js') }}"></script>
+{% endblock %} 

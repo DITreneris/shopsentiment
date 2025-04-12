@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} - Shop Sentiment Analysis{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/product_detail.css') }}">
+{% endblock %}
+
+{% block header_content %}
+<div class="header-actions">
+    <a href="{{ url_for('home') }}" class="back-button">← Back to Products</a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="product-details">
+    <div class="product-image">
+        <img src="{{ product.image_url }}" alt="{{ product.name }}">
+    </div>
+    <div class="product-info">
+        <h2>{{ product.name }} <span class="badge {{ product.sentiment }}">{{ product.sentiment }}</span></h2>
+        <div class="rating">
+            {% for i in range(product.rating|int) %}★{% endfor %}{% for i in range(5 - product.rating|int) %}☆{% endfor %} {{ product.rating }}
+        </div>
+        <div class="price">{{ product.price }}</div>
+        <p>{{ product.description }}</p>
+        <div class="features">
+            <h3>Features:</h3>
+            <ul>
+                {% for feature in product.features %}
+                <li>{{ feature }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="sentiment-summary">
+    <h2>Sentiment Analysis</h2>
+    <p>Overall sentiment score: <strong id="sentiment-score"></strong></p>
+    <div class="sentiment-bars">
+        <div class="sentiment-bar">
+            <div class="sentiment-label">Positive</div>
+            <div class="bar-container">
+                <div class="bar positive" id="positive-bar"></div>
+            </div>
+            <div class="sentiment-percentage" id="positive-percentage"></div>
+        </div>
+        <div class="sentiment-bar">
+            <div class="sentiment-label">Neutral</div>
+            <div class="bar-container">
+                <div class="bar neutral" id="neutral-bar"></div>
+            </div>
+            <div class="sentiment-percentage" id="neutral-percentage"></div>
+        </div>
+        <div class="sentiment-bar">
+            <div class="sentiment-label">Negative</div>
+            <div class="bar-container">
+                <div class="bar negative" id="negative-bar"></div>
+            </div>
+            <div class="sentiment-percentage" id="negative-percentage"></div>
+        </div>
+    </div>
+</div>
+
+<div class="reviews">
+    <h2>Customer Reviews ({{ product.reviews_count }})</h2>
+    <div id="reviews-container">
+        <div class="loader" id="reviews-loader"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const PRODUCT_ID = "{{ product.id }}";
+</script>
+<script src="{{ url_for('static', filename='js/product_detail.js') }}"></script>
+{% endblock %} 
