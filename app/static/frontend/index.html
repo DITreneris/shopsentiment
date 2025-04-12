@@ -265,7 +265,7 @@
         // API configuration
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? 'http://localhost:5000' 
-            : '';  // Empty string for relative path when deployed
+            : window.location.origin;  // Use the same origin for deployed version
         let token = null;
         let currentUser = null;
         
