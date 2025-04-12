@@ -1,10 +1,1 @@
-[
-  {
-    "id": 1,
-    "username": "dodo",
-    "email": "tomas.staniulis76@gmail.com",
-    "password_hash": "pbkdf2:sha256:260000$5w0ivGWeqYEeuAIQ$ace2b9622132ed8b60e3748eaab4ff044ee6bc458efd377b737862a593d7b51d",
-    "created_at": "2025-03-30T13:25:57.606307",
-    "last_login": "2025-03-30T13:26:14.204419"
-  }
-]
+[]

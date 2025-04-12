@@ -314,65 +314,58 @@
         }
         
         // Authentication functions
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('register-username').value;
-            const email = document.getElementById('register-email').value;
-            const password = document.getElementById('register-password').value;
-            
+        async function register(username, email, password) {
             try {
                 const response = await fetch(`${API_URL}/auth/register`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ username, email, password })
+                    body: JSON.stringify({ username, email, password }),
+                    credentials: 'include'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 displayResponse(data);
-                
-                if (response.ok) {
-                    alert('Registration successful! You can now log in.');
-                    document.getElementById('register-form').reset();
-                }
+                return data;
             } catch (error) {
-                displayResponse(error.message, true);
+                console.error('Registration error:', error);
+                displayResponse(`Registration error: ${error.message}`, true);
+                throw error;
             }
-        });
+        }
         
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
+        async function login(email, password) {
             try {
                 const response = await fetch(`${API_URL}/auth/login`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ email, password })
+                    body: JSON.stringify({ email, password }),
+                    credentials: 'include'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 displayResponse(data);
-                
-                if (response.ok) {
-                    alert('Login successful!');
-                    token = true; // In a real app, you would store the actual token
-                    currentUser = data.user;
-                    getUserInfoBtn.disabled = false;
-                    logoutBtn.disabled = false;
-                    document.getElementById('login-form').reset();
-                    updateUserInfo();
-                }
+                document.getElementById('get-user-info').disabled = false;
+                document.getElementById('logout').disabled = false;
+                getUserInfo();
+                return data;
             } catch (error) {
-                displayResponse(error.message, true);
+                console.error('Login error:', error);
+                displayResponse(`Login error: ${error.message}`, true);
+                throw error;
             }
-        });
+        }
         
         getUserInfoBtn.addEventListener('click', async () => {
             if (!token) return;
@@ -612,6 +605,38 @@
         
         // Initialize
         getProducts();
+        
+        // Add event listeners for authentication forms
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('register-username').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            
+            try {
+                await register(username, email, password);
+                alert('Registration successful! You can now log in.');
+                document.getElementById('register-form').reset();
+            } catch (error) {
+                console.error('Registration form error:', error);
+            }
+        });
+        
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                await login(email, password);
+                alert('Login successful!');
+                document.getElementById('login-form').reset();
+            } catch (error) {
+                console.error('Login form error:', error);
+            }
+        });
         
         // Global function for product reviews button
         window.getProductReviews = getProductReviews;

@@ -109,7 +109,7 @@ ShopSentiment has successfully implemented the following features:
 ## Mid-term Goals (v1.5.0) - Q3-Q4 2025
 
 ### Analytics Expansion
-- [ ] **Comparative Analysis**
+- [x] **Comparative Analysis**
   - Compare multiple products side-by-side
   - Competitive analysis features
   - Trend analysis across product categories

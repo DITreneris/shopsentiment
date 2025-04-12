@@ -98,11 +98,17 @@
 ## Long-term Goals (v2.0)
 
 ### Future Vision
-- [ ] **Geographic Sentiment Analysis**
+- [x] **Geographic Sentiment Analysis**
   - Implement sentiment analysis by geographic regions
   - Create regional comparison dashboard
   - Develop market penetration visualization maps
   - **KPI**: Data coverage for 15+ global markets
+
+- [x] **Comparative Analysis**
+  - Compare multiple products side-by-side
+  - Implement competitive analysis features
+  - Add trend analysis across product categories
+  - **KPI**: Enhanced decision making with quantifiable metrics
 
 - [ ] **Advanced AI Integration**
   - Implement GPT-based review summarization

@@ -41,7 +41,10 @@ csrf.exempt('auth_logout')
 # Initialize CORS with specific settings for the frontend
 CORS(app, resources={r"/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000", 
                                         "https://*.herokuapp.com", "http://*.herokuapp.com",
-                                        "https://salty-hamlet-05965-52206bf9d73c.herokuapp.com"]}}, 
+                                        "https://salty-hamlet-05965-52206bf9d73c.herokuapp.com"],
+                             "supports_credentials": True,
+                             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                             "allow_headers": ["Content-Type", "Authorization"]}}, 
      supports_credentials=True)
 
 # Initialize Flask-Login
@@ -206,86 +209,122 @@ def serve_frontend(path=''):
 def frontend_redirect(path=''):
     return app.send_static_file('frontend/index.html')
 
-# Add direct auth endpoints to bypass the blueprint import issue
-@app.route('/auth/login', methods=['POST'])
+# Fix auth routes
+@csrf.exempt
+@app.route('/auth/login', methods=['POST', 'OPTIONS'])
 def auth_login():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        return response
+        
     from werkzeug.security import check_password_hash
     from app.models.user import User
     
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
-    
-    data = request.get_json()
-    
-    if not data:
-        return jsonify({"error": "No input data provided"}), 400
-    
-    email = data.get('email')
-    password = data.get('password')
-    
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
-    
-    users_db = get_users_db()
-    user = User.get_by_email(email, users_db)
-    
-    if user and user.check_password(password):
-        login_user(user)
-        return jsonify({"message": "Login successful", "user": user.username}), 200
-    
-    return jsonify({"error": "Invalid email or password"}), 401
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
+        
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not email or not password:
+            return jsonify({"error": "Email and password are required"}), 400
+        
+        users_db = get_users_db()
+        user = User.get_by_email(email, users_db)
+        
+        if user and user.check_password(password):
+            login_user(user)
+            return jsonify({"message": "Login successful", "user": user.username}), 200
+        
+        return jsonify({"error": "Invalid email or password"}), 401
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
-@app.route('/auth/logout', methods=['POST'])
+@csrf.exempt
+@app.route('/auth/logout', methods=['POST', 'OPTIONS'])
 @login_required
 def auth_logout():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        return response
+        
     logout_user()
     return jsonify({"message": "Logout successful"}), 200
 
-@app.route('/auth/register', methods=['POST'])
+@csrf.exempt
+@app.route('/auth/register', methods=['POST', 'OPTIONS'])
 def auth_register():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        return response
+        
+    from werkzeug.security import generate_password_hash
     from app.models.user import User
     
-    if not request.is_json:
-        return jsonify({"error": "Request must be JSON"}), 400
-    
-    data = request.get_json()
-    
-    if not data:
-        return jsonify({"error": "No input data provided"}), 400
-    
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    
-    if not username or not email or not password:
-        return jsonify({"error": "Username, email, and password are required"}), 400
-    
-    users_db = get_users_db()
-    
-    if User.get_by_email(email, users_db):
-        return jsonify({"error": "Email already registered"}), 400
-    
-    if User.get_by_username(username, users_db):
-        return jsonify({"error": "Username already taken"}), 400
-    
-    # Create user
-    user = User.create_user(username, email, password, users_db)
-    
-    # Save user to database
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'users.json'), 'w') as f:
-        json.dump(users_db, f, indent=2)
-    
-    login_user(user)
-    return jsonify({"message": "Registration successful", "user": user.username}), 201
+    try:
+        if not request.is_json:
+            return jsonify({"error": "Request must be JSON"}), 400
+        
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({"error": "No input data provided"}), 400
+        
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not username or not email or not password:
+            return jsonify({"error": "Username, email and password are required"}), 400
+        
+        users_db = get_users_db()
+        
+        # Check if email already exists
+        if User.get_by_email(email, users_db):
+            return jsonify({"error": "Email already exists"}), 400
+        
+        # Create new user
+        from uuid import uuid4
+        user_id = str(uuid4())
+        new_user = {
+            'id': user_id,
+            'username': username,
+            'email': email,
+            'password_hash': generate_password_hash(password)
+        }
+        
+        users_db.append(new_user)
+        
+        # Save to JSON file
+        users_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'data', 'users.json')
+        os.makedirs(os.path.dirname(users_file), exist_ok=True)
+        with open(users_file, 'w') as f:
+            json.dump(users_db, f, indent=4)
+        
+        return jsonify({"message": "User registered successfully", "user_id": user_id}), 201
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
-@app.route('/auth/me', methods=['GET'])
+@csrf.exempt
+@app.route('/auth/me', methods=['GET', 'OPTIONS'])
 @login_required
 def auth_me():
+    if request.method == 'OPTIONS':
+        response = app.make_default_options_response()
+        return response
+        
     return jsonify({
         "id": current_user.id,
         "username": current_user.username,
-        "email": current_user.email,
-        "role": getattr(current_user, 'role', 'user')
+        "email": current_user.email
     }), 200
 
 @app.route('/auth/test', methods=['GET'])

@@ -9,6 +9,10 @@ A web application for analyzing sentiment in product reviews across different e-
 - Review collection and analysis
 - Sentiment analysis of product reviews
 - API endpoints for integration with other services
+- Comparative product analysis
+  - Side-by-side product sentiment comparison
+  - Competitive analysis with key insights
+  - Trend analysis across product categories/platforms
 
 ## Setup
 
@@ -69,6 +73,8 @@ The following API endpoints are available:
 - `/api/products/<id>` - Specific product (GET, PUT, DELETE)
 - `/api/products/<id>/reviews` - Product reviews (GET)
 - `/api/products/<id>/sentiment` - Product sentiment analysis (GET)
+- `/api/products/compare` - Compare multiple products (POST)
+- `/api/products/trends` - Trend analysis across product categories (GET)
 - `/api/reviews` - Review management (GET, POST)
 
 ## Frontend Structure

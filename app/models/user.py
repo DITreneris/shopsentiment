@@ -7,15 +7,11 @@ import json
 class User(UserMixin):
     """User model for authentication and storing user-specific data"""
     
-    def __init__(self, id, username, email, password_hash, created_at=None, 
-                 role='user', is_active=True):
+    def __init__(self, id, username, email, password_hash):
         self.id = id
         self.username = username
         self.email = email
         self.password_hash = password_hash
-        self.created_at = created_at or datetime.now().isoformat()
-        self.role = role
-        self.is_active = is_active
     
     def check_password(self, password):
         """Check if the provided password matches the stored hash"""
@@ -26,10 +22,7 @@ class User(UserMixin):
             'id': self.id,
             'username': self.username,
             'email': self.email,
-            'password_hash': self.password_hash,
-            'created_at': self.created_at,
-            'role': self.role,
-            'is_active': self.is_active
+            'password_hash': self.password_hash
         }
     
     @classmethod
@@ -38,10 +31,7 @@ class User(UserMixin):
             id=data.get('id'),
             username=data.get('username'),
             email=data.get('email'),
-            password_hash=data.get('password_hash'),
-            created_at=data.get('created_at'),
-            role=data.get('role', 'user'),
-            is_active=data.get('is_active', True)
+            password_hash=data.get('password_hash')
         )
     
     @classmethod
@@ -49,7 +39,12 @@ class User(UserMixin):
         """Retrieve a user by ID from the database."""
         for user_data in users_db:
             if user_data.get('id') == user_id:
-                return cls.from_dict(user_data)
+                return cls(
+                    id=user_data.get('id'),
+                    username=user_data.get('username'),
+                    email=user_data.get('email'),
+                    password_hash=user_data.get('password_hash')
+                )
         return None
     
     @classmethod
@@ -57,7 +52,12 @@ class User(UserMixin):
         """Retrieve a user by email from the database."""
         for user_data in users_db:
             if user_data.get('email') == email:
-                return cls.from_dict(user_data)
+                return cls(
+                    id=user_data.get('id'),
+                    username=user_data.get('username'),
+                    email=user_data.get('email'),
+                    password_hash=user_data.get('password_hash')
+                )
         return None
     
     @classmethod
@@ -65,7 +65,12 @@ class User(UserMixin):
         """Retrieve a user by username from the database."""
         for user_data in users_db:
             if user_data.get('username') == username:
-                return cls.from_dict(user_data)
+                return cls(
+                    id=user_data.get('id'),
+                    username=user_data.get('username'),
+                    email=user_data.get('email'),
+                    password_hash=user_data.get('password_hash')
+                )
         return None
     
     @classmethod
@@ -82,10 +87,10 @@ class User(UserMixin):
         """Save the user to the database"""
         conn.execute(
             '''
-            INSERT INTO users (id, username, email, password_hash, created_at)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO users (id, username, email, password_hash)
+            VALUES (?, ?, ?, ?)
             ''',
-            (self.id, self.username, self.email, self.password_hash, self.created_at)
+            (self.id, self.username, self.email, self.password_hash)
         )
         conn.commit()
     
@@ -94,10 +99,10 @@ class User(UserMixin):
         conn.execute(
             '''
             UPDATE users 
-            SET username = ?, email = ?, password_hash = ?, last_login = ?
+            SET username = ?, email = ?, password_hash = ?
             WHERE id = ?
             ''',
-            (self.username, self.email, self.password_hash, self.last_login, self.id)
+            (self.username, self.email, self.password_hash, self.id)
         )
         conn.commit()
     
@@ -109,9 +114,7 @@ class User(UserMixin):
                 id TEXT PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                last_login TIMESTAMP
+                password_hash TEXT NOT NULL
             )
         ''')
         conn.commit()
@@ -126,8 +129,7 @@ class User(UserMixin):
             id=user_id,
             username=username,
             email=email,
-            password_hash=password_hash,
-            role=role
+            password_hash=password_hash
         )
         
         # Add user to database
