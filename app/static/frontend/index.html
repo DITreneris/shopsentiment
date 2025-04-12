@@ -363,9 +363,11 @@
                 
                 const data = await response.json();
                 displayResponse(data);
+                token = 'session'; // Use session auth
+                currentUser = data.user;
                 document.getElementById('get-user-info').disabled = false;
                 document.getElementById('logout').disabled = false;
-                getUserInfo();
+                updateUserInfo({username: data.user});
                 return data;
             } catch (error) {
                 console.error('Login error:', error);
@@ -375,50 +377,47 @@
         }
         
         getUserInfoBtn.addEventListener('click', async () => {
-            if (!token) return;
-            
             try {
                 const response = await fetch(`${API_URL}/auth/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 displayResponse(data);
-                
-                if (response.ok) {
-                    updateUserInfo(data);
-                }
+                updateUserInfo(data);
             } catch (error) {
-                displayResponse(error.message, true);
+                console.error('Get user info error:', error);
+                displayResponse(`Get user info error: ${error.message}`, true);
             }
         });
         
         logoutBtn.addEventListener('click', async () => {
-            if (!token) return;
-            
             try {
                 const response = await fetch(`${API_URL}/auth/logout`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    credentials: 'include'
                 });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
                 displayResponse(data);
                 
-                if (response.ok) {
-                    token = null;
-                    currentUser = null;
-                    getUserInfoBtn.disabled = true;
-                    logoutBtn.disabled = true;
-                    updateUserInfo();
-                    alert('Logged out successfully!');
-                }
+                token = null;
+                currentUser = null;
+                getUserInfoBtn.disabled = true;
+                logoutBtn.disabled = true;
+                updateUserInfo();
+                alert('Logged out successfully!');
             } catch (error) {
-                displayResponse(error.message, true);
+                console.error('Logout error:', error);
+                displayResponse(`Logout error: ${error.message}`, true);
             }
         });
         
@@ -437,11 +436,6 @@
         document.getElementById('add-product-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            if (!token) {
-                alert('Please log in first');
-                return;
-            }
-            
             const platform = document.getElementById('product-platform').value;
             const productId = document.getElementById('product-id').value;
             const url = document.getElementById('product-url').value;
@@ -450,9 +444,9 @@
                 const response = await fetch(`${API_URL}/api/products/`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Content-Type': 'application/json'
                     },
+                    credentials: 'include',
                     body: JSON.stringify({ platform, product_id: productId, url })
                 });
                 
@@ -460,9 +454,9 @@
                 displayResponse(data);
                 
                 if (response.ok) {
-                    alert('Product added successfully!');
-                    document.getElementById('add-product-form').reset();
-                    getProducts();
+                alert('Product added successfully!');
+                document.getElementById('add-product-form').reset();
+                getProducts();
                 }
             } catch (error) {
                 displayResponse(error.message, true);
@@ -473,15 +467,20 @@
         
         async function getProducts() {
             try {
-                const response = await fetch(`${API_URL}/api/products/`);
+                const response = await fetch(`${API_URL}/api/products/`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 displayResponse(data);
-                
-                if (response.ok) {
-                    updateProductsList(data);
-                    updateProductSelector(data);
-                }
+                updateProductsList(data);
+                updateProductSelector(data);
             } catch (error) {
+                console.error('Get products error:', error);
                 displayResponse(error.message, true);
             }
         }
@@ -547,15 +546,20 @@
         
         async function getProductReviews(productId) {
             try {
-                const response = await fetch(`${API_URL}/api/products/${productId}/reviews`);
+                const response = await fetch(`${API_URL}/api/products/${productId}/reviews`, {
+                    credentials: 'include'
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
                 const data = await response.json();
                 displayResponse(data);
-                
-                if (response.ok) {
-                    updateReviewsList(data);
-                    getProductSentiment(productId);
-                }
+                updateReviewsList(data);
+                getProductSentiment(productId);
             } catch (error) {
+                console.error('Get reviews error:', error);
                 displayResponse(error.message, true);
             }
         }
@@ -589,13 +593,18 @@
         
         async function getProductSentiment(productId) {
             try {
-                const response = await fetch(`${API_URL}/api/products/${productId}/sentiment`);
-                const data = await response.json();
+                const response = await fetch(`${API_URL}/api/products/${productId}/sentiment`, {
+                    credentials: 'include'
+                });
                 
-                if (response.ok) {
-                    updateSentimentSummary(data);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                
+                const data = await response.json();
+                updateSentimentSummary(data);
             } catch (error) {
+                console.error('Get sentiment error:', error);
                 displayResponse(error.message, true);
             }
         }
@@ -649,4 +658,4 @@
         window.getProductReviews = getProductReviews;
     </script>
 </body>
-</html> 
+</html>

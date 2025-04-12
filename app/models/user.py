@@ -5,7 +5,7 @@ import uuid
 import json
 
 class User(UserMixin):
-    """User model for authentication and storing user-specific data"""
+    """Simple User model for authentication"""
     
     def __init__(self, id, username, email, password_hash):
         self.id = id

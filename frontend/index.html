@@ -4,135 +4,2160 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Sentiment Analysis</title>
+    <!-- Import Inter font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #3B82F6;
+            --primary-hover: #2563EB;
+            --secondary-color: #FB7185;
+            --secondary-hover: #F43F5E;
+            --background-color: #F9FAFB;
+            --hero-background: #DBEAFE;
+            --card-background: #FFFFFF;
+            --text-color: #1F2937;
+            --text-light: #6B7280;
+            --text-body: #374151;
+            --border-color: #E5E7EB;
+            --sentiment-positive: #60A5FA;
+            --sentiment-positive-light: #E0F2FE;
+            --sentiment-neutral: #FBBF24;
+            --sentiment-neutral-light: #FEF3C7;
+            --sentiment-negative: #F43F5E;
+            --sentiment-negative-light: #FEE2E2;
+            --shadow: 0 2px 4px rgba(0,0,0,0.1);
+            
+            /* Typography */
+            --font-family: 'Inter', 'Poppins', 'Nunito', sans-serif;
+            --font-size-h1: 2.25rem;
+            --font-size-h2: 1.25rem;
+            --font-size-subtitle: 1.125rem;
+            --font-size-body: 1rem;
+            --font-size-button: 0.95rem;
+            --font-size-metadata: 0.875rem;
+            --font-weight-normal: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            --line-height-normal: 1.5;
+            --line-height-tight: 1.25;
+            --line-height-loose: 1.6;
+            --letter-spacing-heading: -0.25px;
+            --letter-spacing-button: -0.1px;
+            
+            /* Responsive Design */
+            --container-padding: 20px;
+            --container-max-width: 1200px;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: var(--font-family);
+            margin: 0;
+            padding: 0;
+            line-height: var(--line-height-normal);
+            color: var(--text-body);
+            background-color: var(--background-color);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            line-height: 1.6;
         }
-        .container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
+
+        h1, h2, h3 {
+            color: var(--text-color);
+            margin-top: 0;
+            letter-spacing: var(--letter-spacing-heading);
+            line-height: var(--line-height-tight);
         }
-        .card {
-            border: 1px solid #ddd;
+
+        h1 {
+            font-size: var(--font-size-h1);
+            font-weight: var(--font-weight-bold);
+        }
+
+        h2 {
+            font-size: var(--font-size-h2);
+            font-weight: var(--font-weight-bold);
+        }
+
+        h3 {
+            font-size: var(--font-size-body);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        p {
+            line-height: var(--line-height-loose);
+        }
+
+        /* Hero Search Section */
+        .hero-search {
+            background-color: var(--hero-background);
+            padding: 40px 0;
+            text-align: center;
             border-radius: 8px;
-            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-search h1 {
+            margin-bottom: 10px;
+            color: var(--primary-hover);
+            font-size: var(--font-size-h1);
+            font-weight: var(--font-weight-bold);
+        }
+
+        .hero-search .tagline {
+            margin-bottom: 25px;
+            color: var(--text-light);
+            font-size: var(--font-size-subtitle);
+            font-weight: var(--font-weight-normal);
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 15px;
+        }
+
+        .search-input-group {
+            display: flex;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .search-input-group input {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            font-size: var(--font-size-body);
+            font-family: var(--font-family);
+        }
+
+        .search-input-group button {
+            padding: 15px 25px;
+            border-radius: 0;
+        }
+
+        .usage-counter {
+            font-size: var(--font-size-metadata);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .counter-value {
+            font-weight: var(--font-weight-bold);
+            color: var(--text-color);
+        }
+
+        .counter-value.near-limit {
+            color: var(--negative-color);
+        }
+
+        /* Modernized UI Components */
+        .btn {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: var(--font-weight-medium);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            text-transform: none;
+            letter-spacing: 0.01em;
         }
-        h1, h2 {
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        button {
-            background-color: #4CAF50;
+
+        .btn-primary {
+            background-color: var(--primary-color);
             color: white;
             border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
         }
-        button:hover {
-            background-color: #45a049;
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
-        .tab-container {
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background-color: rgba(59, 130, 246, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 14px;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        /* Ripple effect */
+        .ripple {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* Card styling enhancements */
+        .card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border-color: var(--border-color);
+        }
+
+        /* Input focused effect */
+        .input-focused {
+            animation: focusIn 0.2s ease-out;
+        }
+
+        @keyframes focusIn {
+            0% {
+                border-color: var(--border-color);
+                box-shadow: none;
+            }
+            100% {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+        }
+
+        .btn-accent {
+            background: linear-gradient(to bottom, #FDA4AF, var(--accent-color));
+            color: white;
+            box-shadow: 0 4px 10px rgba(248, 113, 113, 0.3);
+        }
+
+        .btn-accent:hover {
+            background: linear-gradient(to bottom, #FCA5A5, var(--accent-dark));
+            box-shadow: 0 6px 12px rgba(248, 113, 113, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(to bottom, #FB7185, var(--secondary-color));
+            color: white;
+            box-shadow: 0 4px 10px rgba(251, 113, 133, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(to bottom, #FDA4AF, var(--secondary-hover));
+            box-shadow: 0 6px 12px rgba(251, 113, 133, 0.4);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary-light);
+        }
+
+        .btn-sm {
+            padding: 0.5rem 0.75rem;
+            font-size: calc(var(--font-size-button) - 0.05rem);
+        }
+
+        .btn-outline-small {
+            padding: 4px 10px;
+            font-size: 12px;
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        /* Section Styling */
+        .section {
+            margin-bottom: 40px;
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .section-header {
             display: flex;
-            border-bottom: 1px solid #ddd;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-header h2 {
+            font-size: var(--font-size-h2);
+            font-weight: var(--font-weight-bold);
+            letter-spacing: var(--letter-spacing-heading);
+            color: var(--text-color);
+        }
+
+        .section-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        /* Product Card */
+        .product-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid var(--border-color);
+        }
+
+        .product-card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        }
+
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .product-title {
+            margin: 0;
+            font-size: var(--font-size-body);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .sentiment-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: var(--font-size-metadata);
+            font-weight: var(--font-weight-semibold);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .sentiment-icon {
+            font-size: 16px;
+        }
+
+        .sentiment-badge.positive {
+            background-color: var(--sentiment-positive-light);
+            color: var(--sentiment-positive);
+        }
+
+        .sentiment-badge.negative {
+            background-color: var(--sentiment-negative-light);
+            color: var(--sentiment-negative);
+        }
+
+        .sentiment-badge.neutral {
+            background-color: var(--sentiment-neutral-light);
+            color: var(--sentiment-neutral);
+        }
+
+        .sentiment-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .product-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--font-size-metadata);
+            color: var(--text-light);
+            margin-bottom: 15px;
+        }
+
+        .product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            grid-column: 1 / -1;
+            transition: transform 0.3s ease;
+        }
+
+        .empty-state:hover {
+            transform: translateY(-5px);
+        }
+
+        .empty-icon {
+            font-size: 64px;
             margin-bottom: 20px;
         }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            font-size: var(--font-size-subtitle);
+            font-weight: var(--font-weight-semibold);
+        }
+
+        .empty-state p {
+            color: var(--text-light);
+            max-width: 400px;
+            margin: 0 auto;
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-loose);
+        }
+
+        /* Auth Required Actions */
+        .auth-required-action {
+            position: relative;
+        }
+
+        .auth-tooltip {
+            position: absolute;
+            bottom: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-color);
+            color: var(--card-background);
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .auth-required-action:hover .auth-tooltip {
+            opacity: 1;
+        }
+        
+        /* Auth Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--text-light);
+        }
+
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
         .tab {
             padding: 10px 20px;
             cursor: pointer;
-            background-color: #f1f1f1;
-            border: 1px solid #ddd;
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
             border-bottom: none;
             border-radius: 4px 4px 0 0;
             margin-right: 5px;
+            color: var(--text-light);
+            transition: all 0.2s ease;
+            font-size: var(--font-size-button);
+            font-weight: var(--font-weight-medium);
         }
+
+        .tab:hover {
+            background-color: var(--primary-light);
+            color: var(--primary-color);
+        }
+
         .tab.active {
-            background-color: white;
-            border-bottom: 1px solid white;
+            background-color: var(--card-background);
+            border-bottom: 1px solid var(--card-background);
             margin-bottom: -1px;
+            color: var(--primary-color);
+            font-weight: var(--font-weight-semibold);
         }
+
         .tab-content {
             display: none;
         }
+
         .tab-content.active {
             display: block;
         }
+        
+        /* Form Styling */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color);
+            font-size: var(--font-size-body);
+        }
+
+        /* Form Elements */
+        input, select, textarea {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background-color: var(--card-background);
+            color: var(--text-color);
+            font-size: var(--font-size-body);
+            font-family: var(--font-family);
+            transition: all 0.2s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            transform: translateY(-1px);
+        }
+        
+        .input-focused::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: var(--primary-color);
+            animation: inputFocus 0.3s ease forwards;
+        }
+        
+        /* Review Styles */
+        .review-section {
+            margin-top: 20px;
+        }
+
+        .sentiment-summary {
+            display: flex;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: var(--shadow);
+        }
+
+        .sentiment-chart {
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .sentiment-stats {
+            flex: 2;
+            padding-left: 20px;
+        }
+
+        .stat-item {
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            display: inline-block;
+            width: 80px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .stat-bar {
+            height: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease-out;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+        }
+
+        .stat-item.positive .stat-fill {
+            background-color: var(--sentiment-positive);
+        }
+
+        .stat-item.neutral .stat-fill {
+            background-color: var(--sentiment-neutral);
+        }
+
+        .stat-item.negative .stat-fill {
+            background-color: var(--sentiment-negative);
+        }
+
+        /* API Status */
         #api-status {
             padding: 10px;
             margin: 10px 0;
             border-radius: 4px;
         }
+
         .status-ok {
-            background-color: #d4edda;
-            color: #155724;
+            background-color: var(--sentiment-positive-light);
+            color: var(--sentiment-positive);
         }
+
         .status-error {
-            background-color: #f8d7da;
-            color: #721c24;
+            background-color: var(--sentiment-negative-light);
+            color: var(--sentiment-negative);
         }
-        #response-container {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            margin-top: 15px;
-            white-space: pre-wrap;
-            overflow-x: auto;
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .container {
+                padding: 0 var(--container-padding);
+                width: 100%;
+                margin: 0 auto;
+            }
         }
-        table {
+
+        @media (max-width: 768px) {
+            /* Heading sizes */
+            h1 {
+                font-size: 28px !important;
+            }
+            
+            h2 {
+                font-size: 22px !important;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .section-actions {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            /* Hero search adjustments */
+            .hero-search {
+                padding: 30px 20px;
+            }
+            
+            .hero-search .tagline {
+                font-size: 16px;
+            }
+            
+            .search-input-group {
+                flex-direction: column;
+                border-radius: 8px;
+                overflow: visible;
+                box-shadow: none;
+            }
+            
+            .search-input-group input {
+                width: 100%;
+                border-radius: 8px;
+                box-shadow: var(--shadow);
+                margin-bottom: 10px;
+                border: 1px solid var(--border-color);
+            }
+            
+            .search-input-group .btn {
+                width: 100%;
+                border-radius: 8px;
+            }
+            
+            /* Usage counter */
+            .usage-counter {
+                flex-direction: column;
+                gap: 10px;
+                margin-top: 15px;
+            }
+            
+            /* Product grid */
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            /* Product card */
+            .product-card {
+                padding: 16px;
+            }
+            
+            .product-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .product-actions {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .product-actions .btn {
+                width: 100%;
+            }
+            
+            /* Reviews and sentiment sections */
+            .sentiment-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-controls {
+                overflow-x: auto;
+                white-space: nowrap;
+                padding-bottom: 8px;
+                width: 100%;
+            }
+            
+            /* Authentication modal */
+            .auth-modal {
+                width: 90%;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .toast {
+                min-width: auto;
+                max-width: 100%;
+                width: calc(100vw - 40px);
+                left: 20px;
+                right: 20px;
+            }
+            
+            .toast-container {
+                left: 0;
+                right: 0;
+                bottom: 10px;
+                display: flex;
+                justify-content: center;
+            }
+            
+            /* Button modifications for small screens */
+            .btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+            
+            /* Auth benefits */
+            .auth-benefits {
+                padding: 12px;
+            }
+            
+            .auth-benefits li {
+                font-size: 12px;
+            }
+        }
+
+        /* Touch-friendly adjustments */
+        @media (pointer: coarse) {
+            .btn, .form-control, .auth-tab, .toast-close {
+                min-height: 44px; /* Minimum size for touch targets */
+            }
+            
+            .btn-sm {
+                min-height: 38px;
+            }
+            
+            input[type="checkbox"], input[type="radio"] {
+                transform: scale(1.2);
+            }
+        }
+
+        /* Skeleton Loader for better loading states */
+        .skeleton-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(107, 114, 128, 0.1), transparent);
+            animation: skeleton-loading 1.5s infinite;
         }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+
+        @keyframes skeleton-loading {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
         }
-        th {
+
+        /* Toast animations */
+        @keyframes toast-fade-in {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes toast-fade-out {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+        }
+        
+        /* Tooltip styles */
+        .sentiment-tooltip {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            width: 250px;
+            background-color: var(--text-color);
+            color: var(--card-background);
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px 12px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s, visibility 0.3s;
+            font-size: 12px;
+        }
+        
+        .sentiment-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .sentiment-tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--text-color) transparent transparent transparent;
+        }
+
+        /* Review Card Enhancement */
+        .review-item {
+            margin-bottom: 16px;
+            border-left: 3px solid var(--border-color);
+            transition: all 0.2s ease;
+        }
+        
+        .review-item.positive {
+            border-left-color: var(--sentiment-positive);
+        }
+        
+        .review-item.negative {
+            border-left-color: var(--sentiment-negative);
+        }
+        
+        .review-item.neutral {
+            border-left-color: var(--sentiment-neutral);
+        }
+        
+        .review-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .review-text {
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-loose);
+            margin-top: 12px;
+        }
+
+        /* Toast Notification */
+        .toast {
+            font-family: var(--font-family);
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-normal);
+        }
+        
+        .toast-content {
+            font-weight: var(--font-weight-medium);
+        }
+        
+        /* Sentiment Summary */
+        .sentiment-stats {
+            font-family: var(--font-family);
+        }
+        
+        .stat-label {
+            display: inline-block;
+            width: 80px;
+            font-size: var(--font-size-metadata);
+            font-weight: var(--font-weight-medium);
+        }
+        
+        .stat-value {
+            font-weight: var(--font-weight-semibold);
+            margin-left: 10px;
+            font-size: var(--font-size-metadata);
+        }
+        
+        .overall-sentiment {
+            margin-top: 1rem;
+        }
+        
+        .overall-sentiment p {
+            font-size: var(--font-size-metadata);
+            margin: 0.5rem 0;
+            color: var(--text-body);
+        }
+        
+        .overall-sentiment strong {
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color);
+        }
+        
+        /* Tooltip */
+        .tooltip-text {
+            font-family: var(--font-family);
+            font-size: calc(var(--font-size-metadata) - 0.05rem);
+            line-height: var(--line-height-normal);
+        }
+        
+        /* Auth Modal */
+        .modal-header h2 {
+            font-size: var(--font-size-h2);
+            font-weight: var(--font-weight-bold);
+            letter-spacing: var(--letter-spacing-heading);
+            color: var(--text-color);
+            margin: 0;
+        }
+        
+        /* Divider styling for better readability */
+        .divider {
+            margin: 1.5rem 0;
+            border: none;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* API Status */
+        #api-status {
+            font-family: var(--font-family);
+            font-size: var(--font-size-metadata);
+            font-weight: var(--font-weight-medium);
+        }
+
+        /* Filter Controls */
+        .filter-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-filter {
+            background-color: var(--background-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: var(--font-size-metadata);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-filter.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-filter:hover:not(.active) {
+            background-color: var(--hero-background);
+            color: var(--primary-color);
+        }
+        
+        .filter-icon {
+            margin-right: 4px;
+        }
+        
+        /* Review Cards */
+        .reviews-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .review-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease;
+            border-left: 3px solid var(--border-color);
+        }
+        
+        .review-card.positive {
+            border-left-color: var(--sentiment-positive);
+        }
+        
+        .review-card.negative {
+            border-left-color: var(--sentiment-negative);
+        }
+        
+        .review-card.neutral {
+            border-left-color: var(--sentiment-neutral);
+        }
+        
+        .review-card:hover {
+            transform: translateX(5px);
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .review-meta {
+            display: flex;
+            gap: 16px;
+        }
+        
+        .review-rating, .review-date {
+            font-size: var(--font-size-metadata);
+            color: var(--text-light);
+        }
+        
+        .rating-value, .date-value {
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color);
+        }
+        
+        .review-content {
+            margin-bottom: 16px;
+        }
+        
+        .review-text {
+            font-size: var(--font-size-body);
+            line-height: var(--line-height-loose);
+            margin: 0;
+            color: var(--text-body);
+        }
+        
+        /* Highlighted Key Phrases */
+        .highlighted-phrase {
+            background-color: rgba(255, 255, 0, 0.2);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        
+        /* Sort Dropdown */
+        .sort-dropdown {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: var(--font-size-metadata);
+            background-color: var(--card-background);
+            color: var(--text-color);
+        }
+        
+        /* Sentiment Summary Card */
+        .sentiment-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+        }
+        
+        .sentiment-summary-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        
+        .back-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .sentiment-chart {
+            display: flex;
+            justify-content: center;
+        }
+        
+        .sentiment-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .stat-bar {
+            height: 10px;
             background-color: #f1f1f1;
+            border-radius: 5px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+        
+        .stat-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 1s ease-out;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+        }
+        
+        /* Key Phrases Section */
+        .key-phrases-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .key-phrase-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        
+        .key-phrase-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        
+        .key-phrase-text {
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color);
+        }
+        
+        .key-phrase-count {
+            font-size: var(--font-size-metadata);
+            color: var(--text-light);
+        }
+        
+        .key-phrase-sentiment-bar {
+            height: 6px;
+            border-radius: 3px;
+            background-color: #f1f1f1;
+            display: flex;
+            overflow: hidden;
+        }
+        
+        .key-phrase-sentiment-bar .sentiment-fill {
+            height: 100%;
+        }
+
+        /* Chart Legend */
+        .chart-legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 20px;
+            font-size: var(--font-size-metadata);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        
+        .legend-label {
+            color: var(--text-color);
+        }
+        
+        /* Tooltip styling */
+        .sentiment-tooltip {
+            position: relative;
+            display: inline-block;
+            margin-top: 8px;
+        }
+        
+        .info-icon {
+            cursor: pointer;
+            font-style: normal;
+        }
+        
+        .tooltip-text {
+            visibility: hidden;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--text-color);
+            color: var(--card-background);
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            width: 200px;
+            font-size: calc(var(--font-size-metadata) - 0.05rem);
+            z-index: 1;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--text-color) transparent transparent transparent;
+        }
+        
+        .sentiment-tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Sentiment Score Indicator */
+        .overall-sentiment {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .overall-sentiment p {
+            margin: 4px 0;
+            font-size: var(--font-size-metadata);
+        }
+        
+        .overall-sentiment strong {
+            color: var(--text-color);
+            font-weight: var(--font-weight-semibold);
+        }
+        
+        /* Auth Modal */
+        .auth-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .auth-modal {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .auth-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .auth-header h3 {
+            margin: 0;
+            font-weight: var(--font-weight-bold);
+            color: var(--text-color);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color 0.2s ease;
+        }
+        
+        .close-modal:hover {
+            color: var(--text-color);
+        }
+        
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .auth-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .auth-tab:hover:not(.active) {
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.02);
+        }
+        
+        .auth-body {
+            padding: 24px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: var(--font-weight-medium);
+            color: var(--text-color);
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: var(--font-size-body);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+        
+        .btn-block {
+            display: block;
+            width: 100%;
+        }
+        
+        .auth-message {
+            margin-top: 16px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: var(--font-size-metadata);
+            display: none;
+        }
+        
+        .auth-message.error {
+            background-color: #fee2e2;
+            color: #ef4444;
+            display: block;
+        }
+        
+        .auth-message.success {
+            background-color: #dcfce7;
+            color: #22c55e;
+            display: block;
+        }
+        
+        .password-strength {
+            margin-top: 8px;
+        }
+        
+        .strength-bar {
+            height: 4px;
+            background-color: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+        
+        .strength-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+        
+        .strength-text {
+            font-size: var(--font-size-metadata);
+            color: var(--text-light);
+        }
+        
+        .auth-benefits {
+            padding: 16px 24px;
+            background-color: var(--hero-background);
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .auth-benefits h4 {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-color);
+        }
+        
+        .auth-benefits ul {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+        
+        .auth-benefits li {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            font-size: var(--font-size-metadata);
+        }
+        
+        .benefit-icon {
+            margin-right: 8px;
+            font-style: normal;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .toast {
+            padding: 12px 16px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            min-width: 300px;
+            max-width: 400px;
+            animation: toastSlideIn 0.3s ease-out forwards;
+            font-size: var(--font-size-body);
+        }
+        
+        @keyframes toastSlideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast.success {
+            background-color: #dcfce7;
+            border-left: 4px solid #22c55e;
+            color: #166534;
+        }
+        
+        .toast.error {
+            background-color: #fee2e2;
+            border-left: 4px solid #ef4444;
+            color: #b91c1c;
+        }
+        
+        .toast.warning {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            color: #92400e;
+        }
+        
+        .toast.info {
+            background-color: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+        
+        .toast-content {
+            flex: 1;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            margin-left: 8px;
+            color: currentColor;
+            opacity: 0.7;
+        }
+        
+        .toast-close:hover {
+            opacity: 1;
+        }
+        
+        /* Limit Warning Banner */
+        .limit-warning {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: var(--warning-color);
+            color: white;
+            padding: 12px 16px;
+            text-align: center;
+            z-index: 900;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.3s ease-out;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+        
+        .limit-message {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 960px;
+        }
+        
+        .limit-message a {
+            color: white;
+            text-decoration: underline;
+            font-weight: var(--font-weight-bold);
+        }
+        
+        .close-warning {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0 8px;
+        }
+
+        /* Enhanced Auth Styles */
+        .input-error {
+            border-color: var(--error-color) !important;
+            background-color: rgba(244, 67, 54, 0.05);
+        }
+
+        .field-error {
+            color: var(--error-color);
+            font-size: 12px;
+            margin-top: 4px;
+            display: block;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .success-transition {
+            animation: pulse 1s ease;
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            }
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
+        /* Input Focus Effect */
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            outline: none;
+            animation: focusPulse 1s ease;
+        }
+
+        @keyframes focusPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+            }
+            100% {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            }
+        }
+
+        /* Enhanced Toast System */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 350px;
+        }
+
+        .toast {
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            grid-gap: 12px;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            min-width: 300px;
+            max-width: 350px;
+            font-size: var(--font-size-body);
+            opacity: 0;
+            transform: translateX(100%);
+            transition: none;
+            border-left: 4px solid transparent;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+            animation: toastShow 0.3s ease forwards;
+        }
+
+        .toast.hiding {
+            animation: toastHide 0.3s ease forwards;
+        }
+
+        @keyframes toastShow {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes toastHide {
+            from {
+                opacity: 1;
+                transform: translateX(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+        }
+
+        .toast-icon {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toast-content {
+            word-break: break-word;
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            color: currentColor;
+            opacity: 0.7;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.2s ease;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        .toast-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: rgba(255, 255, 255, 0.4);
+            transform-origin: left;
+        }
+
+        @keyframes toastProgress {
+            from {
+                transform: scaleX(1);
+            }
+            to {
+                transform: scaleX(0);
+            }
+        }
+
+        .toast.success {
+            background-color: #ecfdf5;
+            border-left-color: #10b981;
+            color: #065f46;
+        }
+
+        .toast.error {
+            background-color: #fef2f2;
+            border-left-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .toast.warning {
+            background-color: #fffbeb;
+            border-left-color: #f59e0b;
+            color: #92400e;
+        }
+
+        .toast.info {
+            background-color: #eff6ff;
+            border-left-color: #3b82f6;
+            color: #1e40af;
+        }
+
+        /* Performance Optimizations */
+        .lazy-image {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .lazy-image.loaded {
+            opacity: 1;
+        }
+
+        /* CSS Optimizations */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                transition-duration: 0.001ms !important;
+                animation-duration: 0.001ms !important;
+            }
+        }
+
+        /* Optimized Selector Performance */
+        [class^="btn"] {
+            /* Button base styles shared across all button variants */
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* This helps avoid layout shifts as content loads */
+        .product-card, .review-card, .sentiment-summary-card {
+            contain: content;
+            content-visibility: auto;
+        }
+
+        /* Pagination styles for review loading */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .pagination-button {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .pagination-button:hover {
+            background-color: var(--hero-background);
+        }
+
+        .pagination-button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        /* Skeleton Loading Styles */
+        .skeleton-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skeleton-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            transform: translateX(-100%);
+            background-image: linear-gradient(
+                90deg,
+                rgba(255, 255, 255, 0) 0,
+                rgba(255, 255, 255, 0.2) 20%,
+                rgba(255, 255, 255, 0.5) 60%,
+                rgba(255, 255, 255, 0)
+            );
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .skeleton-card::before {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 120px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        /* Memory optimization using CSS containment */
+        .reviews-list, .product-grid, .sentiment-container {
+            contain: content;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Shop Sentiment Analysis</h1>
-        
-        <div id="api-status"></div>
-        
-        <div class="tab-container">
-            <div class="tab active" data-tab="auth">Authentication</div>
-            <div class="tab" data-tab="products">Products</div>
-            <div class="tab" data-tab="reviews">Reviews</div>
+    <div id="api-status"></div>
+    
+    <!-- Hero Search Section -->
+    <div class="hero-search">
+        <div class="container">
+            <h1>Shop Sentiment Analysis</h1>
+            <p class="tagline">Discover what customers really think about products</p>
+            
+            <div class="search-container">
+                <form id="product-search-form">
+                    <div class="search-input-group">
+                        <input type="text" id="product-search" placeholder="Search for a product (e.g., Apple AirPods, Samsung Galaxy)" required>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="search-icon">🔍</i>
+                            Search
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="usage-counter" id="usage-counter">
+                <span class="counter-label">You have <span id="counter-value">5</span> free searches today</span>
+                <button id="show-auth-btn" class="btn btn-secondary btn-sm">Login for unlimited searches</button>
+            </div>
         </div>
-        
-        <!-- Authentication Tab -->
-        <div id="auth" class="tab-content active">
-            <div class="card">
-                <h2>Register</h2>
+    </div>
+
+    <!-- Product Results Section -->
+    <div class="section" id="product-results">
+        <div class="container">
+            <div class="section-header">
+                <h2>Products</h2>
+                <div class="section-actions">
+                    <button id="refresh-products" class="btn btn-outline">
+                        <i class="refresh-icon">🔄</i> Refresh
+                    </button>
+                    <div class="auth-required-action" id="add-product-action">
+                        <button id="add-product-btn" class="btn btn-secondary">
+                            <i class="add-icon">➕</i> Add Product
+                        </button>
+                        <span class="auth-tooltip">Login required</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="product-grid" id="product-list">
+                <!-- Product cards will be added here dynamically -->
+                <div class="empty-state" id="products-empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <h3>No products found</h3>
+                    <p>Search for a product above or add your own product</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Review Display Section -->
+    <div class="section reviews-section" id="reviews-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <div class="back-header">
+                    <button id="back-to-products" class="btn btn-outline btn-sm">
+                        <i class="back-icon">←</i> Back to Products
+                    </button>
+                    <h2 id="product-name-header">Product Reviews</h2>
+                </div>
+                <div class="section-actions">
+                    <div class="filter-controls">
+                        <button class="btn btn-filter active" data-filter="all">
+                            All Reviews
+                        </button>
+                        <button class="btn btn-filter" data-filter="positive">
+                            <span class="filter-icon positive">👍</span> Positive
+                        </button>
+                        <button class="btn btn-filter" data-filter="neutral">
+                            <span class="filter-icon neutral">😐</span> Neutral
+                        </button>
+                        <button class="btn btn-filter" data-filter="negative">
+                            <span class="filter-icon negative">👎</span> Negative
+                        </button>
+                    </div>
+                    <select id="sort-reviews" class="sort-dropdown">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="sentiment-pos">Most Positive</option>
+                        <option value="sentiment-neg">Most Negative</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="reviews-list" id="reviews-list">
+                <!-- Reviews will be added here dynamically -->
+                <div class="empty-state" id="reviews-empty-state">
+                    <div class="empty-icon">💬</div>
+                    <h3>No reviews available</h3>
+                    <p>This product doesn't have any reviews yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sentiment Analysis Section -->
+    <div class="section sentiment-section" id="sentiment-section" style="display: none;">
+        <div class="container">
+            <div class="section-header">
+                <div class="back-header">
+                    <button id="back-from-sentiment" class="btn btn-outline btn-sm">
+                        <i class="back-icon">←</i> Back to Products
+                    </button>
+                    <h2 id="sentiment-product-name">Sentiment Analysis</h2>
+                </div>
+            </div>
+            
+            <div class="sentiment-container">
+                <div class="sentiment-summary-card">
+                    <div class="sentiment-chart" id="sentiment-chart">
+                        <!-- Sentiment donut chart will be rendered here -->
+                    </div>
+                    <div class="sentiment-stats" id="sentiment-stats">
+                        <!-- Sentiment statistics will be rendered here -->
+                    </div>
+                </div>
+                
+                <div class="sentiment-key-phrases">
+                    <h3>Key Phrases</h3>
+                    <div class="key-phrases-list" id="key-phrases-list">
+                        <!-- Key phrases will be added here dynamically -->
+                        <div class="empty-state" id="key-phrases-empty-state">
+                            <div class="empty-icon">🔍</div>
+                            <h3>No key phrases available</h3>
+                            <p>Not enough review data to extract key phrases</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div class="modal-overlay" id="auth-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Authentication</h2>
+                <button class="modal-close" id="close-auth-modal">&times;</button>
+            </div>
+            
+            <div class="tab-container">
+                <div class="tab active" data-tab="login">Login</div>
+                <div class="tab" data-tab="register">Register</div>
+            </div>
+            
+            <div id="login" class="tab-content active">
+                <form id="login-form">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required>
+                    </div>
+                    <button type="submit" class="btn btn-secondary">Login</button>
+                </form>
+            </div>
+            
+            <div id="register" class="tab-content">
                 <form id="register-form">
                     <div class="form-group">
                         <label for="register-username">Username</label>
@@ -146,133 +2171,168 @@
                         <label for="register-password">Password</label>
                         <input type="password" id="register-password" required>
                     </div>
-                    <button type="submit">Register</button>
+                    <button type="submit" class="btn btn-secondary">Register</button>
                 </form>
             </div>
-            
-            <div class="card">
-                <h2>Login</h2>
-                <form id="login-form">
-                    <div class="form-group">
-                        <label for="login-email">Email</label>
-                        <input type="email" id="login-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="login-password">Password</label>
-                        <input type="password" id="login-password" required>
-                    </div>
-                    <button type="submit">Login</button>
-                </form>
-            </div>
-            
-            <div class="card">
-                <h2>User Info</h2>
-                <div id="user-info">
-                    <p>Not logged in</p>
-                </div>
-                <button id="get-user-info" disabled>Get User Info</button>
-                <button id="logout" disabled>Logout</button>
-            </div>
-        </div>
-        
-        <!-- Products Tab -->
-        <div id="products" class="tab-content">
-            <div class="card">
-                <h2>Add Product</h2>
-                <form id="add-product-form">
-                    <div class="form-group">
-                        <label for="product-platform">Platform</label>
-                        <select id="product-platform" required>
-                            <option value="amazon">Amazon</option>
-                            <option value="ebay">eBay</option>
-                            <option value="custom">Custom Website</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-id">Product ID</label>
-                        <input type="text" id="product-id" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="product-url">URL</label>
-                        <input type="url" id="product-url">
-                    </div>
-                    <button type="submit">Add Product</button>
-                </form>
-            </div>
-            
-            <div class="card">
-                <h2>Products List</h2>
-                <button id="get-products">Refresh Products</button>
-                <div id="products-list">
-                    <p>No products available</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Reviews Tab -->
-        <div id="reviews" class="tab-content">
-            <div class="card">
-                <h2>Reviews</h2>
-                <div class="form-group">
-                    <label for="product-selector">Select Product</label>
-                    <select id="product-selector">
-                        <option value="">-- Select a product --</option>
-                    </select>
-                </div>
-                <button id="get-reviews" disabled>Get Reviews</button>
-                <div id="reviews-list">
-                    <p>No reviews available</p>
-                </div>
-            </div>
-            
-            <div class="card">
-                <h2>Sentiment Analysis</h2>
-                <div id="sentiment-summary">
-                    <p>Select a product to view sentiment analysis</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="card">
-            <h2>API Response</h2>
-            <div id="response-container">No API calls made yet</div>
         </div>
     </div>
     
+    <!-- Toast Notification Container -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 1000;"></div>
+
+    <!-- Templates -->
+    <template id="product-card-template">
+        <div class="product-card">
+            <div class="product-header">
+                <h3 class="product-title"></h3>
+                <div class="sentiment-badge">
+                    <span class="sentiment-icon"></span>
+                    <span class="sentiment-label"></span>
+                </div>
+            </div>
+            <div class="product-meta">
+                <span class="product-id"></span>
+                <span class="review-count"></span>
+            </div>
+            <div class="product-actions">
+                <button class="btn btn-outline btn-sm view-reviews-btn">
+                    <i class="feedback-icon">💬</i> See Customer Feedback
+                </button>
+                <button class="btn btn-outline btn-sm view-sentiment-btn">
+                    <i class="chart-icon">📊</i> View Sentiment Breakdown
+                </button>
+            </div>
+        </div>
+    </template>
+    
+    <template id="review-card-template">
+        <div class="review-card">
+            <div class="review-header">
+                <div class="review-meta">
+                    <div class="review-rating">
+                        <span class="rating-label">Rating:</span>
+                        <span class="rating-value"></span>
+                    </div>
+                    <div class="review-date">
+                        <span class="date-label">Date:</span>
+                        <span class="date-value"></span>
+                    </div>
+                </div>
+                <div class="sentiment-badge">
+                    <span class="sentiment-icon"></span>
+                    <span class="sentiment-label"></span>
+                </div>
+            </div>
+            <div class="review-content">
+                <p class="review-text"></p>
+            </div>
+            <div class="key-highlights">
+                <!-- Key phrases in the review will be highlighted here -->
+            </div>
+        </div>
+    </template>
+    
+    <template id="key-phrase-template">
+        <div class="key-phrase-card">
+            <div class="key-phrase-header">
+                <span class="key-phrase-text"></span>
+                <span class="key-phrase-count"></span>
+            </div>
+            <div class="key-phrase-sentiment">
+                <div class="key-phrase-sentiment-bar">
+                    <div class="sentiment-fill positive"></div>
+                    <div class="sentiment-fill neutral"></div>
+                    <div class="sentiment-fill negative"></div>
+                </div>
+            </div>
+        </div>
+    </template>
+
     <script>
         // API configuration
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? 'http://localhost:5000' 
             : '';  // Empty string for relative path when deployed
-        let token = null;
+        
+        // State
+        let token = localStorage.getItem('auth_token');
         let currentUser = null;
+        let searchCount = parseInt(localStorage.getItem('daily_search_count') || '0');
+        const MAX_FREE_SEARCHES = 5;
+        let isAuthenticated = !!token;
         
-        // DOM elements
+        // DOM Elements
         const apiStatus = document.getElementById('api-status');
-        const responseContainer = document.getElementById('response-container');
-        const userInfo = document.getElementById('user-info');
-        const getUserInfoBtn = document.getElementById('get-user-info');
-        const logoutBtn = document.getElementById('logout');
-        const productsList = document.getElementById('products-list');
-        const productSelector = document.getElementById('product-selector');
-        const getReviewsBtn = document.getElementById('get-reviews');
+        const productSearchForm = document.getElementById('product-search-form');
+        const productSearchInput = document.getElementById('product-search');
+        const usageCounter = document.getElementById('usage-counter');
+        const counterValue = document.getElementById('counter-value');
+        const showAuthBtn = document.getElementById('show-auth-btn');
+        const productList = document.getElementById('product-list');
+        const productsEmptyState = document.getElementById('products-empty-state');
+        const refreshProductsBtn = document.getElementById('refresh-products');
+        const addProductBtn = document.getElementById('add-product-btn');
+        const addProductAction = document.getElementById('add-product-action');
+        const reviewSection = document.getElementById('review-section');
+        const reviewProductName = document.getElementById('review-product-name');
+        const backToProductsBtn = document.getElementById('back-to-products');
         const reviewsList = document.getElementById('reviews-list');
-        const sentimentSummary = document.getElementById('sentiment-summary');
+        const sentimentStats = document.getElementById('sentiment-stats');
+        const sentimentChart = document.getElementById('sentiment-chart');
         
-        // Tab navigation
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
+        // Auth Modal
+        const authModal = document.getElementById('auth-modal');
+        const closeAuthModalBtn = document.getElementById('close-auth-modal');
+        const authTabs = authModal.querySelectorAll('.tab');
+        const authTabContents = authModal.querySelectorAll('.tab-content');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
         
-        tabs.forEach(tab => {
+        // Templates
+        const productCardTemplate = document.getElementById('product-card-template');
+        const reviewCardTemplate = document.getElementById('review-card-template');
+        const keyPhraseTemplate = document.getElementById('key-phrase-template');
+        
+        // Initialize
+        updateSearchCounter();
+        updateAuthUI();
+        checkApiStatus();
+        loadProducts();
+        
+        // Event Listeners
+        
+        // Product Search
+        productSearchForm.addEventListener('submit', handleProductSearch);
+        
+        // Refresh Products
+        refreshProductsBtn.addEventListener('click', loadProducts);
+        
+        // Add Product
+        addProductBtn.addEventListener('click', () => {
+            if (!isAuthenticated) {
+                showAuthModal();
+                return;
+            }
+            
+            // Add product form would be shown here
+            showToast('This feature is coming soon!', 'info');
+        });
+        
+        // Auth Modal
+        showAuthBtn.addEventListener('click', showAuthModal);
+        closeAuthModalBtn.addEventListener('click', hideAuthModal);
+        
+        // Auth Tabs
+        authTabs.forEach(tab => {
             tab.addEventListener('click', () => {
                 const tabId = tab.getAttribute('data-tab');
                 
                 // Update active tab
-                tabs.forEach(t => t.classList.remove('active'));
+                authTabs.forEach(t => t.classList.remove('active'));
                 tab.classList.add('active');
                 
                 // Show active content
-                tabContents.forEach(content => {
+                authTabContents.forEach(content => {
                     content.classList.remove('active');
                     if (content.id === tabId) {
                         content.classList.add('active');
@@ -281,33 +2341,473 @@
             });
         });
         
-        // Helper to display API responses
-        function displayResponse(response, isError = false) {
-            responseContainer.textContent = JSON.stringify(response, null, 2);
-            if (isError) {
-                responseContainer.style.color = '#721c24';
-            } else {
-                responseContainer.style.color = '#000';
-            }
-        }
+        // Login Form
+        loginForm.addEventListener('submit', handleLogin);
         
-        // Check API status on load
+        // Register Form
+        registerForm.addEventListener('submit', handleRegister);
+        
+        // Back to Products
+        backToProductsBtn.addEventListener('click', () => {
+            reviewSection.style.display = 'none';
+            document.getElementById('product-results').style.display = 'block';
+        });
+        
+        // Functions
+        
         async function checkApiStatus() {
             try {
                 const response = await fetch(`${API_URL}/`);
                 const data = await response.json();
                 apiStatus.textContent = `API Status: ${data.message}`;
                 apiStatus.className = 'status-ok';
-                displayResponse(data);
             } catch (error) {
                 apiStatus.textContent = `API Status: Error connecting to API`;
                 apiStatus.className = 'status-error';
-                displayResponse(error.message, true);
+                console.error('API Status Error:', error);
             }
         }
         
-        // Authentication functions
-        document.getElementById('register-form').addEventListener('submit', async (e) => {
+        function updateSearchCounter() {
+            if (isAuthenticated) {
+                usageCounter.style.display = 'none';
+                return;
+            }
+            
+            usageCounter.style.display = 'flex';
+            counterValue.textContent = MAX_FREE_SEARCHES - searchCount;
+            
+            // Visual indicator when approaching limit
+            if (searchCount >= MAX_FREE_SEARCHES - 1) {
+                counterValue.classList.add('near-limit');
+            } else {
+                counterValue.classList.remove('near-limit');
+            }
+        }
+        
+        function updateAuthUI() {
+            if (isAuthenticated) {
+                showAuthBtn.textContent = 'My Account';
+                addProductAction.classList.remove('auth-required-action');
+            } else {
+                showAuthBtn.textContent = 'Login for unlimited searches';
+                addProductAction.classList.add('auth-required-action');
+            }
+        }
+        
+        function showAuthModal() {
+            authModal.style.display = 'flex';
+        }
+        
+        function hideAuthModal() {
+            authModal.style.display = 'none';
+        }
+        
+        function showSkeletonLoader(container, count = 3) {
+            let skeletonHTML = '';
+            for (let i = 0; i < count; i++) {
+                skeletonHTML += `
+                    <div class="skeleton-card">
+                        <div style="height: 24px; width: 70%; background-color: #eee; margin-bottom: 15px; border-radius: 4px;"></div>
+                        <div style="height: 16px; width: 40%; background-color: #eee; margin-bottom: 10px; border-radius: 4px;"></div>
+                        <div style="height: 16px; width: 60%; background-color: #eee; margin-bottom: 20px; border-radius: 4px;"></div>
+                        <div style="height: 32px; width: 100%; background-color: #eee; border-radius: 4px;"></div>
+                    </div>
+                `;
+            }
+            container.innerHTML = skeletonHTML;
+        }
+        
+        async function handleProductSearch(e) {
+            e.preventDefault();
+            const searchTerm = productSearchInput.value.trim();
+            
+            if (!searchTerm) return;
+            
+            if (!isAuthenticated && searchCount >= MAX_FREE_SEARCHES) {
+                showToast('You\'ve reached your daily search limit. Login or register to continue.', 'warning');
+                showAuthModal();
+                return;
+            }
+            
+            try {
+                // Show loading state
+                showSkeletonLoader(productList);
+                
+                // Call search API
+                const products = await searchProducts(searchTerm);
+                
+                // Increment search counter if not authenticated
+                if (!isAuthenticated) {
+                    searchCount++;
+                    localStorage.setItem('daily_search_count', searchCount);
+                    updateSearchCounter();
+                }
+                
+                // Display results
+                displayProducts(products);
+            } catch (error) {
+                showToast('Error searching products', 'error');
+                console.error('Search Error:', error);
+            }
+        }
+        
+        async function searchProducts(query) {
+            // Call to search API would go here
+            // For now returning mock data
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve([
+                        { id: 1, name: 'Example Product 1', platform: 'Amazon', product_id: 'B123456789', reviews_count: 5, sentiment: 'positive' },
+                        { id: 2, name: 'Example Product 2', platform: 'eBay', product_id: 'E123456789', reviews_count: 3, sentiment: 'neutral' },
+                        { id: 3, name: 'Example Product 3', platform: 'Custom', product_id: 'C123456789', reviews_count: 7, sentiment: 'negative' }
+                    ]);
+                }, 500);
+            });
+        }
+        
+        async function loadProducts() {
+            try {
+                // Show loading state
+                productList.innerHTML = '<div class="loading-spinner">Loading...</div>';
+                
+                const products = await fetchAllProducts();
+                displayProducts(products);
+            } catch (error) {
+                showToast('Error loading products', 'error');
+                console.error('Load Products Error:', error);
+            }
+        }
+        
+        async function fetchAllProducts() {
+            // Implementation to fetch all products
+            // For now returning mock data
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve([
+                        { id: 1, name: 'Example Product 1', platform: 'Amazon', product_id: 'B123456789', reviews_count: 5, sentiment: 'positive' },
+                        { id: 2, name: 'Example Product 2', platform: 'eBay', product_id: 'E123456789', reviews_count: 3, sentiment: 'neutral' }
+                    ]);
+                }, 300);
+            });
+        }
+        
+        function displayProducts(products) {
+            productList.innerHTML = '';
+            
+            if (!products || products.length === 0) {
+                productList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <h3>No products found</h3>
+                        <p>Try searching with different terms or add a new product</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            products.forEach(product => {
+                const productCard = document.importNode(productCardTemplate.content, true);
+                const card = productCard.querySelector('.product-card');
+                
+                // Set product details
+                card.querySelector('.product-title').textContent = product.name || `${product.platform} - ${product.product_id}`;
+                card.querySelector('.product-id').textContent = `ID: ${product.product_id}`;
+                card.querySelector('.review-count').textContent = `${product.reviews_count} reviews`;
+                
+                // Set sentiment badge with appropriate icon
+                const sentimentBadge = card.querySelector('.sentiment-badge');
+                const sentimentIcon = card.querySelector('.sentiment-icon');
+                const sentimentLabel = card.querySelector('.sentiment-label');
+                
+                sentimentBadge.classList.add(product.sentiment);
+                
+                // Add emoji based on sentiment
+                if (product.sentiment === 'positive') {
+                    sentimentIcon.textContent = '👍';
+                } else if (product.sentiment === 'negative') {
+                    sentimentIcon.textContent = '👎';
+                } else {
+                    sentimentIcon.textContent = '😐';
+                }
+                
+                sentimentLabel.textContent = product.sentiment.charAt(0).toUpperCase() + product.sentiment.slice(1);
+                
+                // Add event listeners
+                card.querySelector('.view-reviews-btn').addEventListener('click', () => {
+                    showProductReviews(product.id);
+                });
+                
+                card.querySelector('.view-sentiment-btn').addEventListener('click', () => {
+                    showProductSentiment(product.id);
+                });
+                
+                productList.appendChild(productCard);
+            });
+        }
+        
+        async function showProductReviews(productId) {
+            reviewProductName.textContent = productId;
+            
+            // Show reviews section, hide products section
+            document.getElementById('product-results').style.display = 'none';
+            document.getElementById('reviews-section').style.display = 'block';
+            document.getElementById('sentiment-section').style.display = 'none';
+            
+            // Loading state
+            reviewsList.innerHTML = '<div class="loading-spinner">Loading reviews...</div>';
+            sentimentStats.innerHTML = '<div class="loading-spinner">Loading sentiment data...</div>';
+            
+            try {
+                const reviews = await fetchProductReviews(productId);
+                displayReviews(reviews);
+            } catch (error) {
+                showToast(`Error loading reviews: ${error.message}`, 'error');
+                document.getElementById('reviews-list').innerHTML = '';
+                document.getElementById('reviews-empty-state').style.display = 'block';
+            }
+        }
+        
+        async function fetchProductReviews(productId) {
+            // Fetch reviews from API
+            // For now returning mock data
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve([
+                        { id: 1, text: 'Great product, highly recommend!', rating: 5, date: '2023-04-15', sentiment: 0.8 },
+                        { id: 2, text: 'It was okay, nothing special.', rating: 3, date: '2023-04-10', sentiment: 0.1 },
+                        { id: 3, text: 'Disappointed with the quality.', rating: 2, date: '2023-04-05', sentiment: -0.6 }
+                    ]);
+                }, 400);
+            });
+        }
+        
+        function displayReviews(reviews) {
+            if (!reviews || reviews.length === 0) {
+                reviewsList.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <h3>No reviews available</h3>
+                        <p>This product doesn't have any reviews yet</p>
+                    </div>`;
+                return;
+            }
+            
+            reviewsList.innerHTML = '';
+            
+            reviews.forEach(review => {
+                const reviewCard = document.importNode(reviewCardTemplate.content, true);
+                const card = reviewCard.querySelector('.review-card');
+                
+                // Set sentiment class on card
+                if (review.sentiment >= 0.3) {
+                    card.classList.add('positive');
+                } else if (review.sentiment <= -0.3) {
+                    card.classList.add('negative');
+                } else {
+                    card.classList.add('neutral');
+                }
+                
+                // Set review details
+                card.querySelector('.rating-value').textContent = review.rating ? `${review.rating} / 5` : 'N/A';
+                card.querySelector('.date-value').textContent = review.date || 'N/A';
+                card.querySelector('.review-text').textContent = review.text;
+                
+                // Set sentiment badge
+                const sentimentBadge = card.querySelector('.sentiment-badge');
+                const sentimentIcon = card.querySelector('.sentiment-icon');
+                const sentimentLabel = card.querySelector('.sentiment-label');
+                
+                if (review.sentiment >= 0.3) {
+                    sentimentBadge.classList.add('positive');
+                    sentimentIcon.textContent = '👍';
+                    sentimentLabel.textContent = 'Positive';
+                } else if (review.sentiment <= -0.3) {
+                    sentimentBadge.classList.add('negative');
+                    sentimentIcon.textContent = '👎';
+                    sentimentLabel.textContent = 'Negative';
+                } else {
+                    sentimentBadge.classList.add('neutral');
+                    sentimentIcon.textContent = '😐';
+                    sentimentLabel.textContent = 'Neutral';
+                }
+                
+                // Add key phrase highlights if available
+                if (review.key_phrases && review.key_phrases.length > 0) {
+                    let highlightedText = review.text;
+                    review.key_phrases.forEach(phrase => {
+                        highlightedText = highlightedText.replace(
+                            new RegExp(`(${phrase})`, 'gi'),
+                            '<span class="highlighted-phrase">$1</span>'
+                        );
+                    });
+                    card.querySelector('.review-text').innerHTML = highlightedText;
+                }
+                
+                reviewsList.appendChild(card);
+            });
+        }
+        
+        async function showProductSentiment(productId) {
+            // Hide products section and show sentiment section
+            document.getElementById('product-results').style.display = 'none';
+            document.getElementById('reviews-section').style.display = 'none';
+            document.getElementById('sentiment-section').style.display = 'block';
+            
+            // Set loading state
+            document.getElementById('sentiment-chart').innerHTML = `<div class="skeleton-card" style="height: 150px; width: 150px; border-radius: 50%;"></div>`;
+            document.getElementById('sentiment-stats').innerHTML = `<div class="skeleton-card"></div>`;
+            document.getElementById('key-phrases-list').innerHTML = `
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+            `;
+            
+            try {
+                const sentimentData = await fetchProductSentiment(productId);
+                displaySentimentSummary(sentimentData);
+                displayKeyPhrases(sentimentData.key_phrases || []);
+            } catch (error) {
+                showToast(`Error loading sentiment data: ${error.message}`, 'error');
+            }
+        }
+        
+        async function fetchProductSentiment(productId) {
+            // Fetch sentiment from API
+            // For now returning mock data
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    resolve({
+                        sentiment_score: 0.45,
+                        review_count: 15,
+                        positive_count: 10,
+                        neutral_count: 3,
+                        negative_count: 2,
+                        positive_percentage: 67,
+                        neutral_percentage: 20,
+                        negative_percentage: 13
+                    });
+                }, 300);
+            });
+        }
+        
+        function displaySentimentSummary(sentimentData) {
+            // Display sentiment stats
+            sentimentStats.innerHTML = `
+                <div class="stat-item positive">
+                    <span class="stat-label">Positive</span>
+                    <span class="stat-value">${sentimentData.positive_percentage}%</span>
+                    <div class="stat-bar"><div class="stat-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="stat-item neutral">
+                    <span class="stat-label">Neutral</span>
+                    <span class="stat-value">${sentimentData.neutral_percentage}%</span>
+                    <div class="stat-bar"><div class="stat-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="stat-item negative">
+                    <span class="stat-label">Negative</span>
+                    <span class="stat-value">${sentimentData.negative_percentage}%</span>
+                    <div class="stat-bar"><div class="stat-fill" style="width: 0%"></div></div>
+                </div>
+                <div class="overall-sentiment">
+                    <p><strong>Overall Sentiment:</strong> ${sentimentData.sentiment_score.toFixed(2)}</p>
+                    <p><strong>Total Reviews:</strong> ${sentimentData.review_count}</p>
+                    <div class="sentiment-tooltip">
+                        <i class="info-icon">ℹ️</i>
+                        <span class="tooltip-text">Sentiment scores range from -1 (negative) to +1 (positive)</span>
+                    </div>
+                </div>
+            `;
+            
+            // Animate the stat bars after a short delay
+            setTimeout(() => {
+                const statFills = sentimentStats.querySelectorAll('.stat-fill');
+                statFills[0].style.width = `${sentimentData.positive_percentage}%`;
+                statFills[1].style.width = `${sentimentData.neutral_percentage}%`;
+                statFills[2].style.width = `${sentimentData.negative_percentage}%`;
+            }, 100);
+            
+            // Simple "donut" chart for sentiment
+            const positive = sentimentData.positive_percentage;
+            const neutral = sentimentData.neutral_percentage;
+            const negative = sentimentData.negative_percentage;
+            
+            sentimentChart.innerHTML = `
+                <div style="width: 150px; height: 150px; margin: 0 auto; position: relative; transition: transform 0.3s ease;" class="chart-container">
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 50%; 
+                        background: conic-gradient(
+                            var(--sentiment-positive) 0% ${positive}%,
+                            var(--sentiment-neutral) ${positive}% ${positive + neutral}%,
+                            var(--sentiment-negative) ${positive + neutral}% 100%
+                        );
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                        transition: all 0.5s ease;
+                    "></div>
+                    <div style="position: absolute; top: 25%; left: 25%; width: 50%; height: 50%; border-radius: 50%; background-color: var(--card-background); box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);"></div>
+                    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-family: var(--font-family);">
+                        <div>
+                            <div style="font-size: 1.5rem; color: var(--sentiment-positive); text-shadow: 0 1px 2px rgba(0,0,0,0.1); font-weight: var(--font-weight-bold);">${sentimentData.positive_percentage}%</div>
+                            <div style="font-size: var(--font-size-metadata); color: var(--text-light); font-weight: var(--font-weight-medium);">Positive</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: var(--sentiment-positive);"></span>
+                        <span class="legend-label">Positive (${positive}%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: var(--sentiment-neutral);"></span>
+                        <span class="legend-label">Neutral (${neutral}%)</span>
+                    </div>
+                    <div class="legend-item">
+                        <span class="legend-color" style="background-color: var(--sentiment-negative);"></span>
+                        <span class="legend-label">Negative (${negative}%)</span>
+                    </div>
+                </div>
+            `;
+            
+            // Add hover effect to the chart
+            const chartContainer = sentimentChart.querySelector('.chart-container');
+            if (chartContainer) {
+                chartContainer.addEventListener('mouseenter', () => {
+                    chartContainer.style.transform = 'scale(1.05)';
+                });
+                chartContainer.addEventListener('mouseleave', () => {
+                    chartContainer.style.transform = 'scale(1)';
+                });
+            }
+        }
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            try {
+                // In a real app, you would call the login API
+                // For demo purposes, we'll simulate a successful login
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                token = 'demo_token';
+                localStorage.setItem('auth_token', token);
+                isAuthenticated = true;
+                
+                updateAuthUI();
+                updateSearchCounter();
+                hideAuthModal();
+                showToast('Login successful!', 'success');
+                
+                // Reset form
+                loginForm.reset();
+            } catch (error) {
+                showToast('Login failed. Please check your credentials.', 'error');
+                console.error('Login Error:', error);
+            }
+        }
+        
+        async function handleRegister(e) {
             e.preventDefault();
             
             const username = document.getElementById('register-username').value;
@@ -315,300 +2815,1211 @@
             const password = document.getElementById('register-password').value;
             
             try {
-                const response = await fetch(`${API_URL}/auth/register`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ username, email, password })
+                // In a real app, you would call the register API
+                // For demo purposes, we'll simulate a successful registration
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                token = 'demo_token';
+                localStorage.setItem('auth_token', token);
+                isAuthenticated = true;
+                
+                updateAuthUI();
+                updateSearchCounter();
+                hideAuthModal();
+                showToast('Registration successful!', 'success');
+                
+                // Reset form
+                registerForm.reset();
+            } catch (error) {
+                showToast('Registration failed. Please try again.', 'error');
+                console.error('Register Error:', error);
+            }
+        }
+        
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Add appropriate icon based on toast type
+            let icon = '';
+            switch(type) {
+                case 'success':
+                    icon = '✅';
+                    break;
+                case 'error':
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    icon = '⚠️';
+                    break;
+                case 'info':
+                    icon = 'ℹ️';
+                    break;
+                default:
+                    icon = 'ℹ️';
+            }
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">${message}</div>
+                <button class="toast-close">&times;</button>
+                <div class="toast-progress"></div>
+            `;
+            
+            // Add to container
+            const toastContainer = document.getElementById('toast-container');
+            toastContainer.appendChild(toast);
+            
+            // Start progress animation
+            const progress = toast.querySelector('.toast-progress');
+            progress.style.animation = `toastProgress ${duration}ms linear forwards`;
+            
+            // Add close button event
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                removeToast(toast);
+            });
+            
+            // Auto-remove after duration
+            const timeout = setTimeout(() => {
+                removeToast(toast);
+            }, duration);
+            
+            // Store timeout to clear if manually closed
+            toast.dataset.timeout = timeout;
+            
+            // Add entrance animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            return toast;
+        }
+        
+        function removeToast(toast) {
+            // Clear the timeout to prevent duplicate removals
+            clearTimeout(parseInt(toast.dataset.timeout));
+            
+            // Add exit animation
+            toast.classList.add('hiding');
+            
+            toast.addEventListener('animationend', (e) => {
+                if (e.animationName === 'toastHide') {
+                    toast.remove();
+                }
+            });
+        }
+
+        // Add ripple effect to buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.btn');
+            
+            buttons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const ripple = document.createElement('span');
+                    ripple.classList.add('ripple');
+                    this.appendChild(ripple);
+                    
+                    const x = e.clientX - this.getBoundingClientRect().left;
+                    const y = e.clientY - this.getBoundingClientRect().top;
+                    
+                    ripple.style.left = `${x}px`;
+                    ripple.style.top = `${y}px`;
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+            
+            // Add focus animations to inputs
+            const inputs = document.querySelectorAll('input, select, textarea');
+            
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.classList.add('input-focused');
                 });
                 
-                const data = await response.json();
-                displayResponse(data);
-                
-                if (response.ok) {
-                    alert('Registration successful! You can now log in.');
-                    document.getElementById('register-form').reset();
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
-            }
+                input.addEventListener('blur', function() {
+                    this.parentElement.classList.remove('input-focused');
+                });
+            });
         });
-        
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+
+        // Filter reviews
+        document.querySelectorAll('.btn-filter').forEach(button => {
+            button.addEventListener('click', () => {
+                // Update active class
+                document.querySelectorAll('.btn-filter').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                button.classList.add('active');
+                
+                // Get filter type
+                const filterType = button.getAttribute('data-filter');
+                
+                // Filter reviews
+                const reviewCards = document.querySelectorAll('.review-card');
+                reviewCards.forEach(card => {
+                    if (filterType === 'all' || card.classList.contains(filterType)) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+
+        // Sort reviews
+        document.getElementById('sort-reviews').addEventListener('change', (e) => {
+            const sortType = e.target.value;
+            const reviewsList = document.getElementById('reviews-list');
+            const reviews = Array.from(reviewsList.querySelectorAll('.review-card'));
             
+            reviews.sort((a, b) => {
+                if (sortType === 'date-desc') {
+                    const dateA = new Date(a.querySelector('.date-value').textContent);
+                    const dateB = new Date(b.querySelector('.date-value').textContent);
+                    return dateB - dateA;
+                } else if (sortType === 'date-asc') {
+                    const dateA = new Date(a.querySelector('.date-value').textContent);
+                    const dateB = new Date(b.querySelector('.date-value').textContent);
+                    return dateA - dateB;
+                } else if (sortType === 'sentiment-pos') {
+                    return b.classList.contains('positive') ? 1 : -1;
+                } else if (sortType === 'sentiment-neg') {
+                    return b.classList.contains('negative') ? 1 : -1;
+                }
+                return 0;
+            });
+            
+            // Clear and re-append sorted reviews
+            reviewsList.innerHTML = '';
+            reviews.forEach(review => {
+                reviewsList.appendChild(review);
+            });
+        });
+
+        // Function to display key phrases
+        function displayKeyPhrases(keyPhrases) {
+            const keyPhrasesList = document.getElementById('key-phrases-list');
+            const emptyState = document.getElementById('key-phrases-empty-state');
+            
+            if (!keyPhrases || keyPhrases.length === 0) {
+                keyPhrasesList.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+            
+            emptyState.style.display = 'none';
+            keyPhrasesList.innerHTML = '';
+            
+            keyPhrases.forEach(phrase => {
+                const keyPhraseCard = document.importNode(keyPhraseTemplate.content, true);
+                const card = keyPhraseCard.querySelector('.key-phrase-card');
+                
+                // Set phrase details
+                card.querySelector('.key-phrase-text').textContent = phrase.text;
+                card.querySelector('.key-phrase-count').textContent = `${phrase.count} mentions`;
+                
+                // Set sentiment distribution
+                const positive = phrase.sentiment.positive || 0;
+                const neutral = phrase.sentiment.neutral || 0;
+                const negative = phrase.sentiment.negative || 0;
+                const total = positive + neutral + negative;
+                
+                const positiveFill = card.querySelector('.sentiment-fill.positive');
+                const neutralFill = card.querySelector('.sentiment-fill.neutral');
+                const negativeFill = card.querySelector('.sentiment-fill.negative');
+                
+                positiveFill.style.width = `${(positive / total) * 100}%`;
+                neutralFill.style.width = `${(neutral / total) * 100}%`;
+                negativeFill.style.width = `${(negative / total) * 100}%`;
+                
+                keyPhrasesList.appendChild(card);
+            });
+        }
+        
+        // Authentication System
+        function checkAuthentication() {
+            // Check if user is authenticated
+            // This would normally be done by checking a token in localStorage
+            // or making an API call to check the session
+            
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                // User is authenticated
+                isAuthenticated = true;
+                
+                // Hide the usage counter
+                document.getElementById('usage-counter').style.display = 'none';
+                
+                // Update UI for authenticated user
+                const authButtons = document.querySelectorAll('.auth-required-action');
+                authButtons.forEach(btn => {
+                    btn.classList.remove('auth-required-action');
+                    const tooltip = btn.querySelector('.auth-tooltip');
+                    if (tooltip) tooltip.remove();
+                });
+                
+                // Show user info if needed
+                // For now, we'll just show a toast
+                showToast('Welcome back!', 'info');
+            } else {
+                // User is not authenticated
+                isAuthenticated = false;
+                
+                // Show the usage counter
+                document.getElementById('usage-counter').style.display = 'flex';
+                
+                // Check if we need to show the limit warning
+                checkSearchLimitWarning();
+            }
+        }
+        
+        function showAuthModal(activeTab = 'login') {
+            // Show the auth modal
+            document.getElementById('auth-modal-backdrop').style.display = 'flex';
+            
+            // Activate the appropriate tab
+            const authTabs = document.querySelectorAll('.auth-tab');
+            authTabs.forEach(tab => {
+                if (tab.getAttribute('data-tab') === activeTab) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Show the appropriate form
+            if (activeTab === 'login') {
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('register-form').style.display = 'none';
+                document.getElementById('auth-title').textContent = 'Login';
+            } else {
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('register-form').style.display = 'block';
+                document.getElementById('auth-title').textContent = 'Create Account';
+            }
+            
+            // Clear any previous messages
+            const loginMessage = document.getElementById('login-message');
+            const registerMessage = document.getElementById('register-message');
+            loginMessage.className = 'auth-message';
+            loginMessage.textContent = '';
+            registerMessage.className = 'auth-message';
+            registerMessage.textContent = '';
+        }
+        
+        function hideAuthModal() {
+            document.getElementById('auth-modal-backdrop').style.display = 'none';
+        }
+        
+        function checkPasswordStrength(password) {
+            // Check password strength
+            let strength = 0;
+            
+            // Length check
+            if (password.length >= 8) strength += 1;
+            
+            // Character type checks
+            if (/[A-Z]/.test(password)) strength += 1;
+            if (/[a-z]/.test(password)) strength += 1;
+            if (/[0-9]/.test(password)) strength += 1;
+            if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+            
+            // Update UI
+            const passwordStrengthFill = document.getElementById('password-strength-fill');
+            const passwordStrengthText = document.getElementById('password-strength-text');
+            let strengthPercentage = (strength / 5) * 100;
+            
+            passwordStrengthFill.style.width = `${strengthPercentage}%`;
+            
+            if (strength === 0) {
+                passwordStrengthFill.style.backgroundColor = '#e5e7eb';
+                passwordStrengthText.textContent = 'Password strength';
+                passwordStrengthText.style.color = 'var(--text-light)';
+            } else if (strength <= 2) {
+                passwordStrengthFill.style.backgroundColor = '#ef4444';
+                passwordStrengthText.textContent = 'Weak password';
+                passwordStrengthText.style.color = '#ef4444';
+            } else if (strength <= 4) {
+                passwordStrengthFill.style.backgroundColor = '#f59e0b';
+                passwordStrengthText.textContent = 'Medium password';
+                passwordStrengthText.style.color = '#f59e0b';
+            } else {
+                passwordStrengthFill.style.backgroundColor = '#22c55e';
+                passwordStrengthText.textContent = 'Strong password';
+                passwordStrengthText.style.color = '#22c55e';
+            }
+            
+            return strength;
+        }
+        
+        function showToast(message, type = 'success', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            // Add appropriate icon based on toast type
+            let icon = '';
+            switch(type) {
+                case 'success':
+                    icon = '✅';
+                    break;
+                case 'error':
+                    icon = '❌';
+                    break;
+                case 'warning':
+                    icon = '⚠️';
+                    break;
+                case 'info':
+                    icon = 'ℹ️';
+                    break;
+                default:
+                    icon = 'ℹ️';
+            }
+            
+            toast.innerHTML = `
+                <div class="toast-icon">${icon}</div>
+                <div class="toast-content">${message}</div>
+                <button class="toast-close">&times;</button>
+                <div class="toast-progress"></div>
+            `;
+            
+            // Add to container
+            const toastContainer = document.getElementById('toast-container');
+            toastContainer.appendChild(toast);
+            
+            // Start progress animation
+            const progress = toast.querySelector('.toast-progress');
+            progress.style.animation = `toastProgress ${duration}ms linear forwards`;
+            
+            // Add close button event
+            const closeBtn = toast.querySelector('.toast-close');
+            closeBtn.addEventListener('click', () => {
+                removeToast(toast);
+            });
+            
+            // Auto-remove after duration
+            const timeout = setTimeout(() => {
+                removeToast(toast);
+            }, duration);
+            
+            // Store timeout to clear if manually closed
+            toast.dataset.timeout = timeout;
+            
+            // Add entrance animation
+            setTimeout(() => {
+                toast.classList.add('show');
+            }, 10);
+            
+            return toast;
+        }
+        
+        function removeToast(toast) {
+            // Clear the timeout to prevent duplicate removals
+            clearTimeout(parseInt(toast.dataset.timeout));
+            
+            // Add exit animation
+            toast.classList.add('hiding');
+            
+            toast.addEventListener('animationend', (e) => {
+                if (e.animationName === 'toastHide') {
+                    toast.remove();
+                }
+            });
+        }
+        
+        function checkSearchLimitWarning() {
+            // Check if we should show the limit warning
+            if (!isAuthenticated) {
+                const searchesRemaining = MAX_FREE_SEARCHES - searchCount;
+                
+                if (searchesRemaining === 1) {
+                    // Show the warning
+                    document.getElementById('limit-warning').style.display = 'flex';
+                    document.getElementById('remaining-searches').textContent = searchesRemaining;
+                }
+            } else {
+                // Hide the warning
+                document.getElementById('limit-warning').style.display = 'none';
+            }
+        }
+        
+        function handleLogin() {
             const email = document.getElementById('login-email').value;
             const password = document.getElementById('login-password').value;
+            const loginMessage = document.getElementById('login-message');
             
-            try {
-                const response = await fetch(`${API_URL}/auth/login`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-                
-                const data = await response.json();
-                displayResponse(data);
-                
-                if (response.ok) {
-                    alert('Login successful!');
-                    token = true; // In a real app, you would store the actual token
-                    currentUser = data.user;
-                    getUserInfoBtn.disabled = false;
-                    logoutBtn.disabled = false;
-                    document.getElementById('login-form').reset();
-                    updateUserInfo();
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
+            // Validation
+            if (!email || !password) {
+                loginMessage.className = 'auth-message error';
+                loginMessage.textContent = 'Please enter your email and password.';
+                return;
             }
-        });
-        
-        getUserInfoBtn.addEventListener('click', async () => {
-            if (!token) return;
             
-            try {
-                const response = await fetch(`${API_URL}/auth/me`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                
-                const data = await response.json();
-                displayResponse(data);
-                
-                if (response.ok) {
-                    updateUserInfo(data);
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
-            }
-        });
-        
-        logoutBtn.addEventListener('click', async () => {
-            if (!token) return;
+            // Mock login process (in a real app, this would make an API call)
+            const success = true; // This would be the result of an API call
             
-            try {
-                const response = await fetch(`${API_URL}/auth/logout`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
+            if (success) {
+                // Store the token
+                localStorage.setItem('auth_token', 'mock_token_1234567890');
                 
-                const data = await response.json();
-                displayResponse(data);
+                // Show success message
+                showToast('Login successful!', 'success');
                 
-                if (response.ok) {
-                    token = null;
-                    currentUser = null;
-                    getUserInfoBtn.disabled = true;
-                    logoutBtn.disabled = true;
-                    updateUserInfo();
-                    alert('Logged out successfully!');
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
-            }
-        });
-        
-        function updateUserInfo(userData = null) {
-            if (userData || currentUser) {
-                userInfo.innerHTML = `
-                    <p><strong>Status:</strong> Logged in</p>
-                    <p><strong>Username:</strong> ${userData?.username || currentUser}</p>
-                `;
+                // Close the modal
+                hideAuthModal();
+                
+                // Update authentication state
+                checkAuthentication();
             } else {
-                userInfo.innerHTML = '<p>Not logged in</p>';
+                // Show error message
+                loginMessage.className = 'auth-message error';
+                loginMessage.textContent = 'Invalid email or password.';
             }
         }
         
-        // Products functions
-        document.getElementById('add-product-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+        function handleRegister() {
+            const name = document.getElementById('register-name').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const registerMessage = document.getElementById('register-message');
             
-            if (!token) {
-                alert('Please log in first');
+            // Validation
+            if (!name || !email || !password) {
+                registerMessage.className = 'auth-message error';
+                registerMessage.textContent = 'Please fill in all fields.';
                 return;
             }
             
-            const platform = document.getElementById('product-platform').value;
-            const productId = document.getElementById('product-id').value;
-            const url = document.getElementById('product-url').value;
+            // Check password strength
+            const strength = checkPasswordStrength(password);
+            if (strength < 3) {
+                registerMessage.className = 'auth-message error';
+                registerMessage.textContent = 'Please choose a stronger password.';
+                return;
+            }
             
-            try {
-                const response = await fetch(`${API_URL}/api/products/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ platform, product_id: productId, url })
+            // Mock registration process (in a real app, this would make an API call)
+            const success = true; // This would be the result of an API call
+            
+            if (success) {
+                // Store the token
+                localStorage.setItem('auth_token', 'mock_token_1234567890');
+                
+                // Show success message
+                showToast('Account created successfully!', 'success');
+                
+                // Close the modal
+                hideAuthModal();
+                
+                // Update authentication state
+                checkAuthentication();
+            } else {
+                // Show error message
+                registerMessage.className = 'auth-message error';
+                registerMessage.textContent = 'An error occurred. Please try again.';
+            }
+        }
+        
+        // Add event listeners for auth system
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements for auth
+            const closeAuthModalBtn = document.getElementById('close-auth-modal');
+            const authTabs = document.querySelectorAll('.auth-tab');
+            const loginBtn = document.getElementById('login-btn');
+            const registerBtn = document.getElementById('register-btn');
+            const registerPassword = document.getElementById('register-password');
+            const showAuthBtn = document.getElementById('show-auth-btn');
+            const showAuthFromWarning = document.getElementById('show-auth-modal-warning');
+            const closeWarningBtn = document.getElementById('close-warning');
+            const authModalBackdrop = document.getElementById('auth-modal-backdrop');
+            const loginEmail = document.getElementById('login-email');
+            const loginPassword = document.getElementById('login-password');
+            const registerName = document.getElementById('register-name');
+            const registerEmail = document.getElementById('register-email');
+            
+            // Add inline validation
+            const validateEmail = (email) => {
+                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                return re.test(email);
+            };
+            
+            const validateField = (input, condition, errorMessage) => {
+                const parentGroup = input.closest('.form-group');
+                const errorElement = parentGroup.querySelector('.field-error') || document.createElement('div');
+                
+                if (!condition) {
+                    errorElement.className = 'field-error';
+                    errorElement.textContent = errorMessage;
+                    if (!parentGroup.querySelector('.field-error')) {
+                        parentGroup.appendChild(errorElement);
+                    }
+                    input.classList.add('input-error');
+                    return false;
+                } else {
+                    if (parentGroup.querySelector('.field-error')) {
+                        parentGroup.removeChild(errorElement);
+                    }
+                    input.classList.remove('input-error');
+                    return true;
+                }
+            };
+            
+            // Add validation to email fields
+            [loginEmail, registerEmail].forEach(input => {
+                if (input) {
+                    input.addEventListener('blur', () => {
+                        if (input.value) {
+                            validateField(
+                                input, 
+                                validateEmail(input.value), 
+                                'Please enter a valid email address'
+                            );
+                        }
+                    });
+                }
+            });
+            
+            // Add validation to name field
+            if (registerName) {
+                registerName.addEventListener('blur', () => {
+                    if (registerName.value) {
+                        validateField(
+                            registerName, 
+                            registerName.value.length >= 2, 
+                            'Name must be at least 2 characters'
+                        );
+                    }
+                });
+            }
+            
+            // Enhanced login with proper validation and feedback
+            function handleEnhancedLogin() {
+                const email = loginEmail.value;
+                const password = loginPassword.value;
+                const loginMessage = document.getElementById('login-message');
+                
+                // Validate fields
+                const isEmailValid = validateField(
+                    loginEmail, 
+                    email && validateEmail(email), 
+                    'Please enter a valid email address'
+                );
+                
+                const isPasswordValid = validateField(
+                    loginPassword, 
+                    password && password.length >= 6, 
+                    'Password must be at least 6 characters'
+                );
+                
+                if (!isEmailValid || !isPasswordValid) {
+                    return;
+                }
+                
+                // Show loading state
+                loginBtn.disabled = true;
+                loginBtn.innerHTML = '<span class="loading-spinner"></span> Logging in...';
+                
+                // Mock API call with timeout
+                setTimeout(() => {
+                    // Mock successful login
+                    localStorage.setItem('auth_token', 'mock_token_1234567890');
+                    localStorage.setItem('user_email', email);
+                    
+                    // Keep track of current state to continue where left off
+                    const currentProductId = document.querySelector('.product-card.active')?.dataset.productId;
+                    if (currentProductId) {
+                        localStorage.setItem('last_viewed_product', currentProductId);
+                    }
+                    
+                    // Show transition animation
+                    const authModal = document.querySelector('.auth-modal');
+                    authModal.classList.add('success-transition');
+                    
+                    // Show success message inside modal
+                    loginMessage.className = 'auth-message success';
+                    loginMessage.textContent = 'Login successful! Redirecting...';
+                    
+                    // Close modal with delay for animation
+                    setTimeout(() => {
+                        hideAuthModal();
+                        showToast('Welcome back! You now have unlimited searches.', 'success');
+                        
+                        // Update authentication state
+                        checkAuthentication();
+                        
+                        // Reset button state
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = 'Login';
+                        
+                        // Continue where left off if applicable
+                        continueWhereLeftOff();
+                    }, 1000);
+                }, 1500);
+            }
+            
+            // Enhanced registration with proper validation
+            function handleEnhancedRegister() {
+                const name = registerName.value;
+                const email = registerEmail.value;
+                const password = registerPassword.value;
+                const registerMessage = document.getElementById('register-message');
+                
+                // Validate fields
+                const isNameValid = validateField(
+                    registerName, 
+                    name && name.length >= 2, 
+                    'Name must be at least 2 characters'
+                );
+                
+                const isEmailValid = validateField(
+                    registerEmail, 
+                    email && validateEmail(email), 
+                    'Please enter a valid email address'
+                );
+                
+                // Check password strength
+                const strength = checkPasswordStrength(password);
+                const isPasswordValid = validateField(
+                    registerPassword, 
+                    strength >= 3, 
+                    'Please choose a stronger password'
+                );
+                
+                if (!isNameValid || !isEmailValid || !isPasswordValid) {
+                    return;
+                }
+                
+                // Show loading state
+                registerBtn.disabled = true;
+                registerBtn.innerHTML = '<span class="loading-spinner"></span> Creating account...';
+                
+                // Mock API call with timeout
+                setTimeout(() => {
+                    // Mock successful registration
+                    localStorage.setItem('auth_token', 'mock_token_1234567890');
+                    localStorage.setItem('user_name', name);
+                    localStorage.setItem('user_email', email);
+                    
+                    // Keep track of current state to continue where left off
+                    const currentProductId = document.querySelector('.product-card.active')?.dataset.productId;
+                    if (currentProductId) {
+                        localStorage.setItem('last_viewed_product', currentProductId);
+                    }
+                    
+                    // Show transition animation
+                    const authModal = document.querySelector('.auth-modal');
+                    authModal.classList.add('success-transition');
+                    
+                    // Show success message inside modal
+                    registerMessage.className = 'auth-message success';
+                    registerMessage.textContent = 'Account created successfully! Redirecting...';
+                    
+                    // Close modal with delay for animation
+                    setTimeout(() => {
+                        hideAuthModal();
+                        showToast(`Welcome, ${name}! Your account has been created.`, 'success');
+                        
+                        // Update authentication state
+                        checkAuthentication();
+                        
+                        // Reset button state
+                        registerBtn.disabled = false;
+                        registerBtn.innerHTML = 'Create Account';
+                        
+                        // Continue where left off if applicable
+                        continueWhereLeftOff();
+                    }, 1000);
+                }, 1500);
+            }
+            
+            // Function to continue where user left off
+            function continueWhereLeftOff() {
+                const lastViewedProduct = localStorage.getItem('last_viewed_product');
+                if (lastViewedProduct) {
+                    // If there was a product being viewed, return to it
+                    const currentSection = document.querySelector('.section[style*="display: block"]');
+                    if (currentSection && currentSection.id === 'reviews-section') {
+                        // Was viewing reviews, so return there
+                        showProductReviews(lastViewedProduct);
+                    } else if (currentSection && currentSection.id === 'sentiment-section') {
+                        // Was viewing sentiment, so return there
+                        showProductSentiment(lastViewedProduct);
+                    }
+                    
+                    // Clear the last viewed product
+                    localStorage.removeItem('last_viewed_product');
+                }
+            }
+            
+            // Update event listeners with enhanced versions
+            if (loginBtn) {
+                loginBtn.removeEventListener('click', handleLogin);
+                loginBtn.addEventListener('click', handleEnhancedLogin);
+            }
+            
+            if (registerBtn) {
+                registerBtn.removeEventListener('click', handleRegister);
+                registerBtn.addEventListener('click', handleEnhancedRegister);
+            }
+            
+            // Keyboard handling for improved accessibility
+            if (loginEmail && loginPassword) {
+                loginPassword.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleEnhancedLogin();
+                    }
+                });
+            }
+            
+            if (registerName && registerEmail && registerPassword) {
+                registerPassword.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        handleEnhancedRegister();
+                    }
+                });
+            }
+            
+            // Event listeners for modal and tabs
+            if (closeAuthModalBtn) {
+                closeAuthModalBtn.addEventListener('click', hideAuthModal);
+            }
+            
+            authTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const tabName = tab.getAttribute('data-tab');
+                    showAuthModal(tabName);
+                });
+            });
+            
+            if (registerPassword) {
+                registerPassword.addEventListener('input', () => {
+                    checkPasswordStrength(registerPassword.value);
+                });
+            }
+            
+            if (showAuthBtn) {
+                showAuthBtn.addEventListener('click', () => {
+                    showAuthModal('login');
+                });
+            }
+            
+            if (showAuthFromWarning) {
+                showAuthFromWarning.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showAuthModal('register');
+                });
+            }
+            
+            if (closeWarningBtn) {
+                closeWarningBtn.addEventListener('click', () => {
+                    document.getElementById('limit-warning').style.display = 'none';
+                });
+            }
+            
+            // Close modal when clicking on backdrop
+            if (authModalBackdrop) {
+                authModalBackdrop.addEventListener('click', (e) => {
+                    if (e.target === authModalBackdrop) {
+                        hideAuthModal();
+                    }
+                });
+            }
+            
+            // Initialize
+            checkAuthentication();
+            
+            // Add ripple effect to all buttons
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('.btn');
+                if (!target) return;
+                
+                const ripple = document.createElement('span');
+                const rect = target.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.className = 'ripple';
+                ripple.style.width = ripple.style.height = `${size}px`;
+                ripple.style.left = `${x}px`;
+                ripple.style.top = `${y}px`;
+                
+                target.appendChild(ripple);
+                
+                // Remove ripple after animation
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+            
+            // Add focus effect for inputs
+            document.querySelectorAll('input, textarea').forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.classList.add('input-focused');
                 });
                 
-                const data = await response.json();
-                displayResponse(data);
-                
-                if (response.ok) {
-                    alert('Product added successfully!');
-                    document.getElementById('add-product-form').reset();
-                    getProducts();
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
-            }
+                input.addEventListener('blur', function() {
+                    this.classList.remove('input-focused');
+                });
+            });
         });
-        
-        document.getElementById('get-products').addEventListener('click', getProducts);
-        
-        async function getProducts() {
-            try {
-                const response = await fetch(`${API_URL}/api/products/`);
-                const data = await response.json();
-                displayResponse(data);
-                
-                if (response.ok) {
-                    updateProductsList(data);
-                    updateProductSelector(data);
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
-            }
+
+        // Performance optimizations - Debounce function for event handlers
+        function debounce(func, wait = 300) {
+            let timeout;
+            return function(...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
         }
         
-        function updateProductsList(products) {
-            if (products.length === 0) {
-                productsList.innerHTML = '<p>No products available</p>';
+        // Optimized reviews display with pagination
+        function displayReviewsWithPagination(reviews, page = 1, reviewsPerPage = 5) {
+            const reviewsList = document.getElementById('reviews-list');
+            const emptyState = document.getElementById('reviews-empty-state');
+            
+            if (!reviews || reviews.length === 0) {
+                reviewsList.innerHTML = '';
+                emptyState.style.display = 'block';
                 return;
             }
             
-            let html = '<table><thead><tr><th>Platform</th><th>Product ID</th><th>URL</th><th>Actions</th></tr></thead><tbody>';
+            emptyState.style.display = 'none';
             
-            products.forEach(product => {
-                html += `
-                    <tr>
-                        <td>${product.platform}</td>
-                        <td>${product.product_id}</td>
-                        <td><a href="${product.url}" target="_blank">${product.url}</a></td>
-                        <td>
-                            <button onclick="getProductReviews('${product.id}')">View Reviews</button>
-                        </td>
-                    </tr>
-                `;
+            // Calculate pagination values
+            const totalPages = Math.ceil(reviews.length / reviewsPerPage);
+            const startIdx = (page - 1) * reviewsPerPage;
+            const endIdx = Math.min(startIdx + reviewsPerPage, reviews.length);
+            const paginatedReviews = reviews.slice(startIdx, endIdx);
+            
+            // Clear list and add reviews
+            reviewsList.innerHTML = '';
+            
+            // Create observer for lazy loading
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const card = entry.target;
+                        card.classList.add('visible');
+                        
+                        // If there are any images to lazy load, handle them
+                        const lazyImages = card.querySelectorAll('.lazy-image');
+                        lazyImages.forEach(img => {
+                            if (img.dataset.src) {
+                                img.src = img.dataset.src;
+                                img.addEventListener('load', () => {
+                                    img.classList.add('loaded');
+                                });
+                                img.removeAttribute('data-src');
+                            }
+                        });
+                        
+                        observer.unobserve(card);
+                    }
+                });
+            }, {
+                threshold: 0.1
             });
             
-            html += '</tbody></table>';
-            productsList.innerHTML = html;
-        }
-        
-        function updateProductSelector(products) {
-            // Clear selector options except the default one
-            while (productSelector.options.length > 1) {
-                productSelector.remove(1);
-            }
-            
-            if (products.length === 0) {
-                getReviewsBtn.disabled = true;
-                return;
-            }
-            
-            // Add new options
-            products.forEach(product => {
-                const option = document.createElement('option');
-                option.value = product.id;
-                option.textContent = `${product.platform} - ${product.product_id}`;
-                productSelector.appendChild(option);
-            });
-            
-            getReviewsBtn.disabled = false;
-        }
-        
-        // Reviews functions
-        productSelector.addEventListener('change', () => {
-            getReviewsBtn.disabled = !productSelector.value;
-        });
-        
-        getReviewsBtn.addEventListener('click', () => {
-            const productId = productSelector.value;
-            if (productId) {
-                getProductReviews(productId);
-            }
-        });
-        
-        async function getProductReviews(productId) {
-            try {
-                const response = await fetch(`${API_URL}/api/products/${productId}/reviews`);
-                const data = await response.json();
-                displayResponse(data);
+            // Add the paginated reviews
+            paginatedReviews.forEach(review => {
+                const reviewCard = document.importNode(document.getElementById('review-card-template').content, true);
+                const card = reviewCard.querySelector('.review-card');
                 
-                if (response.ok) {
-                    updateReviewsList(data);
-                    getProductSentiment(productId);
+                // Set initial state for lazy loading
+                card.style.opacity = 0;
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                
+                // Set sentiment class on card
+                if (review.sentiment >= 0.3) {
+                    card.classList.add('positive');
+                } else if (review.sentiment <= -0.3) {
+                    card.classList.add('negative');
+                } else {
+                    card.classList.add('neutral');
                 }
-            } catch (error) {
-                displayResponse(error.message, true);
-            }
-        }
-        
-        function updateReviewsList(reviews) {
-            if (reviews.length === 0) {
-                reviewsList.innerHTML = '<p>No reviews available for this product</p>';
-                return;
-            }
-            
-            let html = '<table><thead><tr><th>Text</th><th>Rating</th><th>Date</th><th>Sentiment</th></tr></thead><tbody>';
-            
-            reviews.forEach(review => {
-                let sentimentClass = '';
-                if (review.sentiment > 0.2) sentimentClass = 'style="color: green;"';
-                else if (review.sentiment < -0.2) sentimentClass = 'style="color: red;"';
                 
-                html += `
-                    <tr>
-                        <td>${review.text}</td>
-                        <td>${review.rating || 'N/A'}</td>
-                        <td>${review.date || 'N/A'}</td>
-                        <td ${sentimentClass}>${review.sentiment || 'N/A'}</td>
-                    </tr>
-                `;
+                // Set review details
+                card.querySelector('.rating-value').textContent = review.rating ? `${review.rating} / 5` : 'N/A';
+                card.querySelector('.date-value').textContent = review.date || 'N/A';
+                card.querySelector('.review-text').textContent = review.text;
+                
+                // Set sentiment badge
+                const sentimentBadge = card.querySelector('.sentiment-badge');
+                const sentimentIcon = card.querySelector('.sentiment-icon');
+                const sentimentLabel = card.querySelector('.sentiment-label');
+                
+                if (review.sentiment >= 0.3) {
+                    sentimentBadge.classList.add('positive');
+                    sentimentIcon.textContent = '👍';
+                    sentimentLabel.textContent = 'Positive';
+                } else if (review.sentiment <= -0.3) {
+                    sentimentBadge.classList.add('negative');
+                    sentimentIcon.textContent = '👎';
+                    sentimentLabel.textContent = 'Negative';
+                } else {
+                    sentimentBadge.classList.add('neutral');
+                    sentimentIcon.textContent = '😐';
+                    sentimentLabel.textContent = 'Neutral';
+                }
+                
+                // Add key phrase highlights if available - with optimized regex pattern
+                if (review.key_phrases && review.key_phrases.length > 0) {
+                    // Prepare a regex pattern for efficient highlighting
+                    const pattern = new RegExp('(' + review.key_phrases.map(p => 
+                        p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|') + ')', 'gi');
+                    
+                    // Replace all matches in one pass
+                    const highlightedText = review.text.replace(pattern, 
+                        '<span class="highlighted-phrase">$1</span>');
+                    
+                    card.querySelector('.review-text').innerHTML = highlightedText;
+                }
+                
+                // Add to DOM
+                reviewsList.appendChild(reviewCard);
+                
+                // Observe for lazy loading
+                observer.observe(card);
+                
+                // Trigger animation with staggered delay for performance
+                setTimeout(() => {
+                    card.style.opacity = 1;
+                    card.style.transform = 'translateY(0)';
+                }, 50 * (reviewsList.children.length - 1));
             });
             
-            html += '</tbody></table>';
-            reviewsList.innerHTML = html;
+            // Add pagination
+            addPagination(reviewsList, page, totalPages, reviews);
         }
         
-        async function getProductSentiment(productId) {
-            try {
-                const response = await fetch(`${API_URL}/api/products/${productId}/sentiment`);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    updateSentimentSummary(data);
-                }
-            } catch (error) {
-                displayResponse(error.message, true);
+        // Add pagination UI
+        function addPagination(container, currentPage, totalPages, reviews) {
+            // Only show pagination if we have more than one page
+            if (totalPages <= 1) return;
+            
+            const paginationDiv = document.createElement('div');
+            paginationDiv.className = 'pagination';
+            
+            // Previous button
+            if (currentPage > 1) {
+                const prevButton = document.createElement('button');
+                prevButton.className = 'pagination-button';
+                prevButton.textContent = '←';
+                prevButton.addEventListener('click', () => {
+                    displayReviewsWithPagination(reviews, currentPage - 1);
+                });
+                paginationDiv.appendChild(prevButton);
             }
+            
+            // Page buttons - show at most 5 pages with ellipsis
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, startPage + 4);
+            
+            // First page button if needed
+            if (startPage > 1) {
+                const firstButton = document.createElement('button');
+                firstButton.className = 'pagination-button';
+                firstButton.textContent = '1';
+                firstButton.addEventListener('click', () => {
+                    displayReviewsWithPagination(reviews, 1);
+                });
+                paginationDiv.appendChild(firstButton);
+                
+                if (startPage > 2) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.margin = '0 4px';
+                    paginationDiv.appendChild(ellipsis);
+                }
+            }
+            
+            // Page number buttons
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = `pagination-button ${i === currentPage ? 'active' : ''}`;
+                pageButton.textContent = i;
+                if (i !== currentPage) {
+                    pageButton.addEventListener('click', () => {
+                        displayReviewsWithPagination(reviews, i);
+                    });
+                }
+                paginationDiv.appendChild(pageButton);
+            }
+            
+            // Last page button if needed
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.textContent = '...';
+                    ellipsis.style.margin = '0 4px';
+                    paginationDiv.appendChild(ellipsis);
+                }
+                
+                const lastButton = document.createElement('button');
+                lastButton.className = 'pagination-button';
+                lastButton.textContent = totalPages;
+                lastButton.addEventListener('click', () => {
+                    displayReviewsWithPagination(reviews, totalPages);
+                });
+                paginationDiv.appendChild(lastButton);
+            }
+            
+            // Next button
+            if (currentPage < totalPages) {
+                const nextButton = document.createElement('button');
+                nextButton.className = 'pagination-button';
+                nextButton.textContent = '→';
+                nextButton.addEventListener('click', () => {
+                    displayReviewsWithPagination(reviews, currentPage + 1);
+                });
+                paginationDiv.appendChild(nextButton);
+            }
+            
+            container.appendChild(paginationDiv);
+            
+            // Scroll to top of reviews after pagination
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
         
-        function updateSentimentSummary(sentimentData) {
-            sentimentSummary.innerHTML = `
-                <p><strong>Overall Sentiment:</strong> ${sentimentData.sentiment_score.toFixed(2)}</p>
-                <p><strong>Total Reviews:</strong> ${sentimentData.review_count}</p>
-                <p><strong>Positive Reviews:</strong> ${sentimentData.positive_count}</p>
-                <p><strong>Neutral Reviews:</strong> ${sentimentData.neutral_count}</p>
-                <p><strong>Negative Reviews:</strong> ${sentimentData.negative_count}</p>
+        // Optimized showProductReviews function
+        async function showProductReviews(productId) {
+            // Hide products section and show reviews section
+            document.getElementById('product-results').style.display = 'none';
+            document.getElementById('reviews-section').style.display = 'block';
+            document.getElementById('sentiment-section').style.display = 'none';
+            
+            // Set loading state with skeleton loader
+            document.getElementById('reviews-list').innerHTML = `
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
             `;
+            
+            try {
+                // Use Promise.all for concurrent requests
+                const [product, reviews] = await Promise.all([
+                    fetchProductDetails(productId),
+                    fetchProductReviews(productId)
+                ]);
+                
+                // Set product name in header
+                document.getElementById('product-name-header').textContent = `${product.name} Reviews`;
+                
+                // Display reviews with pagination
+                displayReviewsWithPagination(reviews);
+                
+                // Cache the reviews for faster access on filter/sort changes
+                window.reviewsCache = reviews;
+                window.currentProductId = productId;
+            } catch (error) {
+                showToast(`Error loading reviews: ${error.message}`, 'error');
+                document.getElementById('reviews-list').innerHTML = '';
+                document.getElementById('reviews-empty-state').style.display = 'block';
+            }
         }
         
-        // Initialize
-        checkApiStatus();
-        getProducts();
-        
-        // Global function for product reviews button
-        window.getProductReviews = getProductReviews;
+        // Optimize filter and sort with debounced event handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            // Debounced search input
+            const productSearchInput = document.getElementById('product-search');
+            if (productSearchInput) {
+                const debouncedSearch = debounce(function() {
+                    // Here you could implement suggestions or auto-search
+                }, 300);
+                productSearchInput.addEventListener('input', debouncedSearch);
+            }
+            
+            // Filter buttons - with optimized event delegation
+            const filterControls = document.querySelector('.filter-controls');
+            if (filterControls) {
+                filterControls.addEventListener('click', function(e) {
+                    const button = e.target.closest('.btn-filter');
+                    if (!button) return;
+                    
+                    // Update active class
+                    filterControls.querySelectorAll('.btn-filter').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    button.classList.add('active');
+                    
+                    // Get filter type
+                    const filterType = button.getAttribute('data-filter');
+                    
+                    // Use cached reviews for faster filtering
+                    if (window.reviewsCache) {
+                        const filteredReviews = filterType === 'all' 
+                            ? window.reviewsCache 
+                            : window.reviewsCache.filter(review => {
+                                if (filterType === 'positive') return review.sentiment >= 0.3;
+                                if (filterType === 'negative') return review.sentiment <= -0.3;
+                                if (filterType === 'neutral') return review.sentiment > -0.3 && review.sentiment < 0.3;
+                                return true;
+                            });
+                        
+                        // Display filtered reviews with pagination
+                        displayReviewsWithPagination(filteredReviews);
+                    }
+                });
+            }
+            
+            // Sort dropdown - with optimized handler
+            const sortReviews = document.getElementById('sort-reviews');
+            if (sortReviews) {
+                sortReviews.addEventListener('change', function() {
+                    if (!window.reviewsCache) return;
+                    
+                    const sortType = this.value;
+                    let sortedReviews = [...window.reviewsCache];
+                    
+                    // Sort in-place for better performance
+                    sortedReviews.sort((a, b) => {
+                        switch (sortType) {
+                            case 'date-desc':
+                                return new Date(b.date || 0) - new Date(a.date || 0);
+                            case 'date-asc':
+                                return new Date(a.date || 0) - new Date(b.date || 0);
+                            case 'sentiment-pos':
+                                return b.sentiment - a.sentiment;
+                            case 'sentiment-neg':
+                                return a.sentiment - b.sentiment;
+                            default:
+                                return 0;
+                        }
+                    });
+                    
+                    // Display sorted reviews with pagination
+                    displayReviewsWithPagination(sortedReviews);
+                });
+            }
+            
+            // Implement lazy loading for images
+            document.addEventListener('DOMContentLoaded', function() {
+                // Use Intersection Observer for better performance
+                const lazyImageObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const img = entry.target;
+                            img.src = img.dataset.src;
+                            img.addEventListener('load', () => {
+                                img.classList.add('loaded');
+                            });
+                            img.removeAttribute('data-src');
+                            observer.unobserve(img);
+                        }
+                    });
+                });
+                
+                // Observe all lazy images
+                document.querySelectorAll('.lazy-image').forEach(img => {
+                    lazyImageObserver.observe(img);
+                });
+            });
+        });
     </script>
 </body>
 </html> 

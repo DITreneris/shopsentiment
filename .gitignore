@@ -1,4 +1,4 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -20,11 +20,26 @@ var/
 .installed.cfg
 *.egg
 
-# Virtual environments
+# Virtual Environment
 venv/
-env/
 ENV/
-shopenv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.csv
+*.xlsx
+*.xls
+*.db
+*.sqlite3
 
 # Environment variables
 .env
@@ -32,16 +47,6 @@ shopenv/
 # SQLite database
 *.db
 *.sqlite3
-
-# IDE specific files
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS specific files
-.DS_Store
-Thumbs.db
 
 # Logs
 logs/
