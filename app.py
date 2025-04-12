@@ -100,7 +100,7 @@ def product_detail(product_id):
     return render_template('product_detail.html', product=product)
 
 # API Routes
-@app.route('/api/products', methods=['GET'])
+@app.route('/api/products')
 def get_products():
     """API endpoint to get all products"""
     return jsonify({"products": PRODUCTS})
@@ -159,8 +159,8 @@ def analyze_text():
 def health_check():
     """API endpoint for health check"""
     return jsonify({
-        "message": "Shop Sentiment Analysis API is running",
-        "status": "ok"
+        "status": "ok",
+        "message": "Application is running"
     })
 
 # Debug endpoint

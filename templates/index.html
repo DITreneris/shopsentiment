@@ -1,33 +1,73 @@
-{% extends 'base.html' %}
-
-{% block title %}Home - Shop Sentiment Analysis{% endblock %}
-
-{% block header_content %}
-<div class="success-message">
-    <p>🎉 Application successfully deployed to Heroku! 🎉</p>
-    <p>The application is working correctly.</p>
-</div>
-{% endblock %}
-
-{% block content %}
-<section class="products">
-    <h2>Products</h2>
-    <div class="products-container" id="products-container">
-        <div class="loader" id="products-loader"></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Sentiment Analysis</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .product-card {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+        .product-card h3 {
+            margin-top: 0;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        .positive { background-color: #28a745; color: white; }
+        .neutral { background-color: #ffc107; color: black; }
+        .negative { background-color: #dc3545; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Shop Sentiment Analysis</h1>
+        <div id="products-container">
+            <p>Loading products...</p>
+        </div>
     </div>
-</section>
 
-<section class="sentiment-analyzer">
-    <h2>Analyze Sentiment</h2>
-    <p>Type or paste some text to analyze its sentiment:</p>
-    <textarea id="sentiment-text" placeholder="Enter text to analyze sentiment..."></textarea>
-    <button id="analyze-btn">Analyze Sentiment</button>
-    <div class="loader" id="analyze-loader"></div>
-    <div class="result" id="result"></div>
-</section>
-{% endblock %}
-
-{% block extra_js %}
-<script src="{{ url_for('static', filename='js/products.js') }}"></script>
-<script src="{{ url_for('static', filename='js/sentiment.js') }}"></script>
-{% endblock %} 
+    <script>
+        // Fetch and display products
+        fetch('/api/products')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('products-container');
+                if (data.products && data.products.length > 0) {
+                    container.innerHTML = data.products.map(product => `
+                        <div class="product-card">
+                            <h3>${product.name} <span class="badge ${product.sentiment}">${product.sentiment}</span></h3>
+                            <p>${product.description}</p>
+                            <p>Price: ${product.price}</p>
+                            <p>Rating: ${product.rating}/5 (${product.reviews_count} reviews)</p>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = '<p>No products found.</p>';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('products-container').innerHTML = 
+                    '<p>Error loading products. Please try again later.</p>';
+            });
+    </script>
+</body>
+</html> 
