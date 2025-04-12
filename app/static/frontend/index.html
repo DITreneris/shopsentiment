@@ -240,6 +240,28 @@
     </div>
     
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get the API base URL dynamically (works both locally and on Heroku)
+            const getApiBaseUrl = () => {
+                return window.location.origin; // This will be the current domain, whether localhost or Heroku
+            };
+            
+            const apiBaseUrl = getApiBaseUrl();
+            const statusElement = document.getElementById('api-status');
+            
+            // Check API status - use /api endpoint instead of root /
+            fetch(`${apiBaseUrl}/api`)
+                .then(response => response.json())
+                .then(data => {
+                    statusElement.innerHTML = `<strong>API Status:</strong> ${data.status} - ${data.message}`;
+                    statusElement.classList.add('status-ok');
+                })
+                .catch(error => {
+                    statusElement.innerHTML = `<strong>API Error:</strong> ${error.message}`;
+                    statusElement.classList.add('status-error');
+                });
+        });
+        
         // API configuration
         const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? 'http://localhost:5000' 
@@ -288,21 +310,6 @@
                 responseContainer.style.color = '#721c24';
             } else {
                 responseContainer.style.color = '#000';
-            }
-        }
-        
-        // Check API status on load
-        async function checkApiStatus() {
-            try {
-                const response = await fetch(`${API_URL}/`);
-                const data = await response.json();
-                apiStatus.textContent = `API Status: ${data.message}`;
-                apiStatus.className = 'status-ok';
-                displayResponse(data);
-            } catch (error) {
-                apiStatus.textContent = `API Status: Error connecting to API`;
-                apiStatus.className = 'status-error';
-                displayResponse(error.message, true);
             }
         }
         
@@ -604,7 +611,6 @@
         }
         
         // Initialize
-        checkApiStatus();
         getProducts();
         
         // Global function for product reviews button
