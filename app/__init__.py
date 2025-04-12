@@ -160,7 +160,7 @@ def api_info():
                 '/auth/me'
             ]}
 
-# Root path now serves the frontend
+# Root path now serves the frontend or API info based on environment variable
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_root(path=''):
@@ -168,11 +168,24 @@ def serve_root(path=''):
     if path.startswith('api/') or path.startswith('auth/'):
         return api_info() if path == 'api' else None  # Let the other routes handle this
     
-    # Serve static files if they exist
-    if path != '' and os.path.exists(os.path.join(app.static_folder, 'frontend', path)):
-        return app.send_static_file(f'frontend/{path}')
+    # Check if we should force serving the frontend index
+    force_frontend = os.environ.get('FORCE_ROOT_SERVED_INDEX', '').lower() == 'true'
     
-    # Default: serve the index.html file
+    # If we're forcing frontend, or if this is a specific static path, serve frontend
+    if force_frontend or (path != '' and os.path.exists(os.path.join(app.static_folder, 'frontend', path))):
+        # For the root path when forcing frontend
+        if path == '' and force_frontend:
+            return app.send_static_file('frontend/index.html')
+        
+        # For specific static files
+        if path != '' and os.path.exists(os.path.join(app.static_folder, 'frontend', path)):
+            return app.send_static_file(f'frontend/{path}')
+    
+    # If not forcing frontend at root, serve API info at root
+    if path == '' and not force_frontend:
+        return api_info()
+    
+    # Default: serve the index.html file for any other path
     return app.send_static_file('frontend/index.html')
 
 # Frontend routes - alternative paths
