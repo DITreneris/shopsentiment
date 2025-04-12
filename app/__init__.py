@@ -33,6 +33,10 @@ app.config['REMEMBER_COOKIE_DURATION'] = 2592000  # 30 days
 
 # Initialize security extensions
 csrf = CSRFProtect(app)
+# Exempt API routes from CSRF protection
+csrf.exempt('auth_login')
+csrf.exempt('auth_register')
+csrf.exempt('auth_logout')
 
 # Initialize CORS with specific settings for the frontend
 CORS(app, resources={r"/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000", 
