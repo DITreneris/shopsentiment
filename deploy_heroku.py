@@ -134,6 +134,27 @@ def setup_mongodb(app_name):
         logger.error(f"Error setting up MongoDB: {e}")
         return False
 
+def setup_frontend():
+    """Copy frontend files to Flask static directory."""
+    logger.info("Setting up frontend files...")
+    
+    # Ensure the frontend directory exists in the static folder
+    static_frontend_dir = os.path.join('app', 'static', 'frontend')
+    os.makedirs(static_frontend_dir, exist_ok=True)
+    
+    # Copy the frontend index.html to static folder if needed
+    frontend_source = os.path.join('frontend', 'index.html')
+    frontend_dest = os.path.join(static_frontend_dir, 'index.html')
+    
+    if not os.path.exists(frontend_dest) or os.path.getmtime(frontend_source) > os.path.getmtime(frontend_dest):
+        import shutil
+        shutil.copy2(frontend_source, frontend_dest)
+        logger.info(f"Copied {frontend_source} to {frontend_dest}")
+    else:
+        logger.info(f"Frontend file {frontend_dest} is up to date")
+    
+    return True
+
 def deploy_to_heroku(app_name):
     """Deploy application to Heroku."""
     try:
@@ -183,6 +204,11 @@ def main():
     # Check prerequisites
     if not check_heroku_cli() or not check_git() or not check_files():
         logger.error("Please fix the issues above before continuing.")
+        sys.exit(1)
+    
+    # Set up frontend files
+    if not setup_frontend():
+        logger.error("Failed to set up frontend files. Exiting.")
         sys.exit(1)
     
     # Get app name

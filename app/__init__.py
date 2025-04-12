@@ -35,7 +35,9 @@ app.config['REMEMBER_COOKIE_DURATION'] = 2592000  # 30 days
 csrf = CSRFProtect(app)
 
 # Initialize CORS with specific settings for the frontend
-CORS(app, resources={r"/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000"]}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000", 
+                                        "https://*.herokuapp.com", "http://*.herokuapp.com"]}}, 
+     supports_credentials=True)
 
 # Initialize Flask-Login
 login_manager = LoginManager()
@@ -144,9 +146,9 @@ init_db()
 def health_check():
     return {'status': 'healthy'}
 
-# A simple route for the home page
-@app.route('/')
-def home():
+# API Info endpoint
+@app.route('/api')
+def api_info():
     return {'status': 'ok', 'message': 'Shop Sentiment Analysis API is running', 
             'endpoints': [
                 '/api/products',
@@ -157,13 +159,31 @@ def home():
                 '/auth/me'
             ]}
 
-# Frontend routes - serve the SPA
-@app.route('/app')
-def serve_frontend():
+# Root path now serves the frontend
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_root(path=''):
+    # Special case for API endpoints
+    if path.startswith('api/') or path.startswith('auth/'):
+        return api_info() if path == 'api' else None  # Let the other routes handle this
+    
+    # Serve static files if they exist
+    if path != '' and os.path.exists(os.path.join(app.static_folder, 'frontend', path)):
+        return app.send_static_file(f'frontend/{path}')
+    
+    # Default: serve the index.html file
+    return app.send_static_file('frontend/index.html')
+
+# Frontend routes - alternative paths
+@app.route('/app', defaults={'path': ''})
+@app.route('/app/<path:path>')
+def serve_frontend(path=''):
+    if path != '' and os.path.exists(os.path.join(app.static_folder, 'frontend', path)):
+        return app.send_static_file(f'frontend/{path}')
     return app.send_static_file('frontend/index.html')
 
 # Catch all route for SPA - redirects to the frontend app
-@app.route('/frontend')
+@app.route('/frontend', defaults={'path': ''})
 @app.route('/frontend/<path:path>')
 def frontend_redirect(path=''):
     return app.send_static_file('frontend/index.html')

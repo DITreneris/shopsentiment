@@ -1,52 +1,43 @@
 #!/bin/bash
 
-# Heroku Deployment Script for Shop Sentiment Analysis
+# Shop Sentiment Heroku Deployment Script
 
-echo "Deploying Shop Sentiment Analysis to Heroku..."
+echo "Shop Sentiment Heroku Deployment"
+echo "================================"
 
-# Check if Heroku CLI is installed
-if ! command -v heroku &> /dev/null; then
-    echo "Error: Heroku CLI is not installed. Please install it first."
-    echo "Visit: https://devcenter.heroku.com/articles/heroku-cli"
+# Check if Python is installed
+if ! command -v python3 &> /dev/null; then
+    echo "Python 3 is required but not found. Please install Python 3."
     exit 1
 fi
 
-# Check if user is logged in to Heroku
-heroku whoami &> /dev/null
+# Check if pip is installed
+if ! command -v pip3 &> /dev/null; then
+    echo "pip3 is required but not found. Please install pip3."
+    exit 1
+fi
+
+# Check if Heroku CLI is installed
+if ! command -v heroku &> /dev/null; then
+    echo "Heroku CLI is required but not found."
+    echo "Please install Heroku CLI from: https://devcenter.heroku.com/articles/heroku-cli"
+    exit 1
+fi
+
+# Check if Git is installed
+if ! command -v git &> /dev/null; then
+    echo "Git is required but not found. Please install Git."
+    exit 1
+fi
+
+# Run the Python deployment script
+echo "Running deployment script..."
+python3 deploy_heroku.py
+
+# Check the exit status
 if [ $? -ne 0 ]; then
-    echo "You need to log in to Heroku first:"
-    heroku login
+    echo "Deployment failed. Please check the error messages above."
+    exit 1
 fi
 
-# Get app name from user or use default
-read -p "Enter your Heroku app name (or press Enter to create a random name): " APP_NAME
-
-if [ -z "$APP_NAME" ]; then
-    # Create Heroku app with random name
-    echo "Creating Heroku app with random name..."
-    heroku create
-else
-    # Create Heroku app with specified name
-    echo "Creating Heroku app: $APP_NAME..."
-    heroku create $APP_NAME
-fi
-
-# Set environment variables
-echo "Setting environment variables..."
-heroku config:set SECRET_KEY=$(openssl rand -hex 32)
-
-# Push code to Heroku
-echo "Pushing code to Heroku..."
-git push heroku main
-
-# Run database migrations if necessary
-# echo "Running database migrations..."
-# heroku run python manage.py db upgrade
-
-# Open the app in browser
-echo "Opening app in browser..."
-heroku open
-
-echo "Deployment completed!"
-echo "Frontend is available at: https://YOUR-APP-NAME.herokuapp.com/app"
-echo "API is available at: https://YOUR-APP-NAME.herokuapp.com/" 
+echo "Deployment process completed!" 
