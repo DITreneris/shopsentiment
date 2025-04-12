@@ -1,40 +1,28 @@
-#!/usr/bin/env python
+from flask import Flask, send_from_directory, jsonify
 import os
-import sys
-import logging
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout
-)
-logger = logging.getLogger(__name__)
+app = Flask(__name__)
 
-# Log startup information
-logger.info("Starting application")
-logger.info(f"Python version: {sys.version}")
-logger.info(f"Current working directory: {os.getcwd()}")
+# Serve static files from the frontend directory
+@app.route('/')
+def serve_root():
+    return send_from_directory('frontend', 'index.html')
 
-try:
-    # Import the Flask app
-    logger.info("Importing Flask app")
-    from app import app
-    
-    # Log successful import
-    logger.info("Flask app successfully imported")
-except Exception as e:
-    # Log the error
-    logger.error(f"Error importing Flask app: {e}", exc_info=True)
-    # Fall back to simple app
-    logger.info("Falling back to simple app")
-    from simple_app import app
-    logger.info("Simple app successfully imported")
+@app.route('/<path:path>')
+def serve_static(path):
+    try:
+        return send_from_directory('frontend', path)
+    except:
+        return send_from_directory('frontend', 'index.html')
 
-if __name__ == "__main__":
-    # Get port from environment variable or use default
+# Health check endpoint
+@app.route('/api/health')
+def health_check():
+    return jsonify({
+        "message": "Shop Sentiment Analysis API is running",
+        "status": "ok"
+    })
+
+if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    
-    # Run the app
-    logger.info(f"Running app on port {port}")
     app.run(host='0.0.0.0', port=port) 
