@@ -121,7 +121,8 @@
     <div class="container">
         <h1>Shop Sentiment Analysis</h1>
         
-        <div id="api-status"></div>
+        <!-- Hide API status in production -->
+        <div id="api-status" style="display: none;"></div>
         
         <div class="tab-container">
             <div class="tab active" data-tab="auth">Authentication</div>
@@ -233,7 +234,8 @@
             </div>
         </div>
         
-        <div class="card">
+        <!-- Hide API Response in production -->
+        <div class="card" style="display: none;">
             <h2>API Response</h2>
             <div id="response-container">No API calls made yet</div>
         </div>
@@ -305,6 +307,11 @@
         
         // Helper to display API responses
         function displayResponse(response, isError = false) {
+            // Skip if response container is hidden
+            if (responseContainer.parentElement.style.display === 'none') {
+                return;
+            }
+            
             responseContainer.textContent = JSON.stringify(response, null, 2);
             if (isError) {
                 responseContainer.style.color = '#721c24';
