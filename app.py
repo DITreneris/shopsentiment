@@ -89,7 +89,23 @@ SENTIMENT = {
 # Home page route
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return """
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Ultra Simple App</title>
+        <style>
+            body { font-family: Arial; max-width: 800px; margin: 0 auto; padding: 20px; }
+            .success { color: green; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <h1>Ultra Simple Flask App</h1>
+        <p class="success">This is a working minimal Flask application on Heroku!</p>
+        <p>API endpoint: <a href="/api/health">/api/health</a></p>
+    </body>
+    </html>
+    """
 
 # Product detail page route
 @app.route('/product/<product_id>')
@@ -157,10 +173,9 @@ def analyze_text():
 # Health check endpoint
 @app.route('/api/health')
 def health_check():
-    """API endpoint for health check"""
     return jsonify({
         "status": "ok",
-        "message": "Application is running"
+        "message": "Ultra simple Flask app is running"
     })
 
 # Debug endpoint
