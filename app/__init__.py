@@ -36,7 +36,8 @@ csrf = CSRFProtect(app)
 
 # Initialize CORS with specific settings for the frontend
 CORS(app, resources={r"/*": {"origins": ["http://localhost:8000", "http://127.0.0.1:8000", 
-                                        "https://*.herokuapp.com", "http://*.herokuapp.com"]}}, 
+                                        "https://*.herokuapp.com", "http://*.herokuapp.com",
+                                        "https://salty-hamlet-05965-52206bf9d73c.herokuapp.com"]}}, 
      supports_credentials=True)
 
 # Initialize Flask-Login
