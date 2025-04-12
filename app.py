@@ -5,21 +5,12 @@ This is the main entry point for the ShopSentiment application.
 It initializes the Flask application and sets up the routes.
 """
 
-from flask import Flask, send_from_directory, jsonify, request, render_template
 import os
 import json
-import logging
-import sys
 from datetime import datetime
+from flask import Flask, render_template, jsonify, request, send_from_directory
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    stream=sys.stdout
-)
-logger = logging.getLogger(__name__)
-
+# Create the Flask application
 app = Flask(__name__)
 
 # Configure the app
