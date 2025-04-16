@@ -28,6 +28,14 @@ try:
     logger.info(f"Current working directory: {os.getcwd()}")
     logger.info(f"Python path: {sys.path}")
     
+    # Download NLTK data before importing app
+    try:
+        import nltk_download
+        logger.info("Successfully downloaded NLTK data")
+    except Exception as e:
+        logger.error(f"Error downloading NLTK data: {str(e)}")
+        logger.error(traceback.format_exc())
+    
     # Try to import from src
     from src.app_factory import create_app
     logger.info("Successfully imported app_factory")

@@ -29,11 +29,11 @@ else:
     ssl._create_default_https_context = _create_unverified_https_context
 
 # Download NLTK data
-packages = ['vader_lexicon', 'punkt']
+packages = ['vader_lexicon', 'punkt', 'stopwords', 'wordnet', 'averaged_perceptron_tagger']
 for package in packages:
     logger.info(f"Downloading {package}...")
     try:
-        nltk.download(package, download_dir=nltk_data_dir, quiet=False)
+        nltk.download(package, download_dir=nltk_data_dir, quiet=True)
         logger.info(f"Successfully downloaded {package}")
     except Exception as e:
         logger.error(f"Failed to download {package}: {e}")
