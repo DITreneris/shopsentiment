@@ -9,10 +9,6 @@ import logging
 from typing import Dict, Any, Optional
 
 from flask import Flask
-from flask_cors import CORS
-
-from src.utils.cache_factory import get_cache_from_app_config
-from src.services.sentiment_service import create_sentiment_service
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +44,16 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         app.config.update(config)
     
     # Initialize extensions
-    CORS(app)
+    try:
+        from flask_cors import CORS
+        CORS(app)
+        logger.info("CORS initialized")
+    except ImportError:
+        logger.warning("flask_cors not installed, CORS support disabled")
     
     # Initialize cache
     try:
+        from src.utils.cache_factory import get_cache_from_app_config
         cache = get_cache_from_app_config(app.config)
         app.extensions['cache'] = cache
         logger.info(f"Initialized cache: {cache.__class__.__name__}")
@@ -61,6 +63,7 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     
     # Initialize sentiment service
     try:
+        from src.services.sentiment_service import create_sentiment_service
         db_path = app.config.get('DATABASE_PATH', 'data/shopsentiment.db')
         sentiment_model = app.config.get('SENTIMENT_ANALYSIS_MODEL', 'default')
         sentiment_service = create_sentiment_service(db_path, sentiment_model)
