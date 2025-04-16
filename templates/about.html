@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}About - ShopSentiment{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="about-header mt-4 mb-4">
+        <h1>About ShopSentiment</h1>
+        <p class="lead">Understanding customer sentiment to improve your business</p>
+    </div>
+    
+    <div class="about-content">
+        <section class="about-section mb-4">
+            <h2>Our Mission</h2>
+            <p>ShopSentiment is dedicated to helping e-commerce businesses understand and leverage customer sentiment data to make better business decisions. Our powerful sentiment analysis platform provides real-time insights into what customers are saying about your products and services.</p>
+        </section>
+        
+        <section class="about-section mb-4">
+            <h2>How It Works</h2>
+            <div class="how-it-works">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Data Collection</h3>
+                        <p>We collect reviews and feedback from multiple sources including your website, social media, and review platforms.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Analysis</h3>
+                        <p>Our advanced sentiment analysis engine processes the data to identify positive, negative, and neutral sentiments.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>Insights</h3>
+                        <p>We transform the analysis into actionable insights that help you improve products and customer satisfaction.</p>
+                    </div>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-content">
+                        <h3>Monitoring</h3>
+                        <p>Continuous monitoring allows you to track sentiment changes over time and measure the impact of your improvements.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="about-section mb-4">
+            <h2>Features</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <h3>Real-time Analysis</h3>
+                    <p>Get instant insights into customer sentiment across your products and services.</p>
+                </div>
+                <div class="feature">
+                    <h3>Trend Detection</h3>
+                    <p>Identify emerging patterns and trends in customer feedback.</p>
+                </div>
+                <div class="feature">
+                    <h3>Actionable Insights</h3>
+                    <p>Make data-driven decisions to improve customer satisfaction.</p>
+                </div>
+                <div class="feature">
+                    <h3>Competitive Analysis</h3>
+                    <p>See how your products compare to competitors in terms of customer sentiment.</p>
+                </div>
+                <div class="feature">
+                    <h3>Customizable Dashboard</h3>
+                    <p>Visualize the data that matters most to your business.</p>
+                </div>
+                <div class="feature">
+                    <h3>API Integration</h3>
+                    <p>Easily integrate with your existing systems and workflows.</p>
+                </div>
+            </div>
+        </section>
+        
+        <section class="about-section mb-4">
+            <h2>Our Team</h2>
+            <p>ShopSentiment was created by a team of data scientists, software engineers, and e-commerce experts who are passionate about helping businesses succeed. We combine our expertise in natural language processing, machine learning, and business intelligence to deliver a powerful tool for understanding customer sentiment.</p>
+        </section>
+        
+        <section class="about-section">
+            <h2>Contact Us</h2>
+            <p>Have questions about ShopSentiment? We'd love to hear from you!</p>
+            <p><strong>Email:</strong> <a href="mailto:support@shopsentiment.com">support@shopsentiment.com</a></p>
+            <p><strong>Phone:</strong> +1 (123) 456-7890</p>
+            <p><strong>Address:</strong> 123 Sentiment St, Data City, AN 12345</p>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .about-header {
+        text-align: center;
+        padding: 2rem 0;
+    }
+    
+    .about-header h1 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+    }
+    
+    .lead {
+        font-size: 1.25rem;
+        color: #666;
+    }
+    
+    .about-section {
+        margin-bottom: 3rem;
+    }
+    
+    .about-section h2 {
+        color: var(--primary-color);
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.5rem;
+    }
+    
+    .how-it-works {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+    
+    .step {
+        display: flex;
+        gap: 1.5rem;
+    }
+    
+    .step-number {
+        background-color: var(--primary-color);
+        color: white;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .step-content h3 {
+        margin-top: 0;
+        color: var(--primary-color);
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 2rem;
+        margin-top: 1.5rem;
+    }
+    
+    .feature {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .feature h3 {
+        color: var(--primary-color);
+        margin-top: 0;
+    }
+    
+    @media (max-width: 768px) {
+        .step {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %} 

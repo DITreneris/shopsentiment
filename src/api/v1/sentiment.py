@@ -6,7 +6,22 @@ Provides routes for analyzing sentiment in text.
 import logging
 from flask import Blueprint, jsonify, request
 
-from src.services.sentiment_analyzer import sentiment_analyzer
+# Use a try/except block to handle different import structures
+try:
+    # Try relative import first (preferred on Heroku)
+    from ...services.sentiment_analyzer import sentiment_analyzer
+except ImportError:
+    try:
+        # Fall back to absolute import if relative fails
+        from src.services.sentiment_analyzer import sentiment_analyzer
+    except ImportError:
+        # Create a fallback analyzer if all imports fail
+        class FallbackAnalyzer:
+            def analyze(self, text):
+                return {"score": 0.5, "label": "Neutral"}
+                
+        sentiment_analyzer = FallbackAnalyzer()
+        logging.warning("Using fallback sentiment analyzer due to import errors")
 
 logger = logging.getLogger(__name__)
 

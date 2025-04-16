@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Server Error - ShopSentiment{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <h1>500</h1>
+        <h2>Internal Server Error</h2>
+        <p>We're sorry, but something went wrong on our end. Our team has been notified and is working to fix the issue.</p>
+        <div class="error-actions">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Go to Homepage</a>
+            <a href="javascript:history.back()" class="btn btn-secondary">Go Back</a>
+        </div>
+        <div class="error-help">
+            <p>If the problem persists, please contact our support team.</p>
+            <a href="mailto:support@shopsentiment.com" class="btn btn-link">Contact Support</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .error-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 60vh;
+        text-align: center;
+        padding: 2rem;
+    }
+    
+    .error-content h1 {
+        font-size: 6rem;
+        margin: 0;
+        color: #dc3545;
+    }
+    
+    .error-content h2 {
+        font-size: 2rem;
+        margin: 1rem 0;
+    }
+    
+    .error-actions {
+        margin: 2rem 0;
+    }
+    
+    .error-actions .btn {
+        margin: 0 0.5rem;
+    }
+    
+    .error-help {
+        margin-top: 2rem;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+    }
+    
+    .btn-link {
+        color: #007bff;
+        text-decoration: none;
+    }
+    
+    .btn-link:hover {
+        text-decoration: underline;
+    }
+</style>
+{% endblock %} 

@@ -1,0 +1,87 @@
+Migration Reference
+=================
+
+File: app.py
+------------
+
+Routes:
+  - / GET (default)
+  - /dashboard GET (default)
+  - /about GET (default)
+  - /health GET (default)
+  - /api/v1/products GET (default)
+  - /api/v1/products/<product_id> GET (default)
+  - /api/v1/analyze , methods=['POST']
+
+Functions:
+  - configure_static_files()
+  - create_app()
+  - not_found_error()
+  - internal_error()
+  - index()
+  - dashboard()
+  - about()
+  - health_check()
+  - get_products()
+  - get_product()
+  - analyze_sentiment()
+
+
+File: simple.py
+---------------
+
+Routes:
+  - /api/products , methods=['GET']
+  - /api/products/<product_id> , methods=['GET']
+  - /api/products/<product_id>/reviews , methods=['GET']
+  - /api/products/<product_id>/sentiment , methods=['GET']
+  - /api/analyze , methods=['POST']
+  - /product/<product_id> GET (default)
+  - / GET (default)
+
+Functions:
+  - get_products()
+  - get_product()
+  - get_product_reviews()
+  - get_product_sentiment()
+  - analyze_text()
+  - product_detail()
+  - home()
+
+
+File: simple_app.py
+-------------------
+
+Routes:
+  - / GET (default)
+  - /health GET (default)
+  - /auth/test , methods=['GET']
+  - /auth/login , methods=['POST']
+  - /auth/register , methods=['POST']
+  - /auth/me , methods=['GET']
+  - /auth/logout , methods=['POST']
+  - /api/products/ , methods=['GET']
+  - /api/reviews/ , methods=['GET']
+
+Functions:
+  - home()
+  - health()
+  - auth_test()
+  - auth_login()
+  - auth_register()
+  - auth_me()
+  - auth_logout()
+  - get_products()
+  - get_reviews()
+
+
+File: minimal.py
+----------------
+
+Routes:
+  - / GET (default)
+
+Functions:
+  - home()
+
+

@@ -1,80 +1,129 @@
 """
-Sentiment Analysis Service for the ShopSentiment application.
-Analyzes text to determine sentiment score and type.
+Sentiment Analysis Service
+
+This module provides sentiment analysis functionality with fallbacks
+if NLTK is not available.
 """
 
 import logging
-import os
-import random
-from typing import Dict, Any
+import re
+from typing import Dict, List, Union, Optional
 
+# Initialize logger
 logger = logging.getLogger(__name__)
 
-# Load the appropriate sentiment analysis model based on configuration
-MODEL_TYPE = os.environ.get('SENTIMENT_ANALYSIS_MODEL', 'default')
-
-
 class SentimentAnalyzer:
-    """Service for analyzing sentiment in text."""
+    """
+    Sentiment analyzer that doesn't depend on NLTK.
+    Provides basic sentiment analysis functionality using word lists.
+    """
     
-    def __init__(self):
-        """Initialize the sentiment analyzer with the appropriate model."""
-        logger.info(f"Initializing SentimentAnalyzer with model type: {MODEL_TYPE}")
+    def __init__(self, model_type: str = 'default'):
+        """
+        Initialize the sentiment analyzer.
         
-        # In a real implementation, this would load a proper machine learning model
-        # For now, we're using a simple keyword-based approach for demonstration
-        self.positive_words = [
-            'good', 'great', 'excellent', 'amazing', 'love', 'best', 'perfect',
-            'awesome', 'wonderful', 'fantastic', 'superb', 'outstanding'
-        ]
-        self.negative_words = [
-            'bad', 'terrible', 'awful', 'hate', 'worst', 'poor', 'disappointing',
-            'horrible', 'useless', 'inferior', 'mediocre', 'faulty'
-        ]
+        Args:
+            model_type: Type of model to use (ignored in this implementation)
+        """
+        self.model_type = model_type.lower()
+        
+        # Fallback stopwords
+        self.stopwords = {
+            'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves',
+            'you', 'your', 'yours', 'yourself', 'yourselves', 'he', 'him',
+            'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its',
+            'itself', 'they', 'them', 'their', 'theirs', 'themselves',
+            'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those',
+            'am', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have',
+            'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an',
+            'the', 'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while',
+            'of', 'at', 'by', 'for', 'with', 'about', 'against', 'between',
+            'into', 'through', 'during', 'before', 'after', 'above', 'below',
+            'to', 'from', 'up', 'down', 'in', 'out', 'on', 'off', 'over',
+            'under', 'again', 'further', 'then', 'once', 'here', 'there',
+            'when', 'where', 'why', 'how', 'all', 'any', 'both', 'each',
+            'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor',
+            'not', 'only', 'own', 'same', 'so', 'than', 'too', 'very', 's',
+            't', 'can', 'will', 'just', 'don', 'should', 'now'
+        }
+        
+        # Simple positive/negative word lists
+        self.positive_words = {
+            'good', 'great', 'excellent', 'amazing', 'awesome', 'fantastic',
+            'wonderful', 'best', 'love', 'perfect', 'recommend', 'satisfied',
+            'happy', 'helpful', 'positive', 'nice', 'quality', 'impressive',
+            'well', 'liked', 'better', 'comfortable', 'enjoyable', 'beautiful',
+            'worth', 'favorite', 'pleased', 'fast', 'easy', 'reliable'
+        }
+        
+        self.negative_words = {
+            'bad', 'poor', 'terrible', 'awful', 'horrible', 'worst', 'hate',
+            'disappointing', 'disappointed', 'waste', 'useless', 'difficult',
+            'expensive', 'cheap', 'problem', 'issues', 'broken', 'slow', 'hard',
+            'negative', 'wrong', 'fail', 'failed', 'avoid', 'uncomfortable',
+            'unreliable', 'mistake', 'dislike', 'overpriced', 'complaint'
+        }
+        
+        logger.info(f"Simple sentiment analyzer initialized (fallback mode)")
     
-    def analyze(self, text: str) -> Dict[str, Any]:
+    def analyze_text(self, text: str) -> Dict[str, Union[float, str]]:
         """
-        Analyze the sentiment of the provided text.
-        Returns a dictionary with sentiment score and type.
+        Analyze sentiment of given text using word counting.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary with sentiment score and label
         """
-        if not text:
-            return {"score": 0.5, "type": "neutral"}
+        if not text or not isinstance(text, str):
+            logger.warning("Empty or invalid text provided to analyze_text")
+            return {'score': 0, 'label': 'Neutral'}
+        
+        return self._analyze_with_word_count(text)
+    
+    def _analyze_with_word_count(self, text: str) -> Dict[str, Union[float, str]]:
+        """
+        Analyze sentiment by counting positive and negative words.
+        
+        Args:
+            text: Text to analyze
             
-        try:
-            text_lower = text.lower()
-            
-            # Count occurrences of positive and negative words
-            positive_count = sum(1 for word in self.positive_words if word in text_lower)
-            negative_count = sum(1 for word in self.negative_words if word in text_lower)
-            
-            # Calculate sentiment score (0 to 1)
-            total = max(1, positive_count + negative_count)  # Avoid division by zero
-            sentiment_score = min(1.0, max(0.0, (positive_count / total)))
-            
-            # Add some randomness for demonstration purposes
-            if MODEL_TYPE == 'development':
-                # More random for testing different scenarios
-                sentiment_score = min(1.0, max(0.0, sentiment_score + random.uniform(-0.2, 0.2)))
-            else:
-                # Less random for production
-                sentiment_score = min(1.0, max(0.0, sentiment_score + random.uniform(-0.1, 0.1)))
-            
-            # Determine sentiment type
-            if sentiment_score >= 0.7:
-                sentiment_type = 'positive'
-            elif sentiment_score >= 0.3:
-                sentiment_type = 'neutral'
-            else:
-                sentiment_type = 'negative'
-                
-            return {
-                "score": round(sentiment_score, 2),
-                "type": sentiment_type
-            }
-        except Exception as e:
-            logger.error(f"Error analyzing sentiment: {str(e)}")
-            return {"score": 0.5, "type": "neutral"}
-
+        Returns:
+            Dictionary with sentiment score and label
+        """
+        # Convert to lowercase and split into words
+        words = re.findall(r'\b\w+\b', text.lower())
+        
+        # Filter out stopwords
+        words = [word for word in words if word not in self.stopwords]
+        
+        # Count positive and negative words
+        positive_count = sum(1 for word in words if word in self.positive_words)
+        negative_count = sum(1 for word in words if word in self.negative_words)
+        total_words = len(words)
+        
+        # Calculate score
+        if total_words > 0:
+            score = (positive_count - negative_count) / total_words
+        else:
+            score = 0
+        
+        # Determine label
+        if score > 0.05:
+            label = 'Positive'
+        elif score < -0.05:
+            label = 'Negative'
+        else:
+            label = 'Neutral'
+        
+        return {
+            'score': score,
+            'label': label,
+            'positive_count': positive_count,
+            'negative_count': negative_count,
+            'total_words': total_words
+        }
 
 # Create a singleton instance
 sentiment_analyzer = SentimentAnalyzer() 

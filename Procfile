@@ -1,1 +1,1 @@
-web: gunicorn --config gunicorn_config.py wsgi:app 
+web: python nltk_download.py && gunicorn --config gunicorn_config.py wsgi:app 

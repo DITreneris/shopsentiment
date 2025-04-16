@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}Products | ShopSentiment{% endblock %}
+
+{% block extra_css %}
+<style>
+  .product-card {
+    transition: transform 0.2s;
+    height: 100%;
+  }
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  .sentiment-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    font-size: 0.8rem;
+  }
+  .product-image {
+    height: 200px;
+    object-fit: contain;
+    padding: 20px;
+  }
+  .card-footer {
+    background-color: transparent;
+    border-top: none;
+  }
+  .sentiment-indicator {
+    width: 100%;
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 10px;
+  }
+  .sentiment-text {
+    font-size: 0.9rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Products</h1>
+    <div class="d-flex">
+      <div class="dropdown me-2">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+          Sort by
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+          <li><a class="dropdown-item" href="#">Name (A-Z)</a></li>
+          <li><a class="dropdown-item" href="#">Name (Z-A)</a></li>
+          <li><a class="dropdown-item" href="#">Highest Sentiment</a></li>
+          <li><a class="dropdown-item" href="#">Lowest Sentiment</a></li>
+          <li><a class="dropdown-item" href="#">Most Reviews</a></li>
+        </ul>
+      </div>
+      <div class="dropdown">
+        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+          Filter
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+          <li><a class="dropdown-item" href="#">All Categories</a></li>
+          <li><a class="dropdown-item" href="#">Electronics</a></li>
+          <li><a class="dropdown-item" href="#">Wearables</a></li>
+          <li><a class="dropdown-item" href="#">Computers</a></li>
+          <li><a class="dropdown-item" href="#">Smart Home</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Positive Sentiment</a></li>
+          <li><a class="dropdown-item" href="#">Neutral Sentiment</a></li>
+          <li><a class="dropdown-item" href="#">Negative Sentiment</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+    {% for product in products %}
+    <div class="col">
+      <div class="card product-card h-100">
+        {% if product.sentiment_label == 'positive' %}
+          <span class="badge bg-success sentiment-badge">Positive</span>
+        {% elif product.sentiment_label == 'negative' %}
+          <span class="badge bg-danger sentiment-badge">Negative</span>
+        {% else %}
+          <span class="badge bg-warning sentiment-badge">Neutral</span>
+        {% endif %}
+        
+        <img src="{{ product.image_url|default('/static/img/products/placeholder.jpg') }}" class="card-img-top product-image" alt="{{ product.name }}">
+        
+        <div class="card-body">
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text text-muted">{{ product.category }}</p>
+          <p class="card-text fw-bold">{{ product.price }}</p>
+          
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <div class="sentiment-text">
+              <span class="fw-bold">Sentiment:</span> 
+              {% if product.sentiment_score %}
+                {{ (product.sentiment_score * 100)|int }}%
+              {% else %}
+                N/A
+              {% endif %}
+            </div>
+            <div class="sentiment-text">
+              <span class="fw-bold">Reviews:</span> {{ product.review_count|default(0) }}
+            </div>
+          </div>
+          
+          {% if product.sentiment_score %}
+            <div class="sentiment-indicator bg-light">
+              <div 
+                class="
+                  {% if product.sentiment_label == 'positive' %}
+                    bg-success
+                  {% elif product.sentiment_label == 'negative' %}
+                    bg-danger
+                  {% else %}
+                    bg-warning
+                  {% endif %}
+                " 
+                style="width: {{ (product.sentiment_score * 100)|int }}%; height: 100%; border-radius: 4px;"
+              ></div>
+            </div>
+          {% endif %}
+        </div>
+        
+        <div class="card-footer">
+          <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="btn btn-primary w-100">View Details</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %} 

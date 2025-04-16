@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - ShopSentiment{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        padding: 2rem 0;
+    }
+    
+    .dashboard-header {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .dashboard-card {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+    }
+    
+    .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .metric-card {
+        background-color: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        text-align: center;
+    }
+    
+    .metric-title {
+        font-size: 1rem;
+        color: #666;
+        margin-bottom: 0.5rem;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+        color: var(--primary-color);
+    }
+    
+    .sentiment-positive { color: var(--success-color); }
+    .sentiment-neutral { color: var(--warning-color); }
+    .sentiment-negative { color: var(--danger-color); }
+    
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .products-table th, 
+    .products-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border-color);
+    }
+    
+    .products-table th {
+        background-color: var(--light-gray);
+        font-weight: 500;
+    }
+    
+    .products-table tr:hover {
+        background-color: var(--light-gray);
+    }
+    
+    .sentiment-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 0.5rem;
+    }
+    
+    .chart-container {
+        height: 300px;
+        margin-top: 1rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container dashboard-container">
+    <div class="dashboard-header">
+        <h1>Dashboard</h1>
+        <p>View your sentiment analysis metrics and insights</p>
+    </div>
+    
+    <div class="metrics-grid">
+        <div class="metric-card">
+            <div class="metric-title">Total Products</div>
+            <div class="metric-value">{{ products|length }}</div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-title">Average Sentiment</div>
+            <div class="metric-value sentiment-positive">
+                {{ (products|sum(attribute='sentiment_score') / products|length)|round(2) }}
+            </div>
+        </div>
+        <div class="metric-card">
+            <div class="metric-title">Total Reviews</div>
+            <div class="metric-value">{{ products|sum(attribute='reviews_count') }}</div>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h2>Product Sentiment Analysis</h2>
+        <div class="chart-container">
+            <canvas id="sentimentChart"></canvas>
+        </div>
+    </div>
+    
+    <div class="dashboard-card">
+        <h2>Products Overview</h2>
+        <table class="products-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Sentiment Score</th>
+                    <th>Reviews</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>{{ product.sentiment_score }}</td>
+                    <td>{{ product.reviews_count }}</td>
+                    <td>
+                        {% if product.sentiment_score > 0.7 %}
+                        <span class="sentiment-indicator" style="background-color: var(--success-color);"></span>Positive
+                        {% elif product.sentiment_score > 0.4 %}
+                        <span class="sentiment-indicator" style="background-color: var(--warning-color);"></span>Neutral
+                        {% else %}
+                        <span class="sentiment-indicator" style="background-color: var(--danger-color);"></span>Negative
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Performance Metrics Section -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2>Performance Metrics</h2>
+            <p class="section-description">System performance monitoring</p>
+        </div>
+        <div class="metrics-grid">
+            <!-- API Response Time -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h3>API Response</h3>
+                    <span class="metric-icon">⚡</span>
+                </div>
+                <div class="metric-value">45 ms</div>
+                <div class="metric-trend positive">↓ 12%</div>
+                <div class="metric-description">Average API response time</div>
+            </div>
+            
+            <!-- Cache Performance -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h3>Cache Performance</h3>
+                    <span class="metric-icon">📊</span>
+                </div>
+                <div class="metric-value">87%</div>
+                <div class="metric-trend positive">↑ 5%</div>
+                <div class="metric-description">Cache hit ratio</div>
+                <div class="metric-action">
+                    <a href="/product/cache-stats" class="btn btn-sm">View Cache Stats</a>
+                </div>
+            </div>
+            
+            <!-- System Load -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h3>System Load</h3>
+                    <span class="metric-icon">💻</span>
+                </div>
+                <div class="metric-value">32%</div>
+                <div class="metric-trend neutral">↔ 0%</div>
+                <div class="metric-description">Average CPU utilization</div>
+            </div>
+            
+            <!-- Memory Usage -->
+            <div class="metric-card">
+                <div class="metric-header">
+                    <h3>Memory Usage</h3>
+                    <span class="metric-icon">🧠</span>
+                </div>
+                <div class="metric-value">2.1 GB</div>
+                <div class="metric-trend negative">↑ 8%</div>
+                <div class="metric-description">Current memory consumption</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Chart data
+        const products = {{ products|tojson }};
+        const productNames = products.map(product => product.name);
+        const sentimentScores = products.map(product => product.sentiment_score);
+        const reviewCounts = products.map(product => product.reviews_count);
+        
+        // Create chart
+        const ctx = document.getElementById('sentimentChart').getContext('2d');
+        const sentimentChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: productNames,
+                datasets: [
+                    {
+                        label: 'Sentiment Score',
+                        data: sentimentScores,
+                        backgroundColor: 'rgba(66, 133, 244, 0.7)',
+                        borderColor: 'rgba(66, 133, 244, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Review Count',
+                        data: reviewCounts,
+                        backgroundColor: 'rgba(52, 168, 83, 0.7)',
+                        borderColor: 'rgba(52, 168, 83, 1)',
+                        borderWidth: 1,
+                        type: 'line',
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Sentiment Score'
+                        },
+                        max: 1
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Review Count'
+                        },
+                        grid: {
+                            drawOnChartArea: false
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

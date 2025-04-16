@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - ShopSentiment{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        margin-bottom: 2rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .stats-header {
+        background-color: #f8f9fa;
+        padding: 1rem;
+        border-bottom: 1px solid #dee2e6;
+        border-radius: 0.5rem 0.5rem 0 0;
+    }
+    
+    .stats-body {
+        padding: 1.5rem;
+    }
+    
+    .metric-card {
+        text-align: center;
+        padding: 1rem;
+        background-color: #f8f9fa;
+        border-radius: 0.5rem;
+        height: 100%;
+    }
+    
+    .metric-value {
+        font-size: 2rem;
+        font-weight: bold;
+    }
+    
+    .metric-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .key-row:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .progress {
+        height: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>{{ title }}</h1>
+    <p class="text-muted">Cache hit/miss monitoring for sentiment analysis data</p>
+    
+    <!-- Global Stats -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <h3>Global Cache Statistics</h3>
+        </div>
+        <div class="stats-body">
+            <div class="row">
+                <div class="col-md-3 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ stats.global.hits }}</div>
+                        <div class="metric-label">Cache Hits</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ stats.global.misses }}</div>
+                        <div class="metric-label">Cache Misses</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ "%.1f"|format(stats.global.hit_ratio * 100) }}%</div>
+                        <div class="metric-label">Hit Ratio</div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ stats.global.total_operations }}</div>
+                        <div class="metric-label">Total Operations</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-3">
+                <div class="col-md-6 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ "%.2f"|format(stats.global.avg_hit_time_ms) }} ms</div>
+                        <div class="metric-label">Average Hit Time</div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <div class="metric-card">
+                        <div class="metric-value">{{ "%.2f"|format(stats.global.avg_miss_time_ms) }} ms</div>
+                        <div class="metric-label">Average Miss Time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Hits -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <h3>Top Cache Hits</h3>
+        </div>
+        <div class="stats-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cache Key</th>
+                            <th>Hits</th>
+                            <th>Misses</th>
+                            <th>Hit Ratio</th>
+                            <th>Avg Hit Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, metrics in top_hits %}
+                        <tr class="key-row">
+                            <td>{{ key }}</td>
+                            <td>{{ metrics.hits }}</td>
+                            <td>{{ metrics.misses }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" 
+                                         style="width: {{ metrics.hit_ratio * 100 }}%" 
+                                         aria-valuenow="{{ metrics.hit_ratio * 100 }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                {{ "%.1f"|format(metrics.hit_ratio * 100) }}%
+                            </td>
+                            <td>{{ "%.2f"|format(metrics.avg_hit_time_ms) }} ms</td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% if not top_hits %}
+                        <tr>
+                            <td colspan="5" class="text-center">No cache hits recorded yet</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Misses -->
+    <div class="stats-card">
+        <div class="stats-header">
+            <h3>Top Cache Misses</h3>
+        </div>
+        <div class="stats-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cache Key</th>
+                            <th>Misses</th>
+                            <th>Hits</th>
+                            <th>Miss Ratio</th>
+                            <th>Avg Miss Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for key, metrics in top_misses %}
+                        <tr class="key-row">
+                            <td>{{ key }}</td>
+                            <td>{{ metrics.misses }}</td>
+                            <td>{{ metrics.hits }}</td>
+                            <td>
+                                <div class="progress">
+                                    <div class="progress-bar bg-danger" role="progressbar" 
+                                         style="width: {{ (1 - metrics.hit_ratio) * 100 }}%" 
+                                         aria-valuenow="{{ (1 - metrics.hit_ratio) * 100 }}" 
+                                         aria-valuemin="0" 
+                                         aria-valuemax="100">
+                                    </div>
+                                </div>
+                                {{ "%.1f"|format((1 - metrics.hit_ratio) * 100) }}%
+                            </td>
+                            <td>{{ "%.2f"|format(metrics.avg_miss_time_ms) }} ms</td>
+                        </tr>
+                        {% endfor %}
+                        
+                        {% if not top_misses %}
+                        <tr>
+                            <td colspan="5" class="text-center">No cache misses recorded yet</td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mb-4">
+        <form method="POST" action="/product/cache-stats/reset">
+            <button type="submit" class="btn btn-warning">Reset Statistics</button>
+        </form>
+    </div>
+</div>
+{% endblock %} 

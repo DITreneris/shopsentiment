@@ -1,0 +1,290 @@
+"""
+ShopSentiment Main Application
+
+This is the main entry point for the ShopSentiment application.
+It initializes the Flask application and sets up the routes.
+"""
+
+import os
+import logging
+from datetime import datetime
+from flask import Flask, render_template, jsonify, request
+from werkzeug.middleware.proxy_fix import ProxyFix
+
+try:
+    from static_file_handler import configure_static_files
+except ImportError:
+    # Define a no-op function if the module is not available
+    def configure_static_files(app):
+        pass
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+def create_app():
+    """Create and configure the Flask application."""
+    app = Flask(__name__)
+    
+    # Configure the app
+    app.config.from_object('config.default')
+    
+    # Determine environment
+    if 'DYNO' in os.environ:  # Check if running on Heroku
+        logger.info("Running on Heroku, using Heroku configuration")
+        app.config.from_object('config.heroku')
+    elif os.environ.get('FLASK_ENV') == 'production':
+        logger.info("Running in production environment")
+        app.config.from_object('config.production')
+    else:
+        logger.info("Running in development environment")
+        app.config.from_object('config.development')
+    
+    # Fix for proxy headers
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=app.config.get('TRUSTED_PROXIES', 1))
+    
+    # Configure static file handling
+    configure_static_files(app)
+    
+    # Error handlers
+    @app.errorhandler(404)
+    def not_found_error(error):
+        logger.warning(f'404 error: {error}')
+        return render_template('404.html'), 404
+    
+    @app.errorhandler(500)
+    def internal_error(error):
+        logger.error(f'500 error: {error}')
+        return render_template('500.html'), 500
+    
+    # Routes
+    @app.route('/')
+    def index():
+        try:
+            logger.info('Accessing index page')
+            return render_template('index.html', 
+                                server_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                now=datetime.now())
+        except Exception as e:
+            logger.error(f'Error in index route: {str(e)}')
+            return render_template('500.html'), 500
+    
+    @app.route('/dashboard')
+    def dashboard():
+        try:
+            logger.info('Accessing dashboard page')
+            # This would typically include fetching data from the database
+            sample_data = [
+                {'name': 'Product A', 'sentiment_score': 0.85, 'reviews_count': 128},
+                {'name': 'Product B', 'sentiment_score': 0.42, 'reviews_count': 64},
+                {'name': 'Product C', 'sentiment_score': 0.91, 'reviews_count': 256}
+            ]
+            return render_template('dashboard.html', 
+                                products=sample_data,
+                                server_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                now=datetime.now())
+        except Exception as e:
+            logger.error(f'Error in dashboard route: {str(e)}')
+            return render_template('500.html'), 500
+    
+    @app.route('/about')
+    def about():
+        try:
+            logger.info('Accessing about page')
+            return render_template('about.html',
+                                server_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                                now=datetime.now())
+        except Exception as e:
+            logger.error(f'Error in about route: {str(e)}')
+            return render_template('500.html'), 500
+    
+    @app.route('/health')
+    def health_check():
+        """Health check endpoint for monitoring."""
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'environment': os.environ.get('FLASK_ENV', 'unknown')
+        })
+    
+    # API Routes
+    @app.route('/api/v1/products')
+    def get_products():
+        """API endpoint to get all products with sentiment data."""
+        try:
+            logger.info('API request for products')
+            
+            # This would typically query the database
+            # For now, we're returning mock data
+            products = [
+                {
+                    'id': '1',
+                    'name': 'Smart Watch Pro',
+                    'description': 'Advanced smartwatch with health monitoring features',
+                    'price': 199.99,
+                    'category': 'Electronics',
+                    'sentiment': {
+                        'score': 0.85,
+                        'type': 'positive',
+                        'reviews_count': 128,
+                        'distribution': {
+                            'positive': 0.75,
+                            'neutral': 0.20,
+                            'negative': 0.05
+                        }
+                    }
+                },
+                {
+                    'id': '2',
+                    'name': 'Wireless Earbuds',
+                    'description': 'Premium wireless earbuds with noise cancellation',
+                    'price': 149.99,
+                    'category': 'Electronics',
+                    'sentiment': {
+                        'score': 0.72,
+                        'type': 'positive',
+                        'reviews_count': 96,
+                        'distribution': {
+                            'positive': 0.65,
+                            'neutral': 0.25,
+                            'negative': 0.10
+                        }
+                    }
+                },
+                {
+                    'id': '3',
+                    'name': 'Organic Cotton T-Shirt',
+                    'description': 'Eco-friendly cotton t-shirt, great for everyday wear',
+                    'price': 29.99,
+                    'category': 'Clothing',
+                    'sentiment': {
+                        'score': 0.65,
+                        'type': 'neutral',
+                        'reviews_count': 47,
+                        'distribution': {
+                            'positive': 0.45,
+                            'neutral': 0.40,
+                            'negative': 0.15
+                        }
+                    }
+                }
+            ]
+            
+            return jsonify({'products': products, 'count': len(products)})
+        except Exception as e:
+            logger.error(f'Error in API products route: {str(e)}')
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @app.route('/api/v1/products/<product_id>')
+    def get_product(product_id):
+        """API endpoint to get detailed information about a specific product."""
+        try:
+            logger.info(f'API request for product {product_id}')
+            
+            # Mock product data
+            # In a real implementation, this would be fetched from the database
+            products = {
+                '1': {
+                    'id': '1',
+                    'name': 'Smart Watch Pro',
+                    'description': 'Advanced smartwatch with health monitoring features',
+                    'price': 199.99,
+                    'category': 'Electronics',
+                    'sentiment': {
+                        'score': 0.85,
+                        'type': 'positive',
+                        'reviews_count': 128,
+                        'distribution': {
+                            'positive': 0.75,
+                            'neutral': 0.20,
+                            'negative': 0.05
+                        }
+                    },
+                    'reviews': [
+                        {
+                            'id': '101',
+                            'rating': 5,
+                            'comment': 'Love this watch! The health features are amazing.',
+                            'sentiment_score': 0.92,
+                            'user': 'User1234',
+                            'date': '2023-10-15'
+                        },
+                        {
+                            'id': '102',
+                            'rating': 4,
+                            'comment': 'Great product, but battery life could be better.',
+                            'sentiment_score': 0.72,
+                            'user': 'User5678',
+                            'date': '2023-10-10'
+                        }
+                    ]
+                }
+            }
+            
+            product = products.get(product_id)
+            if not product:
+                return jsonify({'error': 'Product not found'}), 404
+                
+            return jsonify(product)
+        except Exception as e:
+            logger.error(f'Error in API product route: {str(e)}')
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    @app.route('/api/v1/analyze', methods=['POST'])
+    def analyze_sentiment():
+        """API endpoint to analyze the sentiment of provided text."""
+        try:
+            data = request.get_json()
+            if not data or 'text' not in data:
+                return jsonify({'error': 'Missing text parameter'}), 400
+                
+            text = data['text']
+            logger.info(f'API request to analyze sentiment for text: {text[:50]}...')
+            
+            # In a real implementation, this would use a proper sentiment analysis model
+            # For now, we're using a simple mock implementation
+            import random
+            
+            # Mock sentiment analysis
+            text_lower = text.lower()
+            positive_words = ['good', 'great', 'excellent', 'amazing', 'love', 'best']
+            negative_words = ['bad', 'terrible', 'awful', 'hate', 'worst', 'poor']
+            
+            positive_count = sum(1 for word in positive_words if word in text_lower)
+            negative_count = sum(1 for word in negative_words if word in text_lower)
+            
+            # Calculate sentiment score (0 to 1)
+            total = max(1, positive_count + negative_count)  # Avoid division by zero
+            sentiment_score = min(1.0, max(0.0, (positive_count / total)))
+            
+            # Add some randomness for demonstration
+            sentiment_score = min(1.0, max(0.0, sentiment_score + random.uniform(-0.1, 0.1)))
+            
+            # Determine sentiment type
+            if sentiment_score >= 0.7:
+                sentiment_type = 'positive'
+            elif sentiment_score >= 0.4:
+                sentiment_type = 'neutral'
+            else:
+                sentiment_type = 'negative'
+                
+            return jsonify({
+                'text': text,
+                'sentiment': {
+                    'score': round(sentiment_score, 2),
+                    'type': sentiment_type
+                }
+            })
+        except Exception as e:
+            logger.error(f'Error in API analyze route: {str(e)}')
+            return jsonify({'error': 'Internal server error'}), 500
+    
+    return app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=app.config['DEBUG']) 

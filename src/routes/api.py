@@ -37,7 +37,7 @@ def get_sentiment(product_id):
     try:
         # Try to import the mock sentiment function
         try:
-            from src.routes.product_routes import get_mock_sentiment_summary
+            from .product_routes import get_mock_sentiment_summary
             sentiment_data = get_mock_sentiment_summary(product_id)
         except ImportError:
             # Fallback if the module isn't available

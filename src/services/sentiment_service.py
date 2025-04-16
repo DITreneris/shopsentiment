@@ -27,10 +27,28 @@ class SentimentService:
         self.model_type = model_type
         
         # Import the sentiment analyzer here to avoid circular imports
-        from src.services.sentiment_analyzer import sentiment_analyzer
-        self.analyzer = sentiment_analyzer
+        try:
+            from src.services.sentiment_analyzer import sentiment_analyzer
+            self.analyzer = sentiment_analyzer
+            logger.info(f"Successfully loaded sentiment analyzer")
+        except ImportError as e:
+            logger.warning(f"Could not import sentiment_analyzer: {str(e)}")
+            logger.warning("Creating fallback analyzer")
+            # Create a minimal fallback analyzer if import fails
+            self.analyzer = self._create_fallback_analyzer()
         
         logger.info(f"Initialized sentiment service with database at {db_path}")
+    
+    def _create_fallback_analyzer(self):
+        """Create a minimal fallback analyzer if the real one can't be imported."""
+        class FallbackAnalyzer:
+            def analyze_text(self, text):
+                return {'score': 0.5, 'label': 'Neutral'}
+            
+            def analyze(self, text):
+                return self.analyze_text(text)
+                
+        return FallbackAnalyzer()
     
     def analyze_text(self, text: str) -> Dict[str, Union[float, str]]:
         """
@@ -42,7 +60,20 @@ class SentimentService:
         Returns:
             Dictionary containing sentiment score and label
         """
-        return self.analyzer.analyze(text)
+        try:
+            # Try the analyze_text method first (new API)
+            if hasattr(self.analyzer, 'analyze_text'):
+                return self.analyzer.analyze_text(text)
+            # Fall back to analyze method (old API)
+            elif hasattr(self.analyzer, 'analyze'):
+                return self.analyzer.analyze(text)
+            else:
+                # Ultimate fallback
+                logger.warning("Analyzer has neither analyze_text nor analyze methods")
+                return {'score': 0.5, 'label': 'Neutral'}
+        except Exception as e:
+            logger.error(f"Error analyzing text: {str(e)}")
+            return {'score': 0.5, 'label': 'Neutral'}
     
     def get_product_sentiment_summary(self, product_id: int) -> Optional[Dict]:
         """
