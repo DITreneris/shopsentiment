@@ -96,19 +96,37 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         sentiment_service = create_sentiment_service(db_path, sentiment_model)
         app.extensions['sentiment_service'] = sentiment_service
         logger.info(f"Initialized sentiment service with model: {sentiment_model}")
+    except ImportError as e:
+        logger.error(f"Could not import sentiment_service module: {str(e)}")
+        # Continue without sentiment service - implement a dummy service instead
+        app.extensions['sentiment_service'] = None
     except Exception as e:
         logger.error(f"Failed to initialize sentiment service: {str(e)}")
         # Continue without sentiment service
+        app.extensions['sentiment_service'] = None
     
     # Register blueprints
     with app.app_context():
         try:
-            from src.routes.api import api_bp
-            from src.routes.main import main_bp
+            # Try to import API routes first
+            try:
+                from src.routes.api import api_bp
+                app.register_blueprint(api_bp, url_prefix='/api')
+                logger.info("Registered API blueprint")
+            except ImportError as e:
+                logger.error(f"Could not import API routes: {str(e)}")
+            except Exception as e:
+                logger.error(f"Failed to register API routes: {str(e)}")
             
-            app.register_blueprint(api_bp, url_prefix='/api')
-            app.register_blueprint(main_bp)
-            logger.info("Registered main application blueprints")
+            # Try to import main routes
+            try:
+                from src.routes.main import main_bp
+                app.register_blueprint(main_bp)
+                logger.info("Registered main blueprint")
+            except ImportError as e:
+                logger.error(f"Could not import main routes: {str(e)}")
+            except Exception as e:
+                logger.error(f"Failed to register main routes: {str(e)}")
             
             # Register API v1 routes - direct registration approach
             try:
@@ -116,15 +134,30 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
                 
                 # Import API v1 blueprints directly
                 from src.api.v1 import api_v1
-                from src.api.v1.sentiment import sentiment_bp
-                from src.api.v1.products import products_bp
                 
-                # Register blueprints manually
-                api_v1.register_blueprint(sentiment_bp, url_prefix='/sentiment')
-                api_v1.register_blueprint(products_bp, url_prefix='/products')
+                # Try importing sub-blueprints but continue if they fail
+                try:
+                    from src.api.v1.sentiment import sentiment_bp
+                    api_v1.register_blueprint(sentiment_bp, url_prefix='/sentiment')
+                    logger.info("Registered sentiment blueprint with API v1")
+                except ImportError as e:
+                    logger.warning(f"Could not import sentiment API: {str(e)}")
+                except Exception as e:
+                    logger.warning(f"Failed to register sentiment API: {str(e)}")
+                
+                try:
+                    from src.api.v1.products import products_bp
+                    api_v1.register_blueprint(products_bp, url_prefix='/products')
+                    logger.info("Registered products blueprint with API v1")
+                except ImportError as e:
+                    logger.warning(f"Could not import products API: {str(e)}")
+                except Exception as e:
+                    logger.warning(f"Failed to register products API: {str(e)}")
+                
+                # Register the main API v1 blueprint
                 app.register_blueprint(api_v1, url_prefix='/api')
+                logger.info("Successfully registered API v1 blueprint")
                 
-                logger.info("Successfully registered API v1 blueprints manually")
             except ImportError as e:
                 logger.error(f"Could not import API v1 module: {str(e)}")
                 logger.error(f"Import error details: {traceback.format_exc()}")

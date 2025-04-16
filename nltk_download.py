@@ -28,12 +28,15 @@ except AttributeError:
 else:
     ssl._create_default_https_context = _create_unverified_https_context
 
-# Download NLTK data
+# Direct import of downloader to avoid interactive prompts
+from nltk.downloader import download
+
+# Download NLTK data using the download function directly
 packages = ['vader_lexicon', 'punkt', 'stopwords', 'wordnet', 'averaged_perceptron_tagger']
 for package in packages:
     logger.info(f"Downloading {package}...")
     try:
-        nltk.download(package, download_dir=nltk_data_dir, quiet=True)
+        download(package, download_dir=nltk_data_dir, quiet=True)
         logger.info(f"Successfully downloaded {package}")
     except Exception as e:
         logger.error(f"Failed to download {package}: {e}")
