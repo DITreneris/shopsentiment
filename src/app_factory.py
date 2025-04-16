@@ -6,6 +6,7 @@ This module provides a factory function to create and configure the Flask applic
 
 import os
 import logging
+import sys
 from typing import Dict, Any, Optional
 
 from flask import Flask
@@ -28,16 +29,40 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     
     app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
     
-    # Load default configuration
-    app.config.from_object('config.default')
+    # Add config directory to path if it exists
+    config_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'config'))
+    if os.path.exists(config_dir) and config_dir not in sys.path:
+        sys.path.insert(0, os.path.dirname(config_dir))
+        logger.info(f"Added {os.path.dirname(config_dir)} to sys.path")
+
+    # Set default config values
+    app.config.update({
+        "DEBUG": os.environ.get("FLASK_DEBUG", "true").lower() == "true",
+        "SECRET_KEY": os.environ.get("SECRET_KEY", "dev-key-for-shopsentiment"),
+        "CACHE_TYPE": "SimpleCache",
+        "CACHE_DEFAULT_TIMEOUT": 300,
+        "DATABASE_PATH": os.environ.get("DATABASE_PATH", "data/shopsentiment.db"),
+        "SENTIMENT_ANALYSIS_MODEL": os.environ.get("SENTIMENT_MODEL", "default"),
+    })
     
-    # Load environment-specific configuration
+    # Try to load default configuration
+    try:
+        app.config.from_object('config.default')
+        logger.info("Loaded configuration from config.default")
+    except ImportError as e:
+        logger.warning(f"Could not load config.default: {str(e)}")
+    except Exception as e:
+        logger.warning(f"Error loading config.default: {str(e)}")
+    
+    # Try to load environment-specific configuration
     env = os.getenv('FLASK_ENV', 'development')
     try:
         app.config.from_object(f'config.{env}')
         logger.info(f"Loaded configuration for environment: {env}")
     except ImportError:
-        logger.warning(f"No configuration found for environment: {env}. Using default.")
+        logger.warning(f"No configuration found for environment: {env}.")
+    except Exception as e:
+        logger.warning(f"Error loading config.{env}: {str(e)}")
     
     # Override with any provided config values
     if config:
@@ -96,6 +121,16 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     def handle_server_error(e):
         logger.error(f"Internal server error: {str(e)}")
         return {"error": "Internal server error"}, 500
+    
+    # Add a health endpoint directly to the app
+    @app.route('/health')
+    def health():
+        """Return the health status of the application."""
+        return {
+            'status': 'healthy',
+            'service': 'ShopSentiment Analysis',
+            'version': '1.0.0'
+        }
     
     # Setup logging
     if not app.debug:
