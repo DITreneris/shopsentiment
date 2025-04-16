@@ -7,7 +7,9 @@ This module provides a factory function to create and configure the Flask applic
 import os
 import logging
 import sys
+import traceback
 from typing import Dict, Any, Optional
+from datetime import datetime
 
 from flask import Flask
 
@@ -106,16 +108,32 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             
             app.register_blueprint(api_bp, url_prefix='/api')
             app.register_blueprint(main_bp)
+            logger.info("Registered main application blueprints")
             
-            # Register API v1 routes
+            # Register API v1 routes - direct registration approach
             try:
-                from src.api.v1 import register_api
-                register_api(app)
-                logger.info("Registered API v1 blueprints")
+                logger.info("Attempting to register API v1 blueprints...")
+                
+                # Import API v1 blueprints directly
+                from src.api.v1 import api_v1
+                from src.api.v1.sentiment import sentiment_bp
+                from src.api.v1.products import products_bp
+                
+                # Register blueprints manually
+                api_v1.register_blueprint(sentiment_bp, url_prefix='/sentiment')
+                api_v1.register_blueprint(products_bp, url_prefix='/products')
+                app.register_blueprint(api_v1, url_prefix='/api')
+                
+                logger.info("Successfully registered API v1 blueprints manually")
+            except ImportError as e:
+                logger.error(f"Could not import API v1 module: {str(e)}")
+                logger.error(f"Import error details: {traceback.format_exc()}")
+            except AttributeError as e:
+                logger.error(f"Attribute error registering API v1 blueprints: {str(e)}")
+                logger.error(f"Attribute error details: {traceback.format_exc()}")
             except Exception as e:
                 logger.error(f"Failed to register API v1 blueprints: {str(e)}")
-            
-            logger.info("Registered application blueprints")
+                logger.error(f"Error traceback: {traceback.format_exc()}")
         except Exception as e:
             logger.error(f"Failed to register blueprints: {str(e)}")
             # Continue without blueprints
@@ -134,10 +152,25 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     @app.route('/health')
     def health():
         """Return the health status of the application."""
+        # Check if API v1 is registered
+        api_v1_registered = False
+        try:
+            for blueprint in app.blueprints.values():
+                if blueprint.name == 'api_v1':
+                    api_v1_registered = True
+                    break
+        except Exception as e:
+            logger.error(f"Error checking API v1 registration: {str(e)}")
+        
         return {
             'status': 'healthy',
             'service': 'ShopSentiment Analysis',
-            'version': '1.0.0'
+            'version': '1.0.0',
+            'timestamp': str(datetime.now()),
+            'debug': {
+                'api_v1_registered': api_v1_registered,
+                'registered_blueprints': list(app.blueprints.keys())
+            }
         }
     
     # Setup logging
