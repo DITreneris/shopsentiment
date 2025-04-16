@@ -107,6 +107,14 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
             app.register_blueprint(api_bp, url_prefix='/api')
             app.register_blueprint(main_bp)
             
+            # Register API v1 routes
+            try:
+                from src.api.v1 import register_api
+                register_api(app)
+                logger.info("Registered API v1 blueprints")
+            except Exception as e:
+                logger.error(f"Failed to register API v1 blueprints: {str(e)}")
+            
             logger.info("Registered application blueprints")
         except Exception as e:
             logger.error(f"Failed to register blueprints: {str(e)}")
