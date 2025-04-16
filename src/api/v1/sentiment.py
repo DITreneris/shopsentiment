@@ -7,7 +7,6 @@ import logging
 from flask import Blueprint, jsonify, request
 
 from src.services.sentiment_analyzer import sentiment_analyzer
-from src.utils.cache import cached
 
 logger = logging.getLogger(__name__)
 
