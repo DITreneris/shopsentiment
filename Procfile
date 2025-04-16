@@ -1,1 +1,1 @@
-web: python nltk_download.py && gunicorn --config gunicorn_config.py wsgi:app 
+web: NLTK_DOWNLOADER_INTERACTIVE=0 gunicorn --config gunicorn_config.py wsgi:app 

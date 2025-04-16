@@ -17,6 +17,43 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Setup NLTK data
+try:
+    import nltk
+    nltk_data_dir = os.environ.get('NLTK_DATA', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'nltk_data'))
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(nltk_data_dir, exist_ok=True)
+    
+    # Add to NLTK's search path
+    nltk.data.path.append(nltk_data_dir)
+    
+    # Disable interactive downloads
+    os.environ['NLTK_DOWNLOADER_INTERACTIVE'] = '0'
+    
+    # Define required packages
+    required_packages = ['vader_lexicon', 'punkt', 'stopwords', 'wordnet', 'averaged_perceptron_tagger']
+    missing_packages = []
+    
+    # Check which packages are missing
+    for package in required_packages:
+        try:
+            nltk.data.find(f'tokenizers/{package}')
+            logger.info(f"NLTK package '{package}' is available")
+        except LookupError:
+            missing_packages.append(package)
+    
+    if missing_packages:
+        logger.warning(f"Missing NLTK packages: {', '.join(missing_packages)}")
+        logger.warning("Application will use fallback sentiment analyzer")
+    else:
+        logger.info("All required NLTK packages are available")
+        
+except ImportError:
+    logger.warning("NLTK not available. Will use fallback sentiment analyzer.")
+except Exception as e:
+    logger.error(f"Error setting up NLTK: {str(e)}")
+
 error_details = None
 error_traceback = None
 

@@ -82,6 +82,18 @@ class SentimentAnalyzer:
         
         return self._analyze_with_word_count(text)
     
+    def analyze(self, text: str) -> Dict[str, Union[float, str]]:
+        """
+        Alias for analyze_text to ensure backward compatibility.
+        
+        Args:
+            text: Text to analyze
+            
+        Returns:
+            Dictionary with sentiment score and label
+        """
+        return self.analyze_text(text)
+    
     def _analyze_with_word_count(self, text: str) -> Dict[str, Union[float, str]]:
         """
         Analyze sentiment by counting positive and negative words.
@@ -92,38 +104,46 @@ class SentimentAnalyzer:
         Returns:
             Dictionary with sentiment score and label
         """
-        # Convert to lowercase and split into words
-        words = re.findall(r'\b\w+\b', text.lower())
-        
-        # Filter out stopwords
-        words = [word for word in words if word not in self.stopwords]
-        
-        # Count positive and negative words
-        positive_count = sum(1 for word in words if word in self.positive_words)
-        negative_count = sum(1 for word in words if word in self.negative_words)
-        total_words = len(words)
-        
-        # Calculate score
-        if total_words > 0:
-            score = (positive_count - negative_count) / total_words
-        else:
-            score = 0
-        
-        # Determine label
-        if score > 0.05:
-            label = 'Positive'
-        elif score < -0.05:
-            label = 'Negative'
-        else:
-            label = 'Neutral'
-        
-        return {
-            'score': score,
-            'label': label,
-            'positive_count': positive_count,
-            'negative_count': negative_count,
-            'total_words': total_words
-        }
+        try:
+            # Convert to lowercase and split into words
+            words = re.findall(r'\b\w+\b', text.lower())
+            
+            # Filter out stopwords
+            words = [word for word in words if word not in self.stopwords]
+            
+            # Count positive and negative words
+            positive_count = sum(1 for word in words if word in self.positive_words)
+            negative_count = sum(1 for word in words if word in self.negative_words)
+            total_words = len(words)
+            
+            # Calculate score
+            if total_words > 0:
+                score = (positive_count - negative_count) / total_words
+            else:
+                score = 0
+            
+            # Determine label
+            if score > 0.05:
+                label = 'Positive'
+            elif score < -0.05:
+                label = 'Negative'
+            else:
+                label = 'Neutral'
+                
+            return {
+                'score': score,
+                'label': label,
+                'positive_count': positive_count,
+                'negative_count': negative_count,
+                'total_words': total_words
+            }
+        except Exception as e:
+            logger.error(f"Error in word count sentiment analysis: {str(e)}")
+            return {
+                'score': 0,
+                'label': 'Neutral',
+                'error': str(e)
+            }
 
 # Create a singleton instance
 sentiment_analyzer = SentimentAnalyzer() 

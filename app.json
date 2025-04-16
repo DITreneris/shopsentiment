@@ -15,6 +15,14 @@
     "MONGODB_URI": {
       "description": "MongoDB connection URI",
       "required": true
+    },
+    "NLTK_DOWNLOADER_INTERACTIVE": {
+      "description": "Disable interactive NLTK downloads",
+      "value": "0"
+    },
+    "NLTK_DATA": {
+      "description": "Path to NLTK data",
+      "value": "/app/nltk_data"
     }
   },
   "addons": [
@@ -24,5 +32,10 @@
     {
       "url": "heroku/python"
     }
-  ]
+  ],
+  "formation": {
+    "web": {
+      "quantity": 1
+    }
+  }
 } 
