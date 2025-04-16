@@ -34,7 +34,7 @@ keepalive = 5  # How long to keep connections alive
 accesslog = "-"  # Log to stdout
 errorlog = "-"   # Log to stderr
 loglevel = os.environ.get("LOG_LEVEL", "info")  # Log level
-access_log_format = '%h %l %u %t "%r" %>s %b "%{Referer}i" "%{User-Agent}i" %D'  # Enhanced access log format
+access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
 
 # Process naming
 proc_name = "shopsentiment"
