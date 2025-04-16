@@ -20,6 +20,9 @@ except ImportError:
             def analyze(self, text):
                 return {"score": 0.5, "label": "Neutral"}
                 
+            def analyze_text(self, text):
+                return {"score": 0.5, "label": "Neutral"}
+                
         sentiment_analyzer = FallbackAnalyzer()
         logging.warning("Using fallback sentiment analyzer due to import errors")
 
@@ -43,8 +46,11 @@ def analyze_sentiment():
         text = data['text']
         logger.info(f'API request to analyze sentiment for text: {text[:50]}...')
         
-        # Analyze the sentiment
-        sentiment = sentiment_analyzer.analyze(text)
+        # Try both methods to be compatible with different analyzer implementations
+        if hasattr(sentiment_analyzer, 'analyze_text'):
+            sentiment = sentiment_analyzer.analyze_text(text)
+        else:
+            sentiment = sentiment_analyzer.analyze(text)
         
         return jsonify({
             'text': text,
@@ -82,7 +88,12 @@ def batch_analyze_sentiment():
                 })
                 continue
                 
-            sentiment = sentiment_analyzer.analyze(text)
+            # Try both methods to be compatible with different analyzer implementations
+            if hasattr(sentiment_analyzer, 'analyze_text'):
+                sentiment = sentiment_analyzer.analyze_text(text)
+            else:
+                sentiment = sentiment_analyzer.analyze(text)
+                
             results.append({
                 'text': text,
                 'sentiment': sentiment
