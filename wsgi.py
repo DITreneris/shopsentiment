@@ -26,8 +26,8 @@ try:
     app = application  # alias for compatibility
     
     logger.info("Application initialized successfully")
-except Exception as e:
-    logger.error(f"Error initializing application: {str(e)}")
+except Exception as error:
+    logger.error(f"Error initializing application: {str(error)}")
     # Create a simple fallback app that shows the error
     from flask import Flask, jsonify
     
@@ -38,7 +38,14 @@ except Exception as e:
     def error_page():
         return jsonify({
             "error": "Application failed to initialize",
-            "message": str(e)
+            "message": "An error occurred while initializing the application. Please check the logs for details."
+        }), 500
+    
+    @app.route('/health')
+    def health_check():
+        return jsonify({
+            'status': 'unhealthy',
+            'message': 'Application failed to initialize properly'
         }), 500
     
     logger.info("Using fallback error application")
