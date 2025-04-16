@@ -1,1 +1,1 @@
-web: NLTK_DOWNLOADER_INTERACTIVE=0 gunicorn --config gunicorn_config.py wsgi:app 
+web: PYTHONPATH=$PYTHONPATH:. PYTHON_NLTK_SKIP_DOWNLOAD=true gunicorn --config gunicorn_config.py wsgi:app 

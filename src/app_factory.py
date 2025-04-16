@@ -1,7 +1,7 @@
 """
-Application Factory
+Application Factory for the ShopSentiment App
 
-This module provides a factory function to create and configure the Flask application.
+Provides a factory function to create and configure a Flask application
 """
 
 import os
@@ -11,9 +11,22 @@ import traceback
 from typing import Dict, Any, Optional
 from datetime import datetime
 
-from flask import Flask
+from flask import Flask, jsonify, request
+from flask_cors import CORS
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
+
+# Make sure src is in the path for absolute imports
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+    logger.info(f"Added {parent_dir} to sys.path")
 
 def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     """
@@ -72,7 +85,6 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     
     # Initialize extensions
     try:
-        from flask_cors import CORS
         CORS(app)
         logger.info("CORS initialized")
     except ImportError:
