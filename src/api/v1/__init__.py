@@ -5,11 +5,8 @@ This package provides the API endpoints for the ShopSentiment application.
 """
 
 import logging
-from flask import Blueprint, jsonify
-
-# Import API modules
-from src.api.v1.sentiment import sentiment_bp
-from src.api.v1.products import products_bp
+import traceback
+from flask import Blueprint, jsonify, current_app
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +21,43 @@ def api_info():
     Returns:
         JSON response with API information
     """
+    logger.info("API v1 info endpoint called")
     return jsonify({
         'name': 'ShopSentiment API',
         'version': '1.0',
         'endpoints': [
             '/api/v1/products',
             '/api/v1/sentiment',
-        ]
+        ],
+        'status': 'active'
+    })
+
+@api_v1.route('/status', methods=['GET'])
+def api_status():
+    """
+    Get API status information (diagnostic endpoint).
+    
+    Returns:
+        JSON response with API status information
+    """
+    logger.info("API v1 status endpoint called")
+    
+    # Get registered blueprints in the main app
+    blueprints = []
+    try:
+        for name, blueprint in current_app.blueprints.items():
+            blueprints.append({
+                'name': name,
+                'url_prefix': getattr(blueprint, 'url_prefix', None)
+            })
+    except Exception as e:
+        logger.error(f"Error getting blueprints: {str(e)}")
+    
+    return jsonify({
+        'status': 'active',
+        'api_version': '1.0',
+        'registered_blueprints': blueprints,
+        'api_v1_registered': True
     })
 
 def register_api(app):
@@ -40,11 +67,36 @@ def register_api(app):
     Args:
         app: Flask application instance
     """
-    # Register blueprints
-    api_v1.register_blueprint(products_bp, url_prefix='/products')
-    api_v1.register_blueprint(sentiment_bp, url_prefix='/sentiment')
+    logger.info("Starting API v1 blueprint registration")
     
-    # Register API Blueprint with app
-    app.register_blueprint(api_v1, url_prefix='/api')
-    
-    logger.info('API v1 routes registered') 
+    try:
+        # Import API modules
+        logger.info("Importing API v1 modules")
+        from src.api.v1.sentiment import sentiment_bp
+        from src.api.v1.products import products_bp
+        
+        logger.info("Registering sentiment blueprint with API v1")
+        api_v1.register_blueprint(sentiment_bp, url_prefix='/sentiment')
+        
+        logger.info("Registering products blueprint with API v1")
+        api_v1.register_blueprint(products_bp, url_prefix='/products')
+        
+        logger.info("Registering API v1 blueprint with main app")
+        app.register_blueprint(api_v1, url_prefix='/api')
+        
+        logger.info('API v1 routes registered successfully')
+        
+        # Print all registered routes for debugging
+        for rule in app.url_map.iter_rules():
+            if 'api/v1' in str(rule):
+                logger.info(f"Registered route: {rule}")
+                
+        return True
+    except ImportError as e:
+        logger.error(f"Failed to import API v1 modules: {str(e)}")
+        logger.error(traceback.format_exc())
+        return False
+    except Exception as e:
+        logger.error(f"Failed to register API v1 blueprints: {str(e)}")
+        logger.error(traceback.format_exc())
+        return False 
