@@ -17,6 +17,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+error_details = None
+error_traceback = None
+
 try:
     # Make sure src is in the path
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -34,9 +37,10 @@ try:
     app = application  # alias for compatibility
     
     logger.info("Application initialized successfully")
-except Exception as error:
+except Exception as e:
+    error_details = str(e)
     error_traceback = traceback.format_exc()
-    logger.error(f"Error initializing application: {str(error)}")
+    logger.error(f"Error initializing application: {error_details}")
     logger.error(f"Traceback: {error_traceback}")
     
     # Create a simple fallback app that shows the error
@@ -50,8 +54,8 @@ except Exception as error:
         return jsonify({
             "error": "Application failed to initialize",
             "message": "An error occurred while initializing the application. Please check the logs for details.",
-            "error_details": str(error),
-            "traceback": error_traceback.split('\n')
+            "error_details": error_details,
+            "traceback": error_traceback.split('\n') if error_traceback else []
         }), 500
     
     @app.route('/health')
@@ -59,7 +63,7 @@ except Exception as error:
         return jsonify({
             'status': 'unhealthy',
             'message': 'Application failed to initialize properly',
-            'error': str(error)
+            'error': error_details
         }), 500
     
     logger.info("Using fallback error application")
