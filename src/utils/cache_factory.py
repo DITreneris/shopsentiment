@@ -58,40 +58,36 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
     Returns:
         Configured cache instance
     """
-    # --- TEMPORARY DEBUGGING: RAISE EXCEPTION --- 
-    cache_type_debug = config.get('CACHE_TYPE', 'SimpleCache')
-    redis_url_debug = config.get('CACHE_REDIS_URL')
-    raise RuntimeError(f"***** CACHE FACTORY DEBUG: Entered! Type={cache_type_debug}, URL={redis_url_debug}, RedisImportOK={REDIS_AVAILABLE} *****")
-    # --- END TEMPORARY DEBUGGING ---
+    # --- REVERTED DEBUGGING --- 
+    # cache_type_debug = config.get('CACHE_TYPE', 'SimpleCache')
+    # redis_url_debug = config.get('CACHE_REDIS_URL')
+    # raise RuntimeError(f"***** CACHE FACTORY DEBUG: Entered! Type={cache_type_debug}, URL={redis_url_debug}, RedisImportOK={REDIS_AVAILABLE} *****")
+    # --- END REVERTED DEBUGGING ---
 
     # --- UNCONDITIONAL ENTRY LOG --- 
-    # logger.info("***** [Cache Factory] ENTERING get_cache_from_app_config *****") # Commented out for now
+    logger.info("***** [Cache Factory] ENTERING get_cache_from_app_config *****") # Re-enabled
     # --- END UNCONDITIONAL ENTRY LOG ---
     
-    # cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache # Commented out
-    # redis_url_from_config = config.get('CACHE_REDIS_URL') # Get potential URL # Commented out
+    cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache # Re-enabled
+    redis_url_from_config = config.get('CACHE_REDIS_URL') # Get potential URL # Re-enabled
     
     # ---> INSERT DIAGNOSTIC LOGGING HERE <---
-    # logger.info(f"[Cache Factory] Input Config CACHE_TYPE: {cache_type}") # Commented out
-    # logger.info(f"[Cache Factory] Redis Available (Import): {REDIS_AVAILABLE}") # Commented out
-    # logger.info(f"[Cache Factory] Input Config CACHE_REDIS_URL: {redis_url_from_config}") # Commented out
+    logger.info(f"[Cache Factory] Input Config CACHE_TYPE: {cache_type}") # Re-enabled
+    logger.info(f"[Cache Factory] Redis Available (Import): {REDIS_AVAILABLE}") # Re-enabled
+    logger.info(f"[Cache Factory] Input Config CACHE_REDIS_URL: {redis_url_from_config}") # Re-enabled
     # ---> END DIAGNOSTIC LOGGING <---
     
-    # --- REST OF THE FUNCTION (WILL NOT BE REACHED) ---
-    # Check if the configured type is RedisCache and if Redis is available
-    # ... (original code remains here but won't execute due to the raise) ...
-
+    # --- REST OF THE FUNCTION (Now reachable again) ---
     # Check if the configured type is RedisCache and if Redis is available
     if cache_type == 'RedisCache' and REDIS_AVAILABLE:
         # Redis-based caching
         try:
-            # Get REDIS_URL from config (which should come from env var in production)
             # Use the variable already fetched
             redis_url = redis_url_from_config 
             if not redis_url:
-                 logger.error("[Cache Factory] CACHE_REDIS_URL is missing in config despite CACHE_TYPE being RedisCache.")
-                 raise ValueError("CACHE_REDIS_URL not found in config for RedisCache type")
-
+                logger.error("[Cache Factory] CACHE_REDIS_URL is missing in config despite CACHE_TYPE being RedisCache.")
+                raise ValueError("CACHE_REDIS_URL not found in config for RedisCache type")
+            
             # Test the connection directly using the URL from config
             redis_client = Redis.from_url(redis_url, socket_connect_timeout=5) # Add timeout
             redis_client.ping()
@@ -122,7 +118,14 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
                 return SimpleCache(threshold=config.get('CACHE_THRESHOLD', 500), default_timeout=config.get('CACHE_DEFAULT_TIMEOUT', 300))
     else:
         # Simple in-memory cache or if Redis type was specified but not available
-        logger.info(f"Using simple in-memory cache (type: {cache_type})")
+        # Add specific log why Redis wasn't chosen
+        if cache_type == 'RedisCache' and not REDIS_AVAILABLE:
+            logger.warning(f"CACHE_TYPE is RedisCache but Redis library import failed (REDIS_AVAILABLE=False). Falling back to SimpleCache.")
+        elif cache_type != 'RedisCache':
+             logger.info(f"CACHE_TYPE is '{cache_type}', not 'RedisCache'. Using simple in-memory cache.")
+        else:
+            logger.info(f"Using simple in-memory cache (type: {cache_type}). Condition: cache_type == 'RedisCache' and REDIS_AVAILABLE was False.")
+            
         if CACHE_AVAILABLE:
             # Explicitly configure SimpleCache
             return Cache(config={

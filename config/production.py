@@ -26,15 +26,11 @@ LOG_FILE = '/var/log/shopsentiment/app.log'
 SENTIMENT_ANALYSIS_MODEL = 'production'
 CACHE_TIMEOUT = 3600  # 1 hour for production
 
-# Cache settings - Determine type based on REDIS_URL
-REDIS_URL_ENV = os.environ.get('REDIS_URL')
-if REDIS_URL_ENV:
-    CACHE_TYPE = 'RedisCache'  # Use RedisCache from flask_caching
-    CACHE_REDIS_URL = REDIS_URL_ENV
-    CACHE_DEFAULT_TIMEOUT = CACHE_TIMEOUT
-else:
-    CACHE_TYPE = 'SimpleCache'  # Fallback to SimpleCache
-    CACHE_DEFAULT_TIMEOUT = 300 # Or keep CACHE_TIMEOUT if preferred for SimpleCache too
+# Cache settings - Explicitly configure for Redis in production
+# The cache_factory will handle fallback if URL is missing or connection fails
+CACHE_TYPE = 'RedisCache'
+CACHE_REDIS_URL = os.environ.get('REDIS_URL') # Will be None if env var not set
+CACHE_DEFAULT_TIMEOUT = CACHE_TIMEOUT # Use production timeout
 
 # Performance settings
 JSONIFY_PRETTYPRINT_REGULAR = False
