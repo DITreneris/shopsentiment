@@ -210,11 +210,14 @@ def create_app(config=None):
             
             # Check cache status
             cache_status = "unknown"
-            cache_type = "unknown"
+            cache_type = "unknown" # Get configured type instead of class name
             try:
                 cache_instance = app.extensions.get('cache')
+                cache_config = app.config.get('CACHE_TYPE', 'unknown')
+                cache_type = cache_config.capitalize() # Report configured type
+                
                 if cache_instance:
-                    cache_type = cache_instance.__class__.__name__
+                    # Use simple set/get which should work for flask_caching Cache object
                     cache_instance.set('health_check', 'ok', timeout=10)
                     cache_test = cache_instance.get('health_check')
                     if cache_test == 'ok':
