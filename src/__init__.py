@@ -232,11 +232,7 @@ def create_app(config=None):
                 cache_config = app.config.get('CACHE_TYPE', 'unknown')
                 cache_type = cache_config.capitalize() # Report configured type
                 
-                # ---> TEMPORARY DIAGNOSTIC: Assume SimpleCache is always healthy <--- 
-                if cache_type == 'Simplecache':
-                    cache_status = "healthy"
-                # ---> END TEMPORARY DIAGNOSTIC <--- 
-                elif cache_instance: # Only do set/get for non-SimpleCache
+                if cache_instance:
                     # Use simple set/get which should work for flask_caching Cache object
                     cache_key = 'health_check'
                     cache_value = 'ok'
