@@ -10,12 +10,26 @@ import sys
 import logging
 import traceback
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
+# --- EARLY LOGGING SETUP ---
+# Explicitly configure a StreamHandler to ensure logs go to stdout/stderr
+# This might help capture logs during early Gunicorn worker initialization
+log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+stream_handler = logging.StreamHandler(sys.stderr) # Use stderr, often captured by Heroku
+stream_handler.setFormatter(log_formatter)
+
+root_logger = logging.getLogger()
+root_logger.addHandler(stream_handler)
+# Set level early, it might be overridden later by basicConfig or file config
+root_logger.setLevel(logging.INFO) 
+# --- END EARLY LOGGING SETUP ---
+
+# Configure logging (original basicConfig might override parts, but handler is added)
+# logging.basicConfig(
+#     level=logging.INFO,
+#     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# )
 logger = logging.getLogger(__name__)
+logger.info("***** WSGI Module Started - Early Logging Configured *****")
 
 # Setup NLTK data (REMOVED - Application uses fallback analyzer)
 # try:
