@@ -12,7 +12,7 @@ from flask import Flask, render_template, jsonify, request, g
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from src.database.connection import get_mongodb_client, close_mongodb_connection, get_db_client, close_db_client
+from src.database.connection import get_mongodb_client, close_mongodb_connection
 # Import SQLite connection module for fallback
 try:
     from src.database.sqlite_connection import init_sqlite_db, close_sqlite_db
@@ -207,11 +207,11 @@ def create_app(config=None):
                     else:
                         # Either no client or it was closed, try re-initializing for health check
                         logger.warning("Initial MongoDB ping failed or client missing/closed. Attempting re-init for health check.")
-                        temp_client = get_db_client(app.config.get('MONGODB_URI'))
+                        temp_client = get_mongodb_client(app.config.get('MONGODB_URI'))
                         if temp_client:
                             temp_client.admin.command('ping') # Ping the new client
                             db_status = "healthy"
-                            close_db_client(temp_client) # Close the temporary client
+                            close_mongodb_connection(temp_client) # Close the temporary client
                         else:
                              db_status = "unhealthy"
                 except Exception as e:
@@ -222,7 +222,7 @@ def create_app(config=None):
                     db_status = "unhealthy"
                     # Ensure temporary client is closed if created
                     if 'temp_client' in locals() and temp_client:
-                        close_db_client(temp_client)
+                        close_mongodb_connection(temp_client)
             
             # Check cache status
             cache_status = "unknown"
