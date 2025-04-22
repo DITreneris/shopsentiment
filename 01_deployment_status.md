@@ -1,16 +1,17 @@
 # ShopSentiment Application Deployment Status
 
-*Updated: April 16, 2023*
+*Updated: April 22, 2025*
 
 ## Current Status
 
-✅ **Application Deployed**: The application is now deployed on Heroku and the health endpoints are responding correctly.
-- URL: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/
-- Health check: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/health (Main app health)
-- API health check: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/api/health (API health)
+❌ **Application NON-FUNCTIONAL**: While the process is running on Heroku, critical issues prevent the application from working correctly.
+- URL: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/ (May load, but features reliant on cache will fail)
+- Health check: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/health (Currently buggy - see below)
+- API health check: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/api/health (Status unknown, likely impacted)
 
-❌ **API v1 Endpoints**: Despite multiple attempts to fix, the API v1 endpoints still fail due to missing module issues.
-- Issue: `ModuleNotFoundError: No module named 'src.services.sentiment_analyzer'`
+❌ **Critical Issue - Cache Status**: The cache consistently initializes as `SimpleCache` and reports as `unhealthy`. This breaks core functionality.
+❌ **Critical Issue - Health Check Bug**: The main `/health` endpoint itself is buggy (`'Cache' object is not subscriptable`), preventing reliable status monitoring.
+❌ **API v1 Endpoints**: Status unknown, likely non-functional due to the cache issue. Needs re-verification after cache/health is fixed.
 
 ## Issues Resolved
 
@@ -57,101 +58,94 @@
    - Added NLTK-specific environment variables to control download behavior
    - Updated the Heroku Procfile to include proper environment variable configuration
 
-## Recent Changes Made (April 16, 2023)
+## Recent Changes Made (April 22, 2025 - Cache Debugging Session)
 
-1. **NLTK Download Issue Resolution Attempt**
-   - Updated the Procfile to include `PYTHON_NLTK_SKIP_DOWNLOAD=true` to bypass NLTK download issues
-   - Created an updated `nltk.txt` file with required packages for Heroku buildpack
-   - Added environment variables in `.env` to control NLTK download behavior
-   - Modified the application to handle missing NLTK components gracefully with fallbacks
+1.  **Build Cache Purge (v49)**
+    - Purged Heroku build cache (`heroku repo:purge_cache`) to eliminate potential stale code issues.
+    - Redeployed application (v49).
+    - Result: Issue persisted; health check still showed `SimpleCache` unhealthy.
 
-2. **Improved Path Management**
-   - Updated `src/app_factory.py` to ensure proper path handling for imports
-   - Added code to explicitly add parent directory to `sys.path` for absolute imports
-   - Enhanced logging to better track module loading and path configuration
+2.  **Detailed Cache Factory Logging (v50)**
+    - Added detailed `try...except` logging (including traceback) around the Redis connection attempt (`Redis.from_url()` and `.ping()`) in `src/utils/cache_factory.py`.
+    - Deployed application (v50).
+    - Result: Analysis of startup logs showed **no exception was caught** by the new logging block, yet the application still defaulted to `SimpleCache`.
 
-3. **Fallback Error Handling**
-   - Improved error handling throughout the codebase
-   - Added detailed logging for import errors
-   - Created fallback implementations for critical services when modules cannot be loaded
+3.  **Log Analysis & New Finding**
+    - Reviewed Heroku logs extensively.
+    - Identified a new error originating from the `/health` endpoint itself: `ERROR - Cache health check failed during operation: 'Cache' object is not subscriptable`. This indicates a bug in the health check's interaction with the cache object.
 
 ## Issues Requiring Attention
 
-1. **API v1 Endpoint Deployment**
-   - ❌ The API v1 endpoints are failing on Heroku with `ModuleNotFoundError: No module named 'src.services.sentiment_analyzer'`
-   - Despite the file existing and being correctly structured, the module cannot be found
-   - The application loads but fails to initialize sentiment services correctly
-   - Error occurs both in app initialization and when attempting to access sentiment endpoints
+1.  **Cache Initialization Failure**
+    - ❌ Despite `REDIS_URL` being correctly set in Heroku config and `config/production.py` specifying `CACHE_TYPE = 'RedisCache'`, the application consistently falls back to `SimpleCache`.
+    - The detailed logging added in `v50` did *not* capture an explicit connection error during the `Redis.from_url()` or `ping()` calls, deepening the mystery.
+    - The root cause for defaulting to `SimpleCache` remains unidentified.
 
-2. **NLTK Data Download**
-   - ✅ Created `nltk.txt` file listing required NLTK packages
-   - ❌ NLTK download still fails during deployment with error: `Error: Unable to download NLTK data`
-   - Despite adding environment variables and updating Procfile to skip NLTK downloads
+2.  **Health Check Endpoint Bug**
+    - ❌ The `/health` route in `src/__init__.py` crashes internally when checking cache status, reporting `'Cache' object is not subscriptable`.
+    - This bug needs fixing to get a reliable status report and potentially unmask other issues.
 
-3. **Import Structure Issues**
-   - Directory structure may be causing module import problems
-   - The sentinel file pattern (src/services/sentiment_analyzer/__init__.py) may not be working as expected
-   - Need to potentially flatten the module structure or revise import patterns
+3.  **API v1 Endpoint Deployment**
+    - ❓ Status needs re-verification. The historical `ModuleNotFoundError: No module named 'src.services.sentiment_analyzer'` might be resolved, but testing is needed. Potential impact from cache issues.
 
-4. **Template Rendering**
+4.  **NLTK Data Download**
+    - ✅ This seems resolved based on previous logs showing NLTK data being available.
+
+5. **Template Rendering**
    - While the app is running, we haven't verified if the template rendering is working correctly
    - Need to test routes that depend on templates (`/`, `/about`, etc.)
 
-5. **Database Connection**
+6. **Database Connection**
    - The application may require database setup and configuration
    - Check if data access is functioning correctly
 
-6. **Static Files**
+7. **Static Files**
    - Verify that static files (CSS, JavaScript, images) are properly served
 
-7. **Runtime Deprecation Warning**
+8. **Runtime Deprecation Warning**
    - Heroku warns that `runtime.txt` is deprecated and should be replaced with `.python-version`
    - Consider updating the Python version specification format
 
 ## Next Steps
 
-1. **Fix Module Import Issues**
-   - Consider flattening the directory structure to avoid nested imports
-   - Simplify the sentiment analyzer implementation to avoid complex import patterns
-   - Evaluate using absolute imports consistently throughout the codebase
-   - Consider moving critical functionality to the app factory to avoid import issues
+1.  **Fix Health Check Bug:**
+    - **Priority:** High.
+    - Modify the `/health` endpoint logic in `src/__init__.py` to correctly interact with the `cache` object (retrieved from `app.extensions['cache']`) and determine its status without causing the `'Cache' object is not subscriptable` error.
 
-2. **Alternative NLTK Strategy**
-   - Implement a complete fallback for NLTK functionality that doesn't rely on downloaded data
-   - Use a simpler sentiment analysis approach that doesn't depend on NLTK or external data
-   - Consider pre-packaging required NLTK data or using a different approach entirely
+2.  **Enhance Cache Factory Logging:**
+    - Add logging *before* the `if cache_type == 'RedisCache':` block in `src/utils/cache_factory.py`.
+    - Log the values of `cache_type`, `REDIS_AVAILABLE`, and `config.get('CACHE_REDIS_URL')` *as they are seen by the factory function*. This will help verify the conditions leading to the Redis path being taken or skipped.
 
-3. **Deployment Reconfiguration**
-   - Create a simplified version of the application for deployment
-   - Consider using a different Python buildpack or configuration
-   - Evaluate other deployment options like Docker containers
+3.  **Verify Configuration Load:**
+    - Double-check that the `config/production.py` is definitely being loaded by Heroku and that `CACHE_TYPE` is correctly set to `'RedisCache'` within the running application environment. Consider adding logging during `load_configuration` in `src/__init__.py`.
 
-4. **Comprehensive Testing**
-   - Create a test script that verifies all modules can be imported correctly
-   - Test the API endpoints locally with the same environment variables as Heroku
-   - Create a minimal test case that reproduces the import issues
+4.  **Re-test API v1 Endpoints:**
+    - Once the cache and health check issues are stable, systematically test the `/api/v1/...` endpoints again.
 
-5. **Rebuild from Scratch**
-   - Consider recreating the application with a simpler structure
-   - Start with a minimal viable product and add functionality incrementally
-   - Use a flat directory structure with minimal nesting
+5.  **(Lower Priority):** Address other pending checks (Template Rendering, Static Files, Runtime Deprecation Warning).
 
 ## Lessons Learned
 
-1. **Module Structure**
-   - Complex module hierarchies can cause import issues in different environments
-   - Nested packages with `__init__.py` files can be problematic on some platforms
-   - Absolute imports are more reliable than relative imports for complex structures
+1.  **Module Structure**
+    - Complex module hierarchies can cause import issues in different environments.
+    - Nested packages with `__init__.py` files can be problematic on some platforms.
+    - Absolute imports are more reliable than relative imports for complex structures.
 
-2. **NLTK Integration**
-   - NLTK data download is problematic in serverless environments
-   - Pre-downloading data or providing fallbacks is essential
-   - Environment variables alone may not solve NLTK download issues
+2.  **NLTK Integration**
+    - NLTK data download is problematic in serverless environments.
+    - Pre-downloading data or providing fallbacks is essential.
+    - Environment variables alone may not solve NLTK download issues.
 
-3. **Heroku Deployment**
-   - Heroku's ephemeral filesystem requires special handling for data files
-   - Environment configuration is critical for successful deployment
-   - The buildpack system has limitations for complex Python applications
+3.  **Heroku Deployment**
+    - Heroku's ephemeral filesystem requires special handling for data files.
+    - Environment configuration is critical for successful deployment.
+    - The buildpack system has limitations for complex Python applications.
+    - Build cache can sometimes cause unexpected behavior with stale code.
+
+4.  **Debugging Complex Issues:**
+    - Requires iterative steps: form hypothesis, add logging/tests, deploy, analyze results.
+    - Errors can occur in unexpected places (e.g., within monitoring endpoints like `/health`).
+    - Silent failures require careful logging placement to understand the application's logic flow.
 
 ## Resources
 
