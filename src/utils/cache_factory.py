@@ -59,14 +59,23 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
         Configured cache instance
     """
     cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache
+    redis_url_from_config = config.get('CACHE_REDIS_URL') # Get potential URL
+    
+    # --- DIAGNOSTIC LOGGING --- 
+    logger.info(f"[Cache Factory] Input Config CACHE_TYPE: {cache_type}")
+    logger.info(f"[Cache Factory] Redis Available (Import): {REDIS_AVAILABLE}")
+    logger.info(f"[Cache Factory] Input Config CACHE_REDIS_URL: {redis_url_from_config}")
+    # --- END DIAGNOSTIC LOGGING ---
     
     # Check if the configured type is RedisCache and if Redis is available
     if cache_type == 'RedisCache' and REDIS_AVAILABLE:
         # Redis-based caching
         try:
             # Get REDIS_URL from config (which should come from env var in production)
-            redis_url = config.get('CACHE_REDIS_URL') 
+            # Use the variable already fetched
+            redis_url = redis_url_from_config 
             if not redis_url:
+                 logger.error("[Cache Factory] CACHE_REDIS_URL is missing in config despite CACHE_TYPE being RedisCache.")
                  raise ValueError("CACHE_REDIS_URL not found in config for RedisCache type")
 
             # Test the connection directly using the URL from config

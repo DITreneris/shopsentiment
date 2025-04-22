@@ -226,34 +226,48 @@ def create_app(config=None):
             
             # Check cache status
             cache_status = "unknown"
-            cache_type = "unknown" # Get configured type instead of class name
+            cache_type = "unknown"
             try:
                 cache_instance = app.extensions.get('cache')
-                cache_config = app.config.get('CACHE_TYPE', 'unknown')
-                cache_type = cache_config.capitalize() # Report configured type
                 
                 if cache_instance:
-                    # Use simple set/get which should work for flask_caching Cache object
+                    # Get the actual type of the initialized cache object
+                    cache_type = cache_instance.__class__.__name__
+                    
+                    # Perform a simple set/get test
                     cache_key = 'health_check'
                     cache_value = 'ok'
                     cache_instance.set(cache_key, cache_value, timeout=10)
-                    cache_test = cache_instance.get(cache_key)
-                    # Check if the retrieved value matches what we set
-                    if cache_test == cache_value:
+                    retrieved_value = cache_instance.get(cache_key)
+                    
+                    if retrieved_value == cache_value:
                         cache_status = "healthy"
+                        # Optionally delete the key after successful check
+                        try:
+                            cache_instance.delete(cache_key)
+                        except AttributeError:
+                            pass # SimpleCache might not have delete
                     else:
-                        logger.warning(f"Cache health check failed: set/get mismatch. Set '{cache_value}', Got: {cache_test}")
+                        logger.warning(f"Cache health check failed: set/get mismatch. Set '{cache_value}', Got: {retrieved_value}")
                         cache_status = "unhealthy"
                 else:
-                    logger.warning("Cache not found in app extensions.")
+                    logger.warning("Cache object not found in app extensions.")
                     cache_status = "unhealthy"
+                    # Fallback cache type based on config if instance missing
+                    cache_type = app.config.get('CACHE_TYPE', 'Unknown').capitalize()
+
             except Exception as e:
-                logger.error(f"Cache health check failed during operation: {str(e)}")
+                # Log the error and ensure status is unhealthy
+                logger.error(f"Cache health check failed during operation: {type(e).__name__}: {str(e)}", exc_info=True)
                 cache_status = "unhealthy"
+                # Attempt to get instance type even if check failed
+                if 'cache_instance' in locals() and cache_instance:
+                    cache_type = cache_instance.__class__.__name__
+                else: 
+                    cache_type = app.config.get('CACHE_TYPE', 'Error').capitalize()
             
-            # ---> ADDED LOGGING BEFORE RETURN <--- 
+            # Logging before returning the response
             logger.info(f"Health Check Returning - DB Status: {db_status}, DB Type: {db_type}, Cache Status: {cache_status}, Cache Type: {cache_type}")
-            # ---> END ADDED LOGGING <--- 
 
             return jsonify({
                 'status': 'healthy',
