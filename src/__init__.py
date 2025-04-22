@@ -93,9 +93,12 @@ def create_app(config=None):
     CORS(app)
     
     # Initialize cache
+    # First, create the cache object using our factory
     cache = get_cache_from_app_config(app.config)
-    app.extensions['cache'] = cache
-    logger.info(f"Initialized cache: {cache.__class__.__name__}")
+    # Then, initialize it with the app using the standard method
+    cache.init_app(app)
+    # logger.info(f"Initialized cache: {cache.__class__.__name__}") # This might log SimpleCache initially if factory returns that
+    # Let's rely on health check for the final type after init_app
     
     # Initialize sentiment service
     try:
