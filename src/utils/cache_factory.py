@@ -58,14 +58,18 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
     Returns:
         Configured cache instance
     """
+    # --- UNCONDITIONAL ENTRY LOG --- 
+    logger.info("***** [Cache Factory] ENTERING get_cache_from_app_config *****")
+    # --- END UNCONDITIONAL ENTRY LOG ---
+    
     cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache
     redis_url_from_config = config.get('CACHE_REDIS_URL') # Get potential URL
     
-    # --- DIAGNOSTIC LOGGING --- 
+    # ---> INSERT DIAGNOSTIC LOGGING HERE <---
     logger.info(f"[Cache Factory] Input Config CACHE_TYPE: {cache_type}")
     logger.info(f"[Cache Factory] Redis Available (Import): {REDIS_AVAILABLE}")
     logger.info(f"[Cache Factory] Input Config CACHE_REDIS_URL: {redis_url_from_config}")
-    # --- END DIAGNOSTIC LOGGING ---
+    # ---> END DIAGNOSTIC LOGGING <---
     
     # Check if the configured type is RedisCache and if Redis is available
     if cache_type == 'RedisCache' and REDIS_AVAILABLE:
