@@ -209,15 +209,24 @@ def create_app(config=None):
                     db_status = "unhealthy"
             
             # Check cache status
-            cache_status = "healthy"
-            cache_type = app.extensions.get('cache', {}).__class__.__name__
+            cache_status = "unknown"
+            cache_type = "unknown"
             try:
-                app.extensions['cache'].set('health_check', 'ok', timeout=10)
-                cache_test = app.extensions['cache'].get('health_check')
-                if cache_test != 'ok':
+                cache_instance = app.extensions.get('cache')
+                if cache_instance:
+                    cache_type = cache_instance.__class__.__name__
+                    cache_instance.set('health_check', 'ok', timeout=10)
+                    cache_test = cache_instance.get('health_check')
+                    if cache_test == 'ok':
+                        cache_status = "healthy"
+                    else:
+                        logger.warning("Cache health check failed: set/get mismatch.")
+                        cache_status = "unhealthy"
+                else:
+                    logger.warning("Cache not found in app extensions.")
                     cache_status = "unhealthy"
             except Exception as e:
-                logger.error(f"Cache health check failed: {str(e)}")
+                logger.error(f"Cache health check failed during operation: {str(e)}")
                 cache_status = "unhealthy"
             
             return jsonify({
