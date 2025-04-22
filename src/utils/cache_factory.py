@@ -58,19 +58,29 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
     Returns:
         Configured cache instance
     """
+    # --- TEMPORARY DEBUGGING: RAISE EXCEPTION --- 
+    cache_type_debug = config.get('CACHE_TYPE', 'SimpleCache')
+    redis_url_debug = config.get('CACHE_REDIS_URL')
+    raise RuntimeError(f"***** CACHE FACTORY DEBUG: Entered! Type={cache_type_debug}, URL={redis_url_debug}, RedisImportOK={REDIS_AVAILABLE} *****")
+    # --- END TEMPORARY DEBUGGING ---
+
     # --- UNCONDITIONAL ENTRY LOG --- 
-    logger.info("***** [Cache Factory] ENTERING get_cache_from_app_config *****")
+    # logger.info("***** [Cache Factory] ENTERING get_cache_from_app_config *****") # Commented out for now
     # --- END UNCONDITIONAL ENTRY LOG ---
     
-    cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache
-    redis_url_from_config = config.get('CACHE_REDIS_URL') # Get potential URL
+    # cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache # Commented out
+    # redis_url_from_config = config.get('CACHE_REDIS_URL') # Get potential URL # Commented out
     
     # ---> INSERT DIAGNOSTIC LOGGING HERE <---
-    logger.info(f"[Cache Factory] Input Config CACHE_TYPE: {cache_type}")
-    logger.info(f"[Cache Factory] Redis Available (Import): {REDIS_AVAILABLE}")
-    logger.info(f"[Cache Factory] Input Config CACHE_REDIS_URL: {redis_url_from_config}")
+    # logger.info(f"[Cache Factory] Input Config CACHE_TYPE: {cache_type}") # Commented out
+    # logger.info(f"[Cache Factory] Redis Available (Import): {REDIS_AVAILABLE}") # Commented out
+    # logger.info(f"[Cache Factory] Input Config CACHE_REDIS_URL: {redis_url_from_config}") # Commented out
     # ---> END DIAGNOSTIC LOGGING <---
     
+    # --- REST OF THE FUNCTION (WILL NOT BE REACHED) ---
+    # Check if the configured type is RedisCache and if Redis is available
+    # ... (original code remains here but won't execute due to the raise) ...
+
     # Check if the configured type is RedisCache and if Redis is available
     if cache_type == 'RedisCache' and REDIS_AVAILABLE:
         # Redis-based caching
