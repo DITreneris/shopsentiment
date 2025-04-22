@@ -193,53 +193,6 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         logger.error(f"Internal server error: {str(e)}")
         return {"error": "Internal server error"}, 500
     
-    # Add a health endpoint directly to the app
-    @app.route('/health')
-    def health():
-        """Return the health status of the application."""
-        # Check if API v1 is registered
-        api_v1_registered = False
-        api_v1_routes = []
-        try:
-            for blueprint in app.blueprints.values():
-                if blueprint.name == 'api_v1':
-                    api_v1_registered = True
-                    break
-                    
-            # Get all API v1 routes
-            for rule in app.url_map.iter_rules():
-                if 'api/v1' in str(rule):
-                    api_v1_routes.append({
-                        'endpoint': str(rule),
-                        'methods': list(rule.methods)
-                    })
-                    
-        except Exception as e:
-            logger.error(f"Error checking API v1 registration: {str(e)}")
-            logger.error(traceback.format_exc())
-        
-        # Get extended app info
-        app_info = {
-            'python_version': sys.version,
-            'flask_version': getattr(Flask, '__version__', 'unknown'),
-            'debug_mode': app.debug,
-            'env': os.environ.get('FLASK_ENV', 'production'),
-            'config': {k: str(v) for k, v in app.config.items() if not k.startswith('_') and k in ['SECRET_KEY', 'DEBUG', 'TESTING', 'ENV']}
-        }
-        
-        return {
-            'status': 'healthy',
-            'service': 'ShopSentiment Analysis',
-            'version': '1.0.0',
-            'timestamp': str(datetime.now()),
-            'api_status': {
-                'api_v1_registered': api_v1_registered,
-                'api_v1_routes': api_v1_routes,
-                'registered_blueprints': list(app.blueprints.keys())
-            },
-            'app_info': app_info
-        }
-    
     # Setup logging
     if not app.debug:
         # Configure production logging here
