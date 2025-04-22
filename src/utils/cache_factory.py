@@ -84,7 +84,9 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
             logger.info(f"Using Redis cache (RedisCache) at {redis_url}")
             return cache
         except Exception as e:
-            logger.warning(f"Failed to initialize Redis cache (type RedisCache): {e}. Falling back to simple cache.")
+            # Log the specific exception and traceback when Redis fails
+            logger.error(f"!!! Redis Initialization Failed: {type(e).__name__}: {str(e)} !!!", exc_info=True)
+            logger.warning(f"Failed to initialize Redis cache (type RedisCache). Falling back to simple cache.")
             # Fallback logic remains the same
             if CACHE_AVAILABLE:
                 # Explicitly configure SimpleCache
