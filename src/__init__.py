@@ -8,7 +8,7 @@ architecture, database integration, caching, and security features.
 import os
 import logging
 from datetime import datetime
-from flask import Flask, render_template, jsonify, request, g
+from flask import Flask, render_template, jsonify, request, g, current_app
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
@@ -101,6 +101,8 @@ def create_app(config=None):
     if hasattr(cache, 'init_app'):
         cache.init_app(app)
         logger.info(f"Initialized Flask-Caching extension (type: {cache.__class__.__name__}).")
+        # Explicitly store the initialized cache object in extensions
+        app.extensions['cache'] = cache 
     else:
         # If it's our SimpleCache or another fallback, store it directly
         app.extensions['cache'] = cache 
@@ -209,27 +211,43 @@ def create_app(config=None):
                 # Check MongoDB connection
                 db_type = "mongodb"
                 client = None # Keep track of client if we re-initialize
+                
+                # Prioritize getting client from contexts if available
+                current_client = g.get('mongodb_client', None) or current_app.config.get('MONGODB_CLIENT')
+                
                 try:
-                    if hasattr(app, 'mongodb') and app.mongodb.admin.command('ping'):
-                        # Initial client is open and working
+                    if current_client and hasattr(current_client.admin, 'command') and current_client.admin.command('ping'):
+                        # Use existing client from context if it's open and works
+                        db_status = "healthy"
+                    elif hasattr(app, 'mongodb') and app.mongodb.admin.command('ping'):
+                        # Fallback to initial app.mongodb if context client failed
+                        logger.warning("Context MongoDB client failed/missing, checking app.mongodb.")
                         db_status = "healthy"
                     else:
-                        # Either no client or it was closed, try re-initializing for health check
-                        logger.warning("Initial MongoDB ping failed or client missing/closed. Attempting re-init for health check.")
-                        temp_client = get_mongodb_client(app.config.get('MONGODB_URI'))
+                        # Neither context client nor app.mongodb worked or available/closed
+                        # Try re-initializing a temporary client ONLY for this health check
+                        logger.warning("Context/App MongoDB client failed/missing/closed. Attempting temporary re-init for health check.")
+                        temp_config_uri = current_app.config.get('MONGODB_URI')
+                        if not temp_config_uri:
+                             logger.error("MONGODB_URI missing in config, cannot perform temporary health check connection.")
+                             raise ValueError("Cannot check DB health without MONGODB_URI")
+                             
+                        temp_client = get_mongodb_client(temp_config_uri)
                         if temp_client:
                             temp_client.admin.command('ping') # Ping the new client
                             db_status = "healthy"
-                            close_mongodb_connection(temp_client) # Close the temporary client
+                            close_mongodb_connection(temp_client) # Close the temporary client immediately
                         else:
+                             logger.error("Temporary MongoDB client initialization failed during health check.")
                              db_status = "unhealthy"
+                             
                 except Exception as e:
                     # Catch pymongo.errors.OperationFailure for ping failure OR 
-                    # pymongo.errors.InvalidClient for closed client on initial check
-                    # OR any error during re-initialization/second ping
-                    logger.error(f"MongoDB health check failed: {str(e)}")
+                    # pymongo.errors.InvalidClient for closed client OR
+                    # any other error during checks or re-initialization
+                    logger.error(f"MongoDB health check failed during operation: {type(e).__name__}: {str(e)}")
                     db_status = "unhealthy"
-                    # Ensure temporary client is closed if created
+                    # Ensure temporary client is closed if created and still exists
                     if 'temp_client' in locals() and temp_client:
                         close_mongodb_connection(temp_client)
             
