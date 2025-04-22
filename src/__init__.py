@@ -95,10 +95,16 @@ def create_app(config=None):
     # Initialize cache
     # First, create the cache object using our factory
     cache = get_cache_from_app_config(app.config)
-    # Then, initialize it with the app using the standard method
-    cache.init_app(app)
-    # logger.info(f"Initialized cache: {cache.__class__.__name__}") # This might log SimpleCache initially if factory returns that
-    # Let's rely on health check for the final type after init_app
+    
+    # Then, initialize it with the app *if* it has the init_app method
+    # This handles the case where the factory returns our custom SimpleCache fallback
+    if hasattr(cache, 'init_app'):
+        cache.init_app(app)
+        logger.info(f"Initialized Flask-Caching extension (type: {cache.__class__.__name__}).")
+    else:
+        # If it's our SimpleCache or another fallback, store it directly
+        app.extensions['cache'] = cache 
+        logger.info(f"Initialized custom cache object (type: {cache.__class__.__name__}).")
     
     # Initialize sentiment service
     try:

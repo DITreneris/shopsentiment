@@ -88,8 +88,17 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
                 logger.error("[Cache Factory] CACHE_REDIS_URL is missing in config despite CACHE_TYPE being RedisCache.")
                 raise ValueError("CACHE_REDIS_URL not found in config for RedisCache type")
             
-            # Test the connection directly using the URL from config
-            redis_client = Redis.from_url(redis_url, socket_connect_timeout=5) # Add timeout
+            # Prepare Redis connection options
+            redis_connect_options = {
+                'socket_connect_timeout': 5
+            }
+            # If using SSL (rediss://), disable certificate verification for local dev
+            if redis_url.startswith('rediss://'):
+                logger.warning("[Cache Factory] Using 'rediss://'. Disabling SSL certificate verification for local development connection.")
+                redis_connect_options['ssl_cert_reqs'] = None
+            
+            # Test the connection directly using the URL from config and options
+            redis_client = Redis.from_url(redis_url, **redis_connect_options) 
             redis_client.ping()
             
             # Configure flask_caching with the correct type and URL
