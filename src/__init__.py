@@ -251,6 +251,10 @@ def create_app(config=None):
                 logger.error(f"Cache health check failed during operation: {str(e)}")
                 cache_status = "unhealthy"
             
+            # ---> ADDED LOGGING BEFORE RETURN <--- 
+            logger.info(f"Health Check Returning - DB Status: {db_status}, DB Type: {db_type}, Cache Status: {cache_status}, Cache Type: {cache_type}")
+            # ---> END ADDED LOGGING <--- 
+
             return jsonify({
                 'status': 'healthy',
                 'database': {
