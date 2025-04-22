@@ -101,12 +101,9 @@ def create_app(config=None):
     if hasattr(cache, 'init_app'):
         cache.init_app(app)
         logger.info(f"Initialized Flask-Caching extension (type: {cache.__class__.__name__}).")
-        # Explicitly store the initialized cache object in extensions
-        app.extensions['cache'] = cache 
     else:
         # If it's our SimpleCache or another fallback, store it directly
         app.extensions['cache'] = cache 
-        logger.info(f"Initialized custom cache object (type: {cache.__class__.__name__}).")
     
     # Initialize sentiment service
     try:
