@@ -10,8 +10,8 @@ from flask import Blueprint, jsonify, current_app
 
 logger = logging.getLogger(__name__)
 
-# Create main API blueprint
-api_v1 = Blueprint('api_v1', __name__, url_prefix='/v1')
+# Create main API blueprint (remove internal prefix)
+api_v1 = Blueprint('api_v1', __name__)
 
 @api_v1.route('/info', methods=['GET'])
 def api_info():
@@ -82,14 +82,17 @@ def register_api(app):
         api_v1.register_blueprint(products_bp, url_prefix='/products')
         
         logger.info("Registering API v1 blueprint with main app")
-        app.register_blueprint(api_v1, url_prefix='/api')
+        # Apply the full prefix during registration
+        app.register_blueprint(api_v1, url_prefix='/api/v1')
         
         logger.info('API v1 routes registered successfully')
         
-        # Print all registered routes for debugging
+        # Print ALL registered routes for debugging
+        logger.info("--- Start Full URL Map ---")
         for rule in app.url_map.iter_rules():
-            if 'api/v1' in str(rule):
-                logger.info(f"Registered route: {rule}")
+            # Log all rules, not just api/v1
+            logger.info(f"Registered route: {rule} | Methods: {rule.methods} | Endpoint: {rule.endpoint}")
+        logger.info("--- End Full URL Map ---")
                 
         return True
     except ImportError as e:

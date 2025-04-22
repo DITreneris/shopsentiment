@@ -1,1 +1,1 @@
-web: PYTHONPATH=$PYTHONPATH:. PYTHON_NLTK_SKIP_DOWNLOAD=true gunicorn --config gunicorn_config.py wsgi:app 
+web: PYTHONPATH=$PYTHONPATH:. gunicorn --config gunicorn_config.py wsgi:app 

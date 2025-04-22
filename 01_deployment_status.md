@@ -9,8 +9,8 @@
 - Health check: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/health (Main app health)
 - API health check: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/api/health (API health)
 
-⚠️ **API v1 Endpoints**: The API v1 endpoints have been fixed locally, but still need further investigation on Heroku.
-- Example: https://shopsentiment-analysis-1f4b6bb2d702.herokuapp.com/api/v1/info
+❌ **API v1 Endpoints**: Despite multiple attempts to fix, the API v1 endpoints still fail due to missing module issues.
+- Issue: `ModuleNotFoundError: No module named 'src.services.sentiment_analyzer'`
 
 ## Issues Resolved
 
@@ -52,70 +52,106 @@
    - Fixed the product routes blueprint to use `before_app_request` instead of `before_app_first_request`
    - Implemented a verification script (`verify_api_routes.py`) to test API routes registration
 
+8. **Environment Variables**
+   - ✅ Created a `.env` file with production environment variables
+   - Added NLTK-specific environment variables to control download behavior
+   - Updated the Heroku Procfile to include proper environment variable configuration
+
+## Recent Changes Made (April 16, 2023)
+
+1. **NLTK Download Issue Resolution Attempt**
+   - Updated the Procfile to include `PYTHON_NLTK_SKIP_DOWNLOAD=true` to bypass NLTK download issues
+   - Created an updated `nltk.txt` file with required packages for Heroku buildpack
+   - Added environment variables in `.env` to control NLTK download behavior
+   - Modified the application to handle missing NLTK components gracefully with fallbacks
+
+2. **Improved Path Management**
+   - Updated `src/app_factory.py` to ensure proper path handling for imports
+   - Added code to explicitly add parent directory to `sys.path` for absolute imports
+   - Enhanced logging to better track module loading and path configuration
+
+3. **Fallback Error Handling**
+   - Improved error handling throughout the codebase
+   - Added detailed logging for import errors
+   - Created fallback implementations for critical services when modules cannot be loaded
+
 ## Issues Requiring Attention
 
 1. **API v1 Endpoint Deployment**
-   - The API v1 endpoints may not be properly registered on Heroku despite our fixes
-   - The health endpoint on Heroku doesn't show the debug information we added, suggesting our changes weren't fully applied
-   - Need to check Heroku logs for error messages related to API v1 registration
-   - May need to rebuild the application on Heroku to ensure all changes are applied
+   - ❌ The API v1 endpoints are failing on Heroku with `ModuleNotFoundError: No module named 'src.services.sentiment_analyzer'`
+   - Despite the file existing and being correctly structured, the module cannot be found
+   - The application loads but fails to initialize sentiment services correctly
+   - Error occurs both in app initialization and when attempting to access sentiment endpoints
 
 2. **NLTK Data Download**
-   - Heroku deployment logs showed `'nltk.txt' not found, not downloading any corpora`, suggesting the file wasn't properly included
-   - Need to ensure the `nltk.txt` file is committed and pushed to Heroku
+   - ✅ Created `nltk.txt` file listing required NLTK packages
+   - ❌ NLTK download still fails during deployment with error: `Error: Unable to download NLTK data`
+   - Despite adding environment variables and updating Procfile to skip NLTK downloads
 
-3. **Template Rendering**
+3. **Import Structure Issues**
+   - Directory structure may be causing module import problems
+   - The sentinel file pattern (src/services/sentiment_analyzer/__init__.py) may not be working as expected
+   - Need to potentially flatten the module structure or revise import patterns
+
+4. **Template Rendering**
    - While the app is running, we haven't verified if the template rendering is working correctly
    - Need to test routes that depend on templates (`/`, `/about`, etc.)
 
-4. **Database Connection**
+5. **Database Connection**
    - The application may require database setup and configuration
    - Check if data access is functioning correctly
 
-5. **Static Files**
+6. **Static Files**
    - Verify that static files (CSS, JavaScript, images) are properly served
 
-6. **Runtime Deprecation Warning**
+7. **Runtime Deprecation Warning**
    - Heroku warns that `runtime.txt` is deprecated and should be replaced with `.python-version`
    - Consider updating the Python version specification format
 
 ## Next Steps
 
-1. ~~**Create NLTK Data Configuration**~~
-   - ✅ Created an `nltk.txt` file with the required NLTK data packages (punkt, stopwords, vader_lexicon, wordnet, averaged_perceptron_tagger)
+1. **Fix Module Import Issues**
+   - Consider flattening the directory structure to avoid nested imports
+   - Simplify the sentiment analyzer implementation to avoid complex import patterns
+   - Evaluate using absolute imports consistently throughout the codebase
+   - Consider moving critical functionality to the app factory to avoid import issues
 
-2. ~~**Fix API v1 Endpoints Locally**~~
-   - ✅ Fixed the API v1 blueprint registration by using direct imports
-   - ✅ Created necessary stub implementations for database connections
-   - ✅ Added detailed error handling and logging for troubleshooting
-   - ✅ Verified API v1 routes registration locally
+2. **Alternative NLTK Strategy**
+   - Implement a complete fallback for NLTK functionality that doesn't rely on downloaded data
+   - Use a simpler sentiment analysis approach that doesn't depend on NLTK or external data
+   - Consider pre-packaging required NLTK data or using a different approach entirely
 
-3. ~~**Deploy API v1 Fixes to Heroku**~~
-   - ✅ Committed the changes to the repository
-   - ✅ Pushed the changes to Heroku
-   - ❌ API v1 endpoints are still not accessible on production
+3. **Deployment Reconfiguration**
+   - Create a simplified version of the application for deployment
+   - Consider using a different Python buildpack or configuration
+   - Evaluate other deployment options like Docker containers
 
-4. **Troubleshoot API v1 Endpoints on Heroku**
-   - Ensure `nltk.txt` is properly included in the deployment
-   - Check Heroku logs for any error messages related to API v1 registration
-   - Consider rebuilding the application on Heroku to ensure all changes are applied
-   - Add more detailed logging for troubleshooting
+4. **Comprehensive Testing**
+   - Create a test script that verifies all modules can be imported correctly
+   - Test the API endpoints locally with the same environment variables as Heroku
+   - Create a minimal test case that reproduces the import issues
 
-5. **Test Web Routes**
-   - Test the main web routes to ensure they render templates correctly
-   - Verify that the routes in `src/web_routes.py` are functioning properly
+5. **Rebuild from Scratch**
+   - Consider recreating the application with a simpler structure
+   - Start with a minimal viable product and add functionality incrementally
+   - Use a flat directory structure with minimal nesting
 
-6. **Database Setup**
-   - Set up a SQLite database or configure Heroku PostgreSQL for production
-   - Create necessary tables for products, reviews, and sentiment data
+## Lessons Learned
 
-7. **Comprehensive Testing**
-   - Test all routes and endpoints to ensure they function correctly
-   - Verify that data flows correctly through the application
+1. **Module Structure**
+   - Complex module hierarchies can cause import issues in different environments
+   - Nested packages with `__init__.py` files can be problematic on some platforms
+   - Absolute imports are more reliable than relative imports for complex structures
 
-8. **Monitoring Setup**
-   - Set up proper monitoring for the application to track performance and errors
-   - Consider implementing logging to external services for better visibility
+2. **NLTK Integration**
+   - NLTK data download is problematic in serverless environments
+   - Pre-downloading data or providing fallbacks is essential
+   - Environment variables alone may not solve NLTK download issues
+
+3. **Heroku Deployment**
+   - Heroku's ephemeral filesystem requires special handling for data files
+   - Environment configuration is critical for successful deployment
+   - The buildpack system has limitations for complex Python applications
 
 ## Resources
 
@@ -127,7 +163,7 @@
 
 The application uses Gunicorn with the following command:
 ```
-web: gunicorn --config gunicorn_config.py wsgi:app
+web: PYTHONPATH=$PYTHONPATH:. PYTHON_NLTK_SKIP_DOWNLOAD=true gunicorn --config gunicorn_config.py wsgi:app
 ```
 
 Current Python version: 3.10 (specified in `.python-version`)

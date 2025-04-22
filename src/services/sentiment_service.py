@@ -26,15 +26,16 @@ class SentimentService:
         self.db_path = db_path
         self.model_type = model_type
         
-        # Import the sentiment analyzer here to avoid circular imports
+        # Import the singleton sentiment analyzer instance
         try:
+            # Now imports the instance from the .py file
             from src.services.sentiment_analyzer import sentiment_analyzer
             self.analyzer = sentiment_analyzer
-            logger.info(f"Successfully loaded sentiment analyzer")
-        except ImportError as e:
-            logger.warning(f"Could not import sentiment_analyzer: {str(e)}")
+            logger.info(f"Successfully loaded sentiment analyzer instance")
+        except Exception as e: # Catch general exceptions during loading/init if needed
+            logger.warning(f"Could not load or initialize sentiment_analyzer: {str(e)}")
             logger.warning("Creating fallback analyzer")
-            # Create a minimal fallback analyzer if import fails
+            # Create a minimal fallback analyzer if import or init fails
             self.analyzer = self._create_fallback_analyzer()
         
         logger.info(f"Initialized sentiment service with database at {db_path}")

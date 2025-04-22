@@ -24,8 +24,8 @@ def main():
         # Make sure src is in the path
         sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
         
-        # Import the application factory
-        from src.app_factory import create_app
+        # Import the application factory (now from src/__init__.py)
+        from src import create_app
         
         # Create the application
         app = create_app()

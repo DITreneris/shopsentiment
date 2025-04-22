@@ -5,26 +5,7 @@ Provides routes for analyzing sentiment in text.
 
 import logging
 from flask import Blueprint, jsonify, request
-
-# Use a try/except block to handle different import structures
-try:
-    # Try relative import first (preferred on Heroku)
-    from ...services.sentiment_analyzer import sentiment_analyzer
-except ImportError:
-    try:
-        # Fall back to absolute import if relative fails
-        from src.services.sentiment_analyzer import sentiment_analyzer
-    except ImportError:
-        # Create a fallback analyzer if all imports fail
-        class FallbackAnalyzer:
-            def analyze(self, text):
-                return {"score": 0.5, "label": "Neutral"}
-                
-            def analyze_text(self, text):
-                return {"score": 0.5, "label": "Neutral"}
-                
-        sentiment_analyzer = FallbackAnalyzer()
-        logging.warning("Using fallback sentiment analyzer due to import errors")
+from flask import current_app
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +17,14 @@ sentiment_bp = Blueprint('sentiment_api', __name__)
 def analyze_sentiment():
     """Analyze the sentiment of provided text."""
     try:
+        # Get the analyzer from the app context
+        sentiment_service = current_app.extensions.get('sentiment_service')
+        if not sentiment_service or not hasattr(sentiment_service, 'analyzer'):
+            logger.error("Sentiment service or analyzer not available in app context.")
+            return jsonify({'error': 'Service unavailable', 'message': 'Sentiment analysis service is not configured.'}), 503
+
+        analyzer = sentiment_service.analyzer
+
         data = request.get_json()
         if not data or 'text' not in data:
             return jsonify({
@@ -47,10 +36,13 @@ def analyze_sentiment():
         logger.info(f'API request to analyze sentiment for text: {text[:50]}...')
         
         # Try both methods to be compatible with different analyzer implementations
-        if hasattr(sentiment_analyzer, 'analyze_text'):
-            sentiment = sentiment_analyzer.analyze_text(text)
+        if hasattr(analyzer, 'analyze_text'):
+            sentiment = analyzer.analyze_text(text)
+        elif hasattr(analyzer, 'analyze'): # Check for older 'analyze' method
+            sentiment = analyzer.analyze(text)
         else:
-            sentiment = sentiment_analyzer.analyze(text)
+            logger.error("Analyzer object does not have a recognized analysis method.")
+            return jsonify({'error': 'Configuration error', 'message': 'Sentiment analyzer is not correctly configured.'}), 500
         
         return jsonify({
             'text': text,
@@ -68,6 +60,14 @@ def analyze_sentiment():
 def batch_analyze_sentiment():
     """Analyze the sentiment of multiple text inputs."""
     try:
+        # Get the analyzer from the app context
+        sentiment_service = current_app.extensions.get('sentiment_service')
+        if not sentiment_service or not hasattr(sentiment_service, 'analyzer'):
+            logger.error("Sentiment service or analyzer not available in app context.")
+            return jsonify({'error': 'Service unavailable', 'message': 'Sentiment analysis service is not configured.'}), 503
+
+        analyzer = sentiment_service.analyzer
+
         data = request.get_json()
         if not data or 'texts' not in data or not isinstance(data['texts'], list):
             return jsonify({
@@ -89,10 +89,18 @@ def batch_analyze_sentiment():
                 continue
                 
             # Try both methods to be compatible with different analyzer implementations
-            if hasattr(sentiment_analyzer, 'analyze_text'):
-                sentiment = sentiment_analyzer.analyze_text(text)
+            if hasattr(analyzer, 'analyze_text'):
+                sentiment = analyzer.analyze_text(text)
+            elif hasattr(analyzer, 'analyze'): # Check for older 'analyze' method
+                sentiment = analyzer.analyze(text)
             else:
-                sentiment = sentiment_analyzer.analyze(text)
+                logger.error(f"Analyzer object does not have a recognized analysis method for text: {text[:30]}...")
+                # Add error for this specific text, but continue batch
+                results.append({
+                    'text': text,
+                    'error': 'Analyzer configuration error for this item.'
+                })
+                continue
                 
             results.append({
                 'text': text,

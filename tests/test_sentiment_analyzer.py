@@ -66,29 +66,20 @@ class TestSentimentAnalyzer:
         assert 0.3 <= result["score"] <= 0.7  # Should be somewhere in the neutral range
         assert result["type"] in ["positive", "neutral", "negative"]
 
-    @patch('src.services.sentiment_analyzer.MODEL_TYPE', 'development')
-    def test_development_mode_has_more_randomness(self):
-        """Test that development mode adds more randomness to scores."""
+    def test_analyzer_is_deterministic(self):
+        """Test that the analyzer gives consistent results for the same input."""
+        # Instantiate analyzer directly (model_type is ignored by current implementation)
         analyzer = SentimentAnalyzer()
         
-        # Analyze the same text multiple times to check for variability
+        # Analyze the same text multiple times to check for consistency
         text = "This is a good product with some nice features."
-        results = [analyzer.analyze(text)["score"] for _ in range(10)]
+        # Get the full result dict to compare
+        results = [analyzer.analyze(text) for _ in range(10)]
         
-        # Check that we have some variability in the results
-        assert len(set(results)) > 1, "Development mode should introduce randomness"
-
-    @patch('src.services.sentiment_analyzer.MODEL_TYPE', 'production')
-    def test_production_mode_has_less_randomness(self):
-        """Test that production mode adds less randomness to scores."""
-        analyzer = SentimentAnalyzer()
-        
-        # Analyze the same text multiple times
-        text = "This is a good product with some nice features."
-        results = [analyzer.analyze(text)["score"] for _ in range(10)]
-        
-        # There should still be some variability, but less than in development mode
-        assert len(set(results)) >= 1
+        # Check that all result dictionaries are identical
+        first_result = results[0]
+        all_same = all(result == first_result for result in results)
+        assert all_same, "Analyzer should produce deterministic results"
 
     def test_score_is_bounded(self, analyzer):
         """Test that sentiment scores are bounded between 0 and 1."""

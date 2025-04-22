@@ -11,8 +11,8 @@ from pydantic import ValidationError
 from src.models.product import Product, Review
 from src.database.product_dal import ProductDAL
 from src.database.sqlite_product_dal import SQLiteProductDAL  # Import the SQLite DAL
-from src.services.sentiment_analyzer import sentiment_analyzer
 from src.utils.cache import cached
+from src.database.connection import get_database
 
 logger = logging.getLogger(__name__)
 
@@ -44,17 +44,23 @@ def setup_dal():
     else:
         # Try MongoDB DAL first, fall back to SQLite if needed
         try:
-            logger.info("Attempting to use MongoDB database for products")
-            mongo_dal = ProductDAL()
-            # Test MongoDB connection
-            # If this succeeds, use MongoDB
-            product_dal = mongo_dal
-            logger.info("Successfully connected to MongoDB for products")
+            logger.info("Attempting to connect to MongoDB database")
+            # Get the MongoDB connection; assume get_database() raises error or returns None on failure
+            db = get_database()
+            
+            # Check if connection succeeded (add a more specific check if needed)
+            if db is None:
+                raise ConnectionError("Failed to get MongoDB database connection.")
+                
+            # If connection is successful, instantiate the MongoDB DAL
+            product_dal = ProductDAL() # Now instantiated only if db connection is ok
+            logger.info("Successfully connected to MongoDB and initialized ProductDAL")
+            
         except Exception as e:
-            logger.warning(f"Failed to initialize MongoDB DAL: {str(e)}")
+            logger.warning(f"Failed to initialize MongoDB connection or DAL: {str(e)}")
             logger.warning("Falling back to SQLite database for products")
             product_dal = SQLiteProductDAL()
-            # Make sure SQLite is enabled
+            # Ensure the config reflects the fallback state if it wasn't already set
             current_app.config['USE_SQLITE'] = True
     
     dal_setup_complete = True
@@ -236,6 +242,14 @@ def delete_product(product_id):
 def add_review(product_id):
     """Add a review to a product."""
     try:
+        # Get the analyzer from the app context
+        sentiment_service = current_app.extensions.get('sentiment_service')
+        if not sentiment_service or not hasattr(sentiment_service, 'analyzer'):
+            logger.error("Sentiment service or analyzer not available in app context.")
+            return jsonify({'error': 'Service unavailable', 'message': 'Sentiment analysis service is not configured.'}), 503
+
+        analyzer = sentiment_service.analyzer
+
         # Check if product exists
         product = product_dal.get_product(product_id)
         if not product:
@@ -243,7 +257,7 @@ def add_review(product_id):
                 'error': 'Not found',
                 'message': f'Product with ID {product_id} not found'
             }), 404
-            
+
         # Get request data
         data = request.get_json()
         if not data:
@@ -251,12 +265,7 @@ def add_review(product_id):
                 'error': 'Bad request',
                 'message': 'Missing request body'
             }), 400
-            
-        # If sentiment score is not provided, calculate it
-        if 'text' in data and 'sentiment_score' not in data:
-            sentiment = sentiment_analyzer.analyze(data['text'])
-            data['sentiment_score'] = sentiment['score']
-            
+
         # Validate review data
         try:
             review = Review(**data)
@@ -265,24 +274,31 @@ def add_review(product_id):
                 'error': 'Validation error',
                 'message': str(e)
             }), 400
-            
-        # Add review to the product
+
+        # Analyze sentiment of the review text
+        sentiment_result = analyzer.analyze_text(review.text)
+        review.sentiment = sentiment_result.get('label', 'Neutral') # Store label
+        review.sentiment_score = sentiment_result.get('score', 0.0) # Store score
+
+        # Add review to the database
         success = product_dal.add_review(product_id, review)
-        
+
         if not success:
             return jsonify({
                 'error': 'Internal server error',
                 'message': 'Failed to add review'
             }), 500
-            
+
         return jsonify({
-            'message': 'Review added successfully'
+            'message': 'Review added successfully',
+            'sentiment': review.sentiment,
+            'score': review.sentiment_score
         }), 201
     except Exception as e:
         logger.error(f"Error adding review to product {product_id}: {str(e)}")
         return jsonify({
             'error': 'Internal server error',
-            'message': f'Failed to add review to product {product_id}'
+            'message': 'Failed to add review'
         }), 500
 
 

@@ -28,7 +28,6 @@ from src.web_routes import register_web_routes
 from src.auth import register_auth_routes
 from src.utils.security import setup_security, setup_input_validation
 from src.utils.cache_factory import get_cache_from_app_config
-from src.services.sentiment_analyzer import sentiment_analyzer
 
 # Configure logging
 logging.basicConfig(
@@ -97,6 +96,24 @@ def create_app(config=None):
     cache = get_cache_from_app_config(app.config)
     app.extensions['cache'] = cache
     logger.info(f"Initialized cache: {cache.__class__.__name__}")
+    
+    # Initialize sentiment service
+    try:
+        # Import here to avoid potential circular dependencies at module level
+        from src.services.sentiment_service import create_sentiment_service
+        db_path = app.config.get('DATABASE_PATH', 'data/shopsentiment.db') # Get path from config
+        sentiment_model = app.config.get('SENTIMENT_ANALYSIS_MODEL', 'default') # Get model type from config
+        sentiment_service = create_sentiment_service(db_path, sentiment_model)
+        app.extensions['sentiment_service'] = sentiment_service
+        logger.info(f"Initialized sentiment service with model: {sentiment_model}")
+    except ImportError as e:
+        logger.error(f"Could not import sentiment_service module: {str(e)}")
+        # Set to None so routes can check existence
+        app.extensions['sentiment_service'] = None
+    except Exception as e:
+        logger.error(f"Failed to initialize sentiment service: {str(e)}")
+        # Set to None so routes can check existence
+        app.extensions['sentiment_service'] = None
     
     # Initialize database connection based on configuration
     # Check environment variable first, then config
