@@ -58,43 +58,52 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
     Returns:
         Configured cache instance
     """
-    cache_type = config.get('CACHE_TYPE', 'simple')
+    cache_type = config.get('CACHE_TYPE', 'SimpleCache') # Default to SimpleCache
     
-    if cache_type == 'redis' and REDIS_AVAILABLE:
+    # Check if the configured type is RedisCache and if Redis is available
+    if cache_type == 'RedisCache' and REDIS_AVAILABLE:
         # Redis-based caching
         try:
-            redis_url = config.get('REDIS_URL', 'redis://localhost:6379/0')
-            redis_client = Redis.from_url(redis_url)
-            
-            # Test the connection
+            # Get REDIS_URL from config (which should come from env var in production)
+            redis_url = config.get('CACHE_REDIS_URL') 
+            if not redis_url:
+                 raise ValueError("CACHE_REDIS_URL not found in config for RedisCache type")
+
+            # Test the connection directly using the URL from config
+            redis_client = Redis.from_url(redis_url, socket_connect_timeout=5) # Add timeout
             redis_client.ping()
             
-            cache = Cache(config={
-                'CACHE_TYPE': 'redis',
+            # Configure flask_caching with the correct type and URL
+            cache_config_dict = {
+                'CACHE_TYPE': 'RedisCache', # Use the correct type name for flask_caching
                 'CACHE_REDIS_URL': redis_url,
-                'CACHE_DEFAULT_TIMEOUT': config.get('CACHE_TIMEOUT', 300)
-            })
+                'CACHE_DEFAULT_TIMEOUT': config.get('CACHE_DEFAULT_TIMEOUT', 300)
+            }
+            cache = Cache(config=cache_config_dict)
             
-            logger.info(f"Using Redis cache at {redis_url}")
+            logger.info(f"Using Redis cache (RedisCache) at {redis_url}")
             return cache
         except Exception as e:
-            logger.warning(f"Failed to initialize Redis cache: {e}. Falling back to simple cache.")
+            logger.warning(f"Failed to initialize Redis cache (type RedisCache): {e}. Falling back to simple cache.")
+            # Fallback logic remains the same
             if CACHE_AVAILABLE:
+                # Explicitly configure SimpleCache
                 return Cache(config={
                     'CACHE_TYPE': 'SimpleCache',
                     'CACHE_THRESHOLD': config.get('CACHE_THRESHOLD', 500),
-                    'CACHE_DEFAULT_TIMEOUT': config.get('CACHE_TIMEOUT', 300)
+                    'CACHE_DEFAULT_TIMEOUT': config.get('CACHE_DEFAULT_TIMEOUT', 300)
                 })
             else:
-                return SimpleCache(threshold=config.get('CACHE_THRESHOLD', 500), default_timeout=config.get('CACHE_TIMEOUT', 300))
+                return SimpleCache(threshold=config.get('CACHE_THRESHOLD', 500), default_timeout=config.get('CACHE_DEFAULT_TIMEOUT', 300))
     else:
-        # Simple in-memory cache
-        logger.info("Using simple in-memory cache")
+        # Simple in-memory cache or if Redis type was specified but not available
+        logger.info(f"Using simple in-memory cache (type: {cache_type})")
         if CACHE_AVAILABLE:
+            # Explicitly configure SimpleCache
             return Cache(config={
                 'CACHE_TYPE': 'SimpleCache',
                 'CACHE_THRESHOLD': config.get('CACHE_THRESHOLD', 500),
-                'CACHE_DEFAULT_TIMEOUT': config.get('CACHE_TIMEOUT', 300)
+                'CACHE_DEFAULT_TIMEOUT': config.get('CACHE_DEFAULT_TIMEOUT', 300)
             })
         else:
-            return SimpleCache(threshold=config.get('CACHE_THRESHOLD', 500), default_timeout=config.get('CACHE_TIMEOUT', 300)) 
+            return SimpleCache(threshold=config.get('CACHE_THRESHOLD', 500), default_timeout=config.get('CACHE_DEFAULT_TIMEOUT', 300)) 
