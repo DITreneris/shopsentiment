@@ -68,7 +68,7 @@ def setup_dal():
 
 @products_bp.route('', methods=['GET'])
 @cached("products:list")
-def get_products():
+async def get_products():
     """Get a list of all products."""
     try:
         page = int(request.args.get('page', 1))
@@ -84,7 +84,7 @@ def get_products():
         skip = (page - 1) * limit
         
         # Get products from the database
-        products = product_dal.get_products(skip, limit)
+        products = await product_dal.get_products(skip, limit)
         
         return jsonify({
             'products': products,
@@ -102,11 +102,11 @@ def get_products():
 
 @products_bp.route('/<product_id>', methods=['GET'])
 @cached("products:detail")
-def get_product(product_id):
+async def get_product(product_id):
     """Get detailed information about a specific product."""
     try:
         # Get product from the database
-        product = product_dal.get_product(product_id)
+        product = await product_dal.get_product(product_id)
         
         if not product:
             return jsonify({
@@ -124,7 +124,7 @@ def get_product(product_id):
 
 
 @products_bp.route('', methods=['POST'])
-def create_product():
+async def create_product():
     """Create a new product."""
     try:
         # Get request data
@@ -145,7 +145,7 @@ def create_product():
             }), 400
             
         # Create product in the database
-        product_id = product_dal.create_product(product)
+        product_id = await product_dal.create_product(product)
         
         if not product_id:
             return jsonify({
@@ -167,11 +167,11 @@ def create_product():
 
 
 @products_bp.route('/<product_id>', methods=['PUT'])
-def update_product(product_id):
+async def update_product(product_id):
     """Update an existing product."""
     try:
         # Check if product exists
-        product = product_dal.get_product(product_id)
+        product = await product_dal.get_product(product_id)
         if not product:
             return jsonify({
                 'error': 'Not found',
@@ -187,7 +187,7 @@ def update_product(product_id):
             }), 400
             
         # Update product in the database
-        success = product_dal.update_product(product_id, data)
+        success = await product_dal.update_product(product_id, data)
         
         if not success:
             return jsonify({
@@ -207,11 +207,11 @@ def update_product(product_id):
 
 
 @products_bp.route('/<product_id>', methods=['DELETE'])
-def delete_product(product_id):
+async def delete_product(product_id):
     """Delete a product."""
     try:
         # Check if product exists
-        product = product_dal.get_product(product_id)
+        product = await product_dal.get_product(product_id)
         if not product:
             return jsonify({
                 'error': 'Not found',
@@ -219,7 +219,7 @@ def delete_product(product_id):
             }), 404
             
         # Delete product from the database
-        success = product_dal.delete_product(product_id)
+        success = await product_dal.delete_product(product_id)
         
         if not success:
             return jsonify({
@@ -239,7 +239,7 @@ def delete_product(product_id):
 
 
 @products_bp.route('/<product_id>/reviews', methods=['POST'])
-def add_review(product_id):
+async def add_review(product_id):
     """Add a review to a product."""
     try:
         # Get the analyzer from the app context
@@ -251,7 +251,7 @@ def add_review(product_id):
         analyzer = sentiment_service.analyzer
 
         # Check if product exists
-        product = product_dal.get_product(product_id)
+        product = await product_dal.get_product(product_id)
         if not product:
             return jsonify({
                 'error': 'Not found',
@@ -281,7 +281,7 @@ def add_review(product_id):
         review.sentiment_score = sentiment_result.get('score', 0.0) # Store score
 
         # Add review to the database
-        success = product_dal.add_review(product_id, review)
+        success = await product_dal.add_review(product_id, review)
 
         if not success:
             return jsonify({
@@ -304,7 +304,7 @@ def add_review(product_id):
 
 @products_bp.route('/search', methods=['GET'])
 @cached("products:search")
-def search_products():
+async def search_products():
     """Search products by text query."""
     try:
         query = request.args.get('q', '')
@@ -327,7 +327,7 @@ def search_products():
         skip = (page - 1) * limit
         
         # Search products
-        products = product_dal.search_products(query, skip, limit)
+        products = await product_dal.search_products(query, skip, limit)
         
         return jsonify({
             'products': products,
