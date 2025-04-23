@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime
 from bs4 import BeautifulSoup
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from app.utils.resilient_scraper import ResilientScraper
+from src.utils.resilient_scraper import ResilientScraper
 
 # Configure logging
 logger = logging.getLogger(__name__)

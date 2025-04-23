@@ -8,6 +8,7 @@ import os
 import logging
 import sqlite3
 from typing import Any, Dict, Optional
+from flask import g # Import g
 
 from pymongo import MongoClient
 from pymongo.database import Database
@@ -15,40 +16,35 @@ from pymongo.errors import ConfigurationError, ConnectionFailure
 
 logger = logging.getLogger(__name__)
 
-# Global variable to cache the client
-_mongodb_client = None
-
 def get_mongodb_client():
-    """Get a MongoDB client connection, reusing if already established."""
-    global _mongodb_client
-    if _mongodb_client:
-        return _mongodb_client
+    """Get a MongoDB client connection for the current request context."""
+    # Use flask.g to store/retrieve the client for the current request
+    if 'mongodb_client' not in g:
+        mongo_uri = os.environ.get('MONGODB_URI')
+        if not mongo_uri:
+            logger.info("MONGODB_URI not set.")
+            g.mongodb_client = None # Store None in g if no URI
+            return None
 
-    mongo_uri = os.environ.get('MONGODB_URI')
-    if not mongo_uri:
-        logger.info("MONGODB_URI not set.")
-        return None
-
-    logger.info("Attempting to connect to MongoDB...")
-    try:
-        client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000) # 5 sec timeout
-        # The ismaster command is cheap and does not require auth.
-        client.admin.command('ismaster')
-        logger.info("MongoDB connection successful.")
-        _mongodb_client = client
-        return client
-    except (ConfigurationError, ConnectionFailure) as e:
-        logger.error(f"MongoDB connection failed: {str(e)}")
-        _mongodb_client = None
-        return None
-    except Exception as e: # Catch other potential errors
-        logger.error(f"An unexpected error occurred during MongoDB connection: {str(e)}")
-        _mongodb_client = None
-        return None
+        logger.info("Attempting to connect to MongoDB for this request...")
+        try:
+            client = MongoClient(mongo_uri, serverSelectionTimeoutMS=5000) # 5 sec timeout
+            # The ismaster command is cheap and does not require auth.
+            client.admin.command('ismaster')
+            logger.info("MongoDB connection successful for this request.")
+            g.mongodb_client = client # Store the client in g
+        except (ConfigurationError, ConnectionFailure) as e:
+            logger.error(f"MongoDB connection failed: {str(e)}")
+            g.mongodb_client = None # Store None in g on failure
+        except Exception as e: # Catch other potential errors
+            logger.error(f"An unexpected error occurred during MongoDB connection: {str(e)}")
+            g.mongodb_client = None # Store None in g on failure
+            
+    return g.mongodb_client
 
 def get_database() -> Database | sqlite3.Connection | None:
     """
-    Get a database connection based on configuration.
+    Get a database connection based on configuration for the current request context.
     Prioritizes MongoDB if MONGODB_URI is set and connection succeeds,
     otherwise falls back to SQLite if USE_SQLITE is true or MongoDB fails.
     
@@ -88,28 +84,33 @@ def get_database() -> Database | sqlite3.Connection | None:
                 os.makedirs(data_dir)
                 logger.info(f"Created directory for SQLite DB: {data_dir}")
 
-            conn = sqlite3.connect(db_path)
-            conn.row_factory = sqlite3.Row
-            return conn
+            # Manage SQLite connection via flask.g as well for consistency
+            if 'sqlite_db' not in g:
+                conn = sqlite3.connect(db_path)
+                conn.row_factory = sqlite3.Row
+                g.sqlite_db = conn
+            return g.sqlite_db
         except sqlite3.Error as e:
             logger.error(f"Failed to connect to SQLite database at {db_path}: {e}")
             return None
 
-def close_mongodb_connection(e=None): # Changed signature for app.teardown_appcontext
-    """Close MongoDB client connection if it exists."""
-    global _mongodb_client
-    if _mongodb_client:
-        logger.info("Closing MongoDB connection.")
-        _mongodb_client.close()
-        _mongodb_client = None
+def close_mongodb_connection(e=None):
+    """Close MongoDB client connection stored in the request context (g)."""
+    # Remove global logic
+    # global _mongodb_client 
+    client = g.pop('mongodb_client', None)
+    if client:
+        logger.info("Closing MongoDB connection for this request.")
+        client.close()
+        # No need to set global to None
+        # _mongodb_client = None 
 
 # Add a close_sqlite_db function if needed for consistency, 
 # though connection objects usually handle their own closing.
 
 def close_sqlite_db(e=None):
-    # Typically handled by Flask-SQLAlchemy or context managers,
-    # but can add explicit close if managing connections manually via g.
-    db = g.pop('db', None)
+    # This function already correctly uses g
+    db = g.pop('sqlite_db', None) # Use 'sqlite_db' to match get_database
     if db is not None:
         db.close()
         logger.info("Closed SQLite connection from g context.") 

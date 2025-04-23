@@ -17,6 +17,13 @@ typing-extensions==4.8.0
 asgiref==3.7.2
 textblob==0.17.1
 
+# Scraping & Task Queue Dependencies
+requests
+beautifulsoup4
+fake-useragent
+tenacity
+celery
+
 # Development dependencies
 pytest==7.4.3
 pytest-asyncio==0.21.1
