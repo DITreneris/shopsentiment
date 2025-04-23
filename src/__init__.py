@@ -96,6 +96,10 @@ def create_app(config=None):
     # First, create the cache object using our factory
     cache = get_cache_from_app_config(app.config)
     
+    # ---> Store cache instance directly on app for health check access <---
+    app._health_check_cache_instance = cache
+    # ---> End health check instance storage <---
+    
     # Then, initialize it with the app *if* it has the init_app method
     # This handles the case where the factory returns our custom SimpleCache fallback
     if hasattr(cache, 'init_app'):
@@ -207,42 +211,27 @@ def create_app(config=None):
             else:
                 # Check MongoDB connection
                 db_type = "mongodb"
-                client = None # Keep track of client if we re-initialize
-                
-                # Prioritize getting client from contexts if available
-                current_client = g.get('mongodb_client', None) or current_app.config.get('MONGODB_CLIENT')
-                
                 try:
-                    if current_client and hasattr(current_client.admin, 'command') and current_client.admin.command('ping'):
-                        # Use existing client from context if it's open and works
+                    # ---> Health Check DB Strategy: Always create a temporary client <---
+                    logger.info("Health Check: Attempting temporary DB connection for ping.")
+                    temp_config_uri = current_app.config.get('MONGODB_URI')
+                    if not temp_config_uri:
+                        logger.error("MONGODB_URI missing in config, cannot perform temporary health check connection.")
+                        raise ValueError("Cannot check DB health without MONGODB_URI")
+                        
+                    temp_client = get_mongodb_client(temp_config_uri)
+                    if temp_client:
+                        temp_client.admin.command('ping') # Ping the new client
                         db_status = "healthy"
-                    elif hasattr(app, 'mongodb') and app.mongodb.admin.command('ping'):
-                        # Fallback to initial app.mongodb if context client failed
-                        logger.warning("Context MongoDB client failed/missing, checking app.mongodb.")
-                        db_status = "healthy"
+                        logger.info("Health Check: Temporary DB connection and ping successful.")
+                        close_mongodb_connection(temp_client) # Close the temporary client immediately
                     else:
-                        # Neither context client nor app.mongodb worked or available/closed
-                        # Try re-initializing a temporary client ONLY for this health check
-                        logger.warning("Context/App MongoDB client failed/missing/closed. Attempting temporary re-init for health check.")
-                        temp_config_uri = current_app.config.get('MONGODB_URI')
-                        if not temp_config_uri:
-                             logger.error("MONGODB_URI missing in config, cannot perform temporary health check connection.")
-                             raise ValueError("Cannot check DB health without MONGODB_URI")
-                             
-                        temp_client = get_mongodb_client(temp_config_uri)
-                        if temp_client:
-                            temp_client.admin.command('ping') # Ping the new client
-                            db_status = "healthy"
-                            close_mongodb_connection(temp_client) # Close the temporary client immediately
-                        else:
-                             logger.error("Temporary MongoDB client initialization failed during health check.")
-                             db_status = "unhealthy"
-                             
+                        logger.error("Temporary MongoDB client initialization failed during health check.")
+                        db_status = "unhealthy"
+                    # ---> End Health Check DB Strategy <---
                 except Exception as e:
-                    # Catch pymongo.errors.OperationFailure for ping failure OR 
-                    # pymongo.errors.InvalidClient for closed client OR
-                    # any other error during checks or re-initialization
-                    logger.error(f"MongoDB health check failed during operation: {type(e).__name__}: {str(e)}")
+                    # Catch any error during temporary connection/ping
+                    logger.error(f"MongoDB health check failed during temporary connection/ping: {type(e).__name__}: {str(e)}")
                     db_status = "unhealthy"
                     # Ensure temporary client is closed if created and still exists
                     if 'temp_client' in locals() and temp_client:
@@ -252,7 +241,9 @@ def create_app(config=None):
             cache_status = "unknown"
             cache_type = "unknown"
             try:
-                cache_instance = app.extensions.get('cache')
+                # ---> Health Check Cache Strategy: Use directly stored instance <---
+                cache_instance = getattr(current_app, '_health_check_cache_instance', None)
+                # ---> End Health Check Cache Strategy <---
                 
                 if cache_instance:
                     # Get the actual type of the initialized cache object
