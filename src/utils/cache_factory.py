@@ -6,6 +6,7 @@ based on application configuration.
 """
 
 import logging
+import os # Import os to check environment variables
 from typing import Dict, Any
 
 # Try to import Redis, but have a fallback if not available
@@ -92,10 +93,14 @@ def get_cache_from_app_config(config: Dict[str, Any]) -> Any:
             redis_connect_options = {
                 'socket_connect_timeout': 5
             }
-            # If using SSL (rediss://), disable certificate verification for local dev
-            if redis_url.startswith('rediss://'):
-                logger.warning("[Cache Factory] Using 'rediss://'. Disabling SSL certificate verification for local development connection.")
+            # If using SSL (rediss://), disable certificate verification ONLY for local dev
+            is_production = os.environ.get('FLASK_ENV') == 'production'
+            if redis_url.startswith('rediss://') and not is_production:
+                logger.warning("[Cache Factory] Non-production env with 'rediss://'. Disabling SSL certificate verification.")
                 redis_connect_options['ssl_cert_reqs'] = None
+            elif redis_url.startswith('rediss://') and is_production:
+                logger.info("[Cache Factory] Production env with 'rediss://'. Using default SSL certificate verification.")
+                # Explicitly do *not* set ssl_cert_reqs=None in production
             
             # Test the connection directly using the URL from config and options
             redis_client = Redis.from_url(redis_url, **redis_connect_options) 

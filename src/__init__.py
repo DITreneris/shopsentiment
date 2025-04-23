@@ -219,7 +219,8 @@ def create_app(config=None):
                         logger.error("MONGODB_URI missing in config, cannot perform temporary health check connection.")
                         raise ValueError("Cannot check DB health without MONGODB_URI")
                         
-                    temp_client = get_mongodb_client(temp_config_uri)
+                    # Call get_mongodb_client WITHOUT the URI argument
+                    temp_client = get_mongodb_client() 
                     if temp_client:
                         temp_client.admin.command('ping') # Ping the new client
                         db_status = "healthy"
