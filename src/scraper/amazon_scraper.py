@@ -1,10 +1,8 @@
 import os
 import json
 import logging
-import sqlite3
 from datetime import datetime
 from bs4 import BeautifulSoup
-from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from src.utils.resilient_scraper import ResilientScraper
 
 # Configure logging
@@ -30,7 +28,6 @@ class AmazonScraper:
             min_delay=min_delay,
             max_delay=max_delay
         )
-        self.sentiment_analyzer = SentimentIntensityAnalyzer()
     
     def get_product_url(self, asin):
         """
@@ -83,8 +80,13 @@ class AmazonScraper:
             price = price_element.text.strip() if price_element else "Unknown Price"
             
             # Extract product rating
-            rating_element = soup.select_one('#acrPopover')
-            rating = rating_element.get('title', 'Unknown Rating').split(' ')[0] if rating_element else "Unknown Rating"
+            # Select the span containing text like "4.1 out of 5 stars"
+            rating_text_element = soup.select_one('i.a-icon-star span.a-icon-alt') 
+            rating_text = rating_text_element.text.strip() if rating_text_element else "0 out of 5 stars"
+            try:
+                rating = rating_text.split(' ')[0] # Extract the number
+            except:
+                rating = "Unknown Rating"
             
             # Extract product image
             image_element = soup.select_one('#landingImage')
@@ -129,7 +131,7 @@ class AmazonScraper:
                 soup = self.scraper.parse_html(response.text)
                 
                 # Extract reviews
-                review_elements = soup.select('div[data-hook="review"]')
+                review_elements = soup.select('[data-hook="review"]')
                 
                 if not review_elements:
                     logger.info(f"No reviews found on page {page}, stopping")
@@ -165,16 +167,12 @@ class AmazonScraper:
                         body_element = review_element.select_one('span[data-hook="review-body"] span')
                         review_text = body_element.text.strip() if body_element else "No review text"
                         
-                        # Analyze sentiment
-                        sentiment = self.sentiment_analyzer.polarity_scores(review_text)['compound']
-                        
                         # Create review dictionary
                         review = {
                             'title': title,
                             'rating': rating,
                             'date': review_date,
                             'text': review_text,
-                            'sentiment': sentiment
                         }
                         
                         all_reviews.append(review)
@@ -193,38 +191,6 @@ class AmazonScraper:
         
         logger.info(f"Scraped {len(all_reviews)} reviews for product {asin}")
         return all_reviews
-    
-    def store_reviews_in_db(self, db_id, reviews, db_path=None):
-        """
-        Store scraped reviews in the database.
-        
-        Args:
-            db_id (int): Database ID for the product
-            reviews (list): List of review dictionaries
-            db_path (str, optional): Path to the database file
-            
-        Returns:
-            int: Number of reviews stored
-        """
-        if not db_path:
-            # Get the default database path
-            db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'reviews.db')
-        
-        logger.info(f"Storing {len(reviews)} reviews for product DB ID {db_id}")
-        
-        conn = sqlite3.connect(db_path)
-        cur = conn.cursor()
-        
-        for review in reviews:
-            cur.execute(
-                "INSERT INTO reviews (product_id, text, rating, date, sentiment) VALUES (?, ?, ?, ?, ?)",
-                (db_id, review["text"], review["rating"], review["date"], review["sentiment"])
-            )
-        
-        conn.commit()
-        conn.close()
-        
-        return len(reviews)
     
     def scrape_and_store(self, asin, db_id, max_pages=5):
         """
@@ -246,15 +212,11 @@ class AmazonScraper:
         # Scrape reviews
         reviews = self.scrape_reviews(asin, max_pages)
         
-        # Store reviews in database
-        stored_count = self.store_reviews_in_db(db_id, reviews)
-        
-        logger.info(f"Completed scrape and store for Amazon product {asin}, stored {stored_count} reviews")
+        logger.info(f"Completed scrape and store for Amazon product {asin}, stored {len(reviews)} reviews")
         
         return {
             'product': product_info,
-            'reviews_count': len(reviews),
-            'stored_count': stored_count
+            'reviews_count': len(reviews)
         }
 
 # Demo functionality if script is run directly

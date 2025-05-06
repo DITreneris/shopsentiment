@@ -72,6 +72,7 @@ def register_api(app):
     try:
         # Import API modules
         logger.info("Importing API v1 modules")
+        from src.api.v1.scrape import scrape_bp
         from src.api.v1.sentiment import sentiment_bp
         from src.api.v1.products import products_bp
         
@@ -80,6 +81,9 @@ def register_api(app):
         
         logger.info("Registering products blueprint with API v1")
         api_v1.register_blueprint(products_bp, url_prefix='/products')
+        
+        logger.info("Registering scrape blueprint with API v1")
+        api_v1.register_blueprint(scrape_bp, url_prefix='/scrape')
         
         logger.info("Registering API v1 blueprint with main app")
         # Apply the full prefix during registration

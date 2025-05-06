@@ -14,6 +14,14 @@ from datetime import datetime
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+# Database imports
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+
+# Initialize extensions (db instance needs to be globally accessible for models)
+db = SQLAlchemy()
+migrate = Migrate()
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -56,8 +64,12 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
         "SECRET_KEY": os.environ.get("SECRET_KEY", "dev-key-for-shopsentiment"),
         "CACHE_TYPE": "SimpleCache",
         "CACHE_DEFAULT_TIMEOUT": 300,
-        "DATABASE_PATH": os.environ.get("DATABASE_PATH", "data/shopsentiment.db"),
+        #"DATABASE_PATH": os.environ.get("DATABASE_PATH", "data/shopsentiment.db"), # Old SQLite path
         "SENTIMENT_ANALYSIS_MODEL": os.environ.get("SENTIMENT_MODEL", "default"),
+        # SQLAlchemy Config
+        "SQLALCHEMY_DATABASE_URI": os.environ.get("DATABASE_URL", "sqlite:///default.db"), # Default to SQLite if not set
+        "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+        "SQLALCHEMY_ECHO": os.environ.get("SQLALCHEMY_ECHO", "false").lower() == "true",
     })
     
     # Try to load default configuration
@@ -90,6 +102,14 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     except ImportError:
         logger.warning("flask_cors not installed, CORS support disabled")
     
+    # Initialize Database (SQLAlchemy)
+    try:
+        db.init_app(app)
+        migrate.init_app(app, db)
+        logger.info(f"SQLAlchemy initialized with URI: {app.config.get('SQLALCHEMY_DATABASE_URI')[:30]}...") # Log only prefix
+    except Exception as e:
+        logger.error(f"Failed to initialize SQLAlchemy: {str(e)}")
+    
     # Initialize cache
     try:
         from src.utils.cache_factory import get_cache_from_app_config
@@ -119,6 +139,10 @@ def create_app(config: Optional[Dict[str, Any]] = None) -> Flask:
     
     # Register blueprints
     with app.app_context():
+        # Import models here AFTER db is initialized and within app context
+        # This ensures models are registered with SQLAlchemy correctly
+        from src import models # Assuming __init__.py in models imports Product, Review
+        
         try:
             # Try to import API routes first
             try:

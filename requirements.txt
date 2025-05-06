@@ -1,5 +1,4 @@
 flask==2.2.5
-pymongo==4.5.0
 pydantic==2.5.1
 redis==5.0.1
 flask-cors==4.0.0
@@ -16,6 +15,12 @@ packaging==23.2
 typing-extensions==4.8.0
 asgiref==3.7.2
 textblob==0.17.1
+
+# Database (PostgreSQL)
+SQLAlchemy==2.0.23 # Or newer compatible version
+Flask-SQLAlchemy==3.1.1 # Or newer compatible version
+psycopg2-binary==2.9.9 # For PostgreSQL connection
+Flask-Migrate==4.0.5 # For database migrations (uses Alembic)
 
 # Scraping & Task Queue Dependencies
 requests
